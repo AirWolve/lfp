@@ -35,6 +35,8 @@ body, html {
   color: white;
   font-size: 24px;
   font-weight: bold;
+  border: none;
+  background-color: transparent;
 }
 
 .navBar ul {
@@ -42,13 +44,15 @@ body, html {
   gap: 30px; /* 메뉴 간격 */
 }
 
-.navBar ul li a {
+.navBar ul li button {
   color: white;
   font-size: 16px;
   transition: color 0.3s;
+  border: none;
+  background-color: transparent;
 }
 
-.navBar ul li a:hover {
+.navBar ul li button:hover {
   color: #ffcc00;
 }
 
