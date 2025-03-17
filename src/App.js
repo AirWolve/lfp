@@ -12,12 +12,12 @@ function App() {
   return (
     <div className="App">
       <nav className="navBar">
-        <a href="#" className="logo">logo</a>
+        <button href="App.js" className="logo">logo</button>
         <ul>
-        <li><a href="#home" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</a></li>
-        <li><a href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</a></li>
-          <li><a href="#">Sign In</a></li>
-          <li><a href="#">Trial for Guest</a></li>
+          <li><button href="#home" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</button></li>
+          <li><button href="#about" onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</button></li>
+          <li><button href="#">Sign In</button></li>
+          <li><button href="#">Trial for Guest</button></li>
         </ul>
       </nav>
       <header className="App-header">
