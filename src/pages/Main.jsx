@@ -15,7 +15,8 @@ const Main = () => {
         <nav className="navBar">
             <button className="logo">logo</button>
                 <ul>
-                    <li><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Home</button></li>
+                    <li><button onClick={ (e) => { e.preventDefault(); scrollToSection('home'); }}>Home</button></li>
+                   
                     <li><button onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</button></li>
                     <li><a href="/sign-in">Sign In</a></li>
                     <li><a href="/Trial-for-guest">Trial for Guest</a></li>
@@ -23,7 +24,7 @@ const Main = () => {
             </nav>
 
             {/* 메인 섹션 */}
-            <div className="mainHeader">
+            <div id = 'home' className="mainHeader">
                 <h1>Welcome to Our Service</h1>
             </div>
 
