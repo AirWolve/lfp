@@ -16,8 +16,8 @@ function App() {
       <Router basename={basename}>
           <Routes>
             <Route path="/" element={<Main />} />
-            <Route path="/SignIn" element={<SignIn />} />
-            <Route path="/SignUp" element={<SignUp />} />
+            <Route path="SignIn" element={<SignIn />} />
+            <Route path="SignUp" element={<SignUp />} />
           </Routes>
         </Router>
       </header>
