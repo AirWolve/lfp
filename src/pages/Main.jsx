@@ -1,6 +1,7 @@
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // import { useNavigate } from "react-router-dom";
 import React from 'react';
+import { Link } from 'react-router-dom';
 import "./Main.css";
 
 const Main = () => {
@@ -18,7 +19,7 @@ const Main = () => {
                     <li><button onClick={ (e) => { e.preventDefault(); scrollToSection('home'); }}>Home</button></li>
                    
                     <li><button onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</button></li>
-                    <li><a href="/SignIn">Sign In</a></li>
+                    <li><Link to="SignIn">Sign In</Link></li>
                     <li><a href="/TrialForGuest">Trial for Guest</a></li>
                 </ul>
             </nav>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 import './SignIn.css';
 import googleLogo from "../assets/google_icon.png"
 // import { useNavigate } from "react-router-dom";
@@ -24,7 +25,7 @@ const SignIn = () => {
             <button className="logo">logo</button>
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/SignIn">Sign In</a></li>
+                <li><Link to="SignIn">Sign In</Link></li>
                 <li><a href="/TrialForGuest">Trial for Guest</a></li>
             </ul>
         </nav>
