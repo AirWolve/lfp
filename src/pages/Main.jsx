@@ -18,8 +18,8 @@ const Main = () => {
                     <li><button onClick={ (e) => { e.preventDefault(); scrollToSection('home'); }}>Home</button></li>
                    
                     <li><button onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</button></li>
-                    <li><a href="/sign-in">Sign In</a></li>
-                    <li><a href="/Trial-for-guest">Trial for Guest</a></li>
+                    <li><a href="/SignIn">Sign In</a></li>
+                    <li><a href="/TrialForGuest">Trial for Guest</a></li>
                 </ul>
             </nav>
 

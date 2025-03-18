@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import Main from "./pages/Main.jsx";
-import Sign_in from "./pages/Sign_in.jsx";
-import Sign_up from "./pages/Sign-up.jsx";
+import Main from "./pages/Main.jsx";
+import SignIn from "./pages/SignIn.jsx";
+import SignUp from "./pages/SignUp.jsx";
 
 function App() {
   return (
@@ -11,8 +11,8 @@ function App() {
       <Router>
           <Routes>
             <Route path="/" element={<Main />} />
-            <Route path="/Sign-in" element={<Sign_in />} />
-            <Route path="/Sign-up" element={<Sign_up />} />
+            <Route path="/SignIn" element={<SignIn />} />
+            <Route path="/SignUp" element={<SignUp />} />
           </Routes>
         </Router>
       </header>
