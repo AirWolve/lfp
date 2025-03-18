@@ -1,14 +1,14 @@
 import React from "react";
-import './Sign-in.css';
+import './SignIn.css';
 import googleLogo from "../assets/google_icon.png"
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
-const Sign_in = () => {
-    const navigate = useNavigate();
+const SignIn = () => {
+    // const navigate = useNavigate();
     
-    const handleNavigateBack = () => {
-        navigate(-1);
-    };
+    // const handleNavigateBack = () => {
+    //     navigate(-1);
+    // };
     
     const handleLogin = () => {
         window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?
@@ -24,8 +24,8 @@ const Sign_in = () => {
             <button className="logo">logo</button>
             <ul>
                 <li><a href="/">Home</a></li>
-                <li><a href="/sign-in">Sign In</a></li>
-                <li><a href="/Trial-for-guest">Trial for Guest</a></li>
+                <li><a href="/SignIn">Sign In</a></li>
+                <li><a href="/TrialForGuest">Trial for Guest</a></li>
             </ul>
         </nav>
         <div className="login-box">
@@ -34,11 +34,11 @@ const Sign_in = () => {
             <img src={googleLogo} alt="Google Logo" onClick={handleLogin} className="google-logo"/>
                 Sign-in for Google account
             </button>
-            <p style={{fontSize: "12px", color: "white"}}>You have no account? <a href="/Sign-up" className="no-account">Create account</a></p>
+            <p style={{fontSize: "12px", color: "white"}}>You have no account? <a href="/SignUp" className="no-account">Create account</a></p>
             <div className="divider"></div>
         </div>
     </div>
     );
 };
 
-export default Sign_in;
+export default SignIn;
