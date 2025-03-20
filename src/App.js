@@ -6,8 +6,6 @@ import SignIn from "./pages/SignIn.jsx";
 import SignUp from "./pages/SignUp.jsx";
 
 function App() {
-  console.log(basename);
-
   return (
     <div className="App">
       <header className="App-header">
