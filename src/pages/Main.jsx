@@ -1,7 +1,6 @@
 // import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // import { useNavigate } from "react-router-dom";
 import React from 'react';
-import basename from '../config.js';
 import "./Main.css";
 
 const Main = () => {
@@ -19,8 +18,8 @@ const Main = () => {
                     <li><button onClick={ (e) => { e.preventDefault(); scrollToSection('home'); }}>Home</button></li>
                    
                     <li><button onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</button></li>
-                    <li><a href={`${basename}/SignIn`}>Sign In</a></li>
-                    <li><a href={`${basename}/TrialForGuest`}>Trial for Guest</a></li>
+                    <li><a href={`/SignIn`}>Sign In</a></li>
+                    <li><a href={`/TrialForGuest`}>Trial for Guest</a></li>
                 </ul>
             </nav>
 

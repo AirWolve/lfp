@@ -1,5 +1,4 @@
 import React from "react";
-import basename from '../config.js';
 import './SignIn.css';
 import googleLogo from "../assets/google_icon.png"
 // import { useNavigate } from "react-router-dom";
@@ -26,9 +25,9 @@ const SignIn = () => {
         <nav className="navBar">
             <button className="logo">logo</button>
             <ul>
-                <li><a href={`${basename}`}>Home</a></li>
-                <li><a href={`${basename}/SignIn`}>Sign In</a></li>
-                <li><a href={`${basename}/TrialForGuest`}>Trial for Guest</a></li>
+                <li><a href={`/`}>Home</a></li>
+                <li><a href={`/SignIn`}>Sign In</a></li>
+                <li><a href={`/TrialForGuest`}>Trial for Guest</a></li>
             </ul>
         </nav>
         <div className="login-box">
