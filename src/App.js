@@ -6,14 +6,16 @@ import SignIn from "./pages/SignIn.jsx";
 import SignUp from "./pages/SignUp.jsx";
 
 function App() {
+  console.log(basename);
+
   return (
     <div className="App">
       <header className="App-header">
-      <Router>
+      <Router basename={basename}>
           <Routes>
-            <Route path={`${basename}`} element={<Main />} />
-            <Route path={`${basename}/SignIn`} element={<SignIn />} />
-            <Route path={`${basename}/SignUp`} element={<SignUp />} />
+            <Route path="/" element={<Main />} />
+            <Route path="/SignIn" element={<SignIn />} />
+            <Route path="/SignUp" element={<SignUp />} />
           </Routes>
         </Router>
       </header>
