@@ -18,8 +18,6 @@ const SignIn = () => {
 		&scope=email profile`;
     };
 
-    console.log('SignIn Page' + basename);
-
     return (
     <div className="login-container">
         <nav className="navBar">
