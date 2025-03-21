@@ -23,9 +23,9 @@ const SignIn = () => {
         <nav className="navBar">
             <button className="logo">logo</button>
             <ul>
-                <li><a href={`/`}>Home</a></li>
-                <li><a href={`/SignIn`}>Sign In</a></li>
-                <li><a href={`/TrialForGuest`}>Trial for Guest</a></li>
+                <li><a href={`#/`}>Home</a></li>
+                <li><a href={`#/SignIn`}>Sign In</a></li>
+                <li><a href={`#/TrialForGuest`}>Trial for Guest</a></li>
             </ul>
         </nav>
         <div className="login-box">
@@ -34,7 +34,7 @@ const SignIn = () => {
             <img src={googleLogo} alt="Google Logo" onClick={handleLogin} className="google-logo"/>
                 Sign-in for Google account
             </button>
-            <p style={{fontSize: "12px", color: "white"}}>You have no account? <a href="/SignUp" className="no-account">Create account</a></p>
+            <p style={{fontSize: "12px", color: "white"}}>You have no account? <a href="#/SignUp" className="no-account">Create account</a></p>
             <div className="divider"></div>
         </div>
     </div>
