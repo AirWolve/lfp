@@ -1,0 +1,43 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:latest
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./jenkins:/var/jenkins_home
+      - ./build:/var/jenkins_home/build
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+    networks:
+      - lfp
+
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongo
+    restart: unless-stopped
+    volumes:
+      - ./db:/data/db
+    ports:
+      - "27017:27017" # Mongo DB Default Port
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root # Change password before use this container
+    networks:
+      - lfp
+
+  depnode:
+    image: node:22.14.0-alpine
+    container_name: node_server
+    restart: unless-stopped
+    volumes:
+      - ./build:/app/build
+    ports:
+      - "3000:3000" # Node Js Default Port 
+    command: npx serve -s /app/build -l 3000
+    networks:
+      - lfp
+
+networks:
+  lfp:
