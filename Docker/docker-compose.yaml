@@ -1,0 +1,65 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:latest
+    container_name: [Container name]
+    user: root
+    expose:
+      - [Port wants to expose]
+    volumes:
+      - [Path to jenkins]:/var/jenkins_home
+      - [Path to deploy node js local path]:/var/jenkins_home/[deploy node build path]
+      - [Path to develop node js local path]:/var/jenkins_home/[devlop node build path]
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker Access privilage
+      - /usr/bin/docker:/usr/bin/docker  # share Docker CLI with local
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    group_add:
+      - [Docker Group ID]
+    restart: unless-stopped
+    networks:
+      - lfp
+
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: [Container name]
+    restart: unless-stopped
+    volumes:
+      - [Path to Mongo DB]:/data/db
+    expose:
+      - '27017' # Mongo DB Default Port
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: [USER ID]
+      MONGO_INITDB_ROOT_PASSWORD: [USER PW]
+    networks:
+      - lfp
+
+  depnode:
+    image: node:22.14.0-alpine
+    container_name: [Container name]
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - [Path to Deploy node local path]:/app/build
+    expose:
+      - '3000' # Node Js Default Port 
+    command: npx serve -s /app/build -l 3000
+    networks:
+      - lfp
+
+  devnode:
+    image: node:22.14.0-alpine
+    container_name: [Container Name]
+    restart: unless-stopped
+    volumes:
+      - [Path to develop node js local path]:/app
+      - [Path to develop node js local path]/serve.json:/app/serve.json
+    expose:
+      - '3000' # Node Js Default Port
+    command: npx serve /app -l 3000 --config /app/serve.json
+    networks:
+      - lfp
+
+
+
+networks:
+  lfp:

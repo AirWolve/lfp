@@ -1,0 +1,24 @@
+{
+    "directoryListing": false,
+    "cleanUrls": true,
+    "rewrites": [
+      {
+        "source": "/:folder",
+        "destination": "/:folder/index.html"
+      },
+      {
+        "source": "/:folder/:file",
+        "destination": "/:folder/:file"
+      },
+      {
+        "source": "/:folder/static/:path*",
+        "destination": "/:folder/static/:path*"
+      },
+      {
+        "source": "/:folder/*",
+        "destination": "/:folder/index.html"
+      }
+    ],
+    "trailingSlash": true
+  }
+  
