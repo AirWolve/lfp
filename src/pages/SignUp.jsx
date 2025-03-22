@@ -1,6 +1,7 @@
 import React from "react";
 import './SignIn.css';
 import googleLogo from "../assets/google_icon.png";
+import { constPath } from "../config.js";
 
 const SignUp = () => {
 
@@ -9,9 +10,9 @@ const SignUp = () => {
         <nav className="navBar">
             <button className="logo">logo</button>
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/SignIn">Sign In</a></li>
-                <li><a href="/TrialForGuest">Trial for Guest</a></li>
+                <li><a href={`${constPath.home}`}>Home</a></li>
+                <li><a href={`${constPath.signUp}`}>Sign In</a></li>
+                <li><a href={`${constPath.trialForGuest}`}>Trial for Guest</a></li>
             </ul>
         </nav>
         <div className="login-box">
@@ -21,7 +22,7 @@ const SignUp = () => {
             <img src={googleLogo} alt="Google Logo" className="google-logo"/>
                 Sign-up for Google account
             </button>
-            <p style={{fontSize:"12px", color: "white", marginTop: "20px"}}>Already have a account? <a href="/SignIn" className="no-account">Sign-in</a></p>
+            <p style={{fontSize:"12px", color: "white", marginTop: "20px"}}>Already have a account? <a href={`${constPath.signIn}`} className="no-account">Sign-in</a></p>
             <div className="divider"></div>
         </div>
     </div>
