@@ -1,3 +1,5 @@
+import { BrowserRouter, HashRouter } from 'react-router-dom';
+
 const buildType = process.env.REACT_APP_BUILD_TYPE;
 const branch = process.env.REACT_APP_BRANCH;
 // test 빌드인 경우 브랜치 이름을 basename으로 사용, 그렇지 않으면 기본 '/'
@@ -11,6 +13,8 @@ export const constPath = {
     trialForGuest: `${baseDir}TrialForGuest`,
 };
 
-const config = { basename, constPath };
+export const RouterType = buildType === 'test' ? HashRouter : BrowserRouter;
+
+const config = { basename, constPath, RouterType };
 
 export default config;
