@@ -11,4 +11,6 @@ export const constPath = {
     trialForGuest: `${baseDir}TrialForGuest`,
 };
 
-export default { basename, constPath };
+const config = { basename, constPath };
+
+export default config;
