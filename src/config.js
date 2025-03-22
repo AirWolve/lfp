@@ -11,6 +11,8 @@ export const constPath = {
     trialForGuest: `${baseDir}TrialForGuest`,
 };
 
-const config = { basename, constPath };
+export const RouterType = buildType === 'test' ? HashRouter : BrowserRouter;
+
+const config = { basename, constPath, RouterType };
 
 export default config;
