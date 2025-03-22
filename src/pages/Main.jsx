@@ -2,6 +2,7 @@
 // import { useNavigate } from "react-router-dom";
 import React from 'react';
 import "./Main.css";
+import { constPath } from "../config.js";
 
 const Main = () => {
     const scrollToSection = (id) => {
@@ -18,8 +19,8 @@ const Main = () => {
                     <li><button onClick={ (e) => { e.preventDefault(); scrollToSection('home'); }}>Home</button></li>
                    
                     <li><button onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>About</button></li>
-                    <li><a href="/SignIn">Sign In</a></li>
-                    <li><a href="/TrialForGuest">Trial for Guest</a></li>
+                    <li><a href={`${constPath.signIn}`}>Sign In</a></li>
+                    <li><a href={`${constPath.trialForGuest}`}>Trial for Guest</a></li>
                 </ul>
             </nav>
 
