@@ -12,7 +12,7 @@ const SignIn = () => {
     // };
     
     const handleLogin = () => {
-        window.location.href = `${process.env.LFP_API_URL}/auth/oauth/google`
+        window.location.href = `https://lfp-api.simpo.pro/auth/oauth/google`
     };
 
     // const handleLogin = () => {
