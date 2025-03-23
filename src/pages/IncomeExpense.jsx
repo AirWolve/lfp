@@ -8,7 +8,7 @@ const IncomeExpense = () => {
 
     const handleNext = (e) => {
       e.preventDefault();
-      navigate(`${constPath.Overview}`);
+      navigate(`${constPath.overview}`);
     };
 
     const handleBack = (e) => {
