@@ -8,7 +8,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate("/Dashboard");
+    navigate(-1);
   };
 
   return (

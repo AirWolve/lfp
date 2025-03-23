@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./Dashboard.css";
 import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
+import { constPath } from "../config.js";
 
 const Dashboard = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -48,8 +49,8 @@ const Dashboard = () => {
             />
             {isProfileMenuOpen && (
               <div className="profile-dropdown">
-                <a href="/Profile">View your profile</a>
-                <a href="/">Log out</a>
+                <a href={`${constPath.profile}`}>View your profile</a>
+                <a href={`${constPath.home}`}>Log out</a>
               </div>
             )}
           </div>
