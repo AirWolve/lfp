@@ -11,6 +11,8 @@ export const constPath = {
     signUp: `${baseDir}SignUp`,
     signIn: `${baseDir}SignIn`,
     trialForGuest: `${baseDir}TrialForGuest`,
+    profile: `${baseDir}Profile`,
+    dashboard: `${baseDir}Dashboard`,
 };
 
 export const RouterType = buildType === 'test' ? HashRouter : BrowserRouter;
