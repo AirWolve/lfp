@@ -13,7 +13,7 @@ export const constPath = {
     trialForGuest: `${baseDir}TrialForGuest`,
     profile: `${baseDir}Profile`,
     dashboard: `${baseDir}Dashboard`,
-    basicSetting: `${baseDir}basicSetting`,
+    basicSetting: `${baseDir}BasicSetting`,
     overview: `${baseDir}Overview`,
     incomeExpense: `${baseDir}IncomeExpense`,
 };
