@@ -1,0 +1,138 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #4b626b;
+  }
+  
+  .scenario-wrapper {
+    text-align: center;
+    padding: 40px;
+    color: white;
+  }
+  
+  .scenario-title {
+    font-size: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .edit-icon {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  
+  /* Card */
+  .form-container {
+    background-color: white;
+    border-radius: 12px;
+    padding: 30px 40px;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    color: black;
+  }
+  
+  .form-container h3 {
+    margin-top: 0;
+  }
+  
+  .form-description {
+    font-size: 13px;
+    margin-bottom: 25px;
+    color: #444;
+  }
+  
+  /* Form */
+  .info-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .form-row.single {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  
+  input, select {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    min-width: 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .radio-group {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: white;
+    padding: 8px 14px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .radio-group input[type="radio"] {
+    accent-color: #3f545c; /* ✅ 체크된 색상 (모던 브라우저 지원) */
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+  
+  
+  /* Buttons */
+  .form-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .back, .next {
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100px;
+  }
+  
+  .back {
+    background-color: white;
+    border: 1px solid #ccc;
+  }
+  
+  .next {
+    background-color: #3f545c;
+    color: white;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+  }
+  
+  .next:hover {
+    background-color: #2e434a;
+  }
+  
