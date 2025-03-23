@@ -13,8 +13,8 @@ app.get('/auth/oauth/google', (req, res) => {
     }) ;
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-    const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-    console.log('Request URL:', fullUrl);
+    const referer = req.get('referer'); // 혹은 req.headers.referer
+    console.log('Referer:', referer);
     res.redirect(authUrl);
 });
 
@@ -26,8 +26,6 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
     }
 
     try {
-        const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-        console.log('Request URL:', fullUrl);
         const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
