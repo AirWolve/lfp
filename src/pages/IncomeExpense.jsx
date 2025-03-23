@@ -1,13 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./IncomeExpense.css";
+import constPath from "../config.js";
 
 const IncomeExpense = () => {
     const navigate = useNavigate();
 
     const handleNext = (e) => {
       e.preventDefault();
-      navigate("/Overview");
+      navigate(`${constPath.Overview}`);
     };
 
     const handleBack = (e) => {

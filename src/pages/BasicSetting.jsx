@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { constPath } from "../config.js";
 import "./BasicSetting.css";
 import editIcon from "../assets/editIcon.svg";
 
@@ -8,12 +9,12 @@ const BasicSetting = () => {
 
     const handleNext = (e) => {
       e.preventDefault();
-      navigate("/IncomeExpense");
+      navigate(`${constPath.incomeExpense}`);
     };
 
     const handleBack = (e) => {
       e.preventDefault();
-      navigate("/DashBoard");
+      navigate(`${constPath.dashboard}`);
     }
 
     const [ScenarioName, setScenarioName] = useState("Scenario Name");

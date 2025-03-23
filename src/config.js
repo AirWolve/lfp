@@ -13,6 +13,9 @@ export const constPath = {
     trialForGuest: `${baseDir}TrialForGuest`,
     profile: `${baseDir}Profile`,
     dashboard: `${baseDir}Dashboard`,
+    basicSetting: `${baseDir}basicSetting`,
+    overview: `${baseDir}Overview`,
+    incomeExpense: `${baseDir}IncomeExpense`,
 };
 
 export const RouterType = buildType === 'test' ? HashRouter : BrowserRouter;

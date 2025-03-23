@@ -77,6 +77,7 @@ const Overview = () => {
         {/* Content */}
         <div className="main-content">
         <button className="make-plan-btn">Make Plan</button>
+        
           {/* Charts */}
           <div className="charts">
             <div className="pie-group">
