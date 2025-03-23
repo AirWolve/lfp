@@ -7,7 +7,7 @@ const IncomeExpense = () => {
 
     const handleNext = (e) => {
       e.preventDefault();
-      navigate("/IncomeExpense");
+      navigate("/Overview");
     };
 
     const handleBack = (e) => {

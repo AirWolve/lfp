@@ -6,7 +6,8 @@ import SignUp from "./pages/SignUp.jsx";
 import Profile from "./pages/Profile.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import BasicSetting from "./pages/BasicSetting.jsx";
-import IncomeExpense from "./pages/IncomeExpense.jsx"
+import IncomeExpense from "./pages/IncomeExpense.jsx";
+import Overview from "./pages/Overview.jsx";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/BasicSetting" element={<BasicSetting />} />
           <Route path="/IncomeExpense" element={<IncomeExpense />} />
+          <Route path="/Overview" element={<Overview />} />
         </Routes>
       </header>
     </div>

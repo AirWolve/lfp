@@ -1,0 +1,180 @@
+/* layout */
+.dashboard-container {
+    display: flex;
+    background-color: #efefef;
+    min-height: 100vh;
+    font-family: sans-serif;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    background-color: #47606f;
+    color: white;
+    padding: 20px;
+    width: 200px;
+    transition: all 0.3s ease;
+  }
+  
+  .sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 30px;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .sidebar ul li {
+    font-size: 15px;
+    margin-bottom: 30px;
+    cursor: pointer;
+  }
+  
+  /* Main */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #f9f9f9;
+  }
+  
+  /* Topbar */
+  .topbar {
+    height: 60px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .menu-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .menuIcon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+  
+  /* Make Plan button */
+  .make-plan-btn {
+    padding: 8px 16px;
+    background-color: #3f545c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+    font-size: 14px;
+    height: 30px;
+  }
+  
+  /* profile */
+  .profile-section {
+    position: relative;
+  }
+  
+  .profile-img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  .profile-dropdown {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    z-index: 1000;
+  }
+  
+  .profile-dropdown a {
+    color: #333;
+    text-decoration: none;
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+  
+  .profile-dropdown a:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* main content */
+  .main-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 30px;
+  }
+  
+  /* chart */
+  .charts {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
+  .pie-group {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    margin-bottom: 50px;
+  }
+  
+  .pie-chart-box {
+    text-align: center;
+  }
+  
+  .line-chart-box {
+    background-color: white;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    padding-left: 15px;
+    border-radius: 12px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Summary box */
+  .summary-box {
+    width: 260px;
+    background-color: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  
+  .summary-box p {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+  }
+  @media (max-width: 1024px) {
+    .main-content {
+      flex-direction: column;
+    }
+  
+    .summary-box {
+      align-self: center;
+      width: 100%;
+      max-width: 400px;
+    }
+  }
+  
