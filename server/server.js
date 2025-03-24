@@ -3,6 +3,7 @@ const { URLSearchParams } = require('url');
 const cookieParser = require('cookie-parser');
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
+const { initDatabase, models } = require('./mongo');
 require('dotenv').config();
 
 let homeUrl = "";
@@ -29,6 +30,9 @@ app.use(
   }), cookieParser(process.env.LFP_COOKIE_SECRET)
 );
 
+/* # Oauth2 Google Login Start */
+
+// Oauth2 Authentication
 app.get('/auth/oauth/google', (req, res) => {
     const params = new URLSearchParams({
         client_id: process.env.LFP_GOOGLE_AUTH_CLIENT_ID,
@@ -43,6 +47,7 @@ app.get('/auth/oauth/google', (req, res) => {
     res.redirect(authUrl);
 });
 
+// Oauth2 Callback url
 app.get('/auth/oauth/google/callback', async (req, res) => {
     const { code } = req.query;
 
@@ -68,6 +73,28 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
             console.error('Token exchange error: ', tokenData);
             return res.redirect('/auth/failure');
         }
+
+        const decoded = jwt.decode(tokenData.id_token);
+        if (!decoded) {
+            return res.redirect('/auth/failure');
+        }
+
+        const isUserExist = await models.User.findOne({
+            email: decoded.email
+        });
+
+        if (!isUserExist) {
+            const newUserInfo = new models.User({
+                email: decoded.email,
+                name: decoded.name,
+                picture: decoded.picture,
+            });
+            await newUserInfo.save();
+            console.log('New user saved: ', newUserInfo);
+        } else {
+            console.log('User already exists: ', isUserExist);
+        }
+
         res.cookie('idToken', tokenData.id_token, {
             httpOnly: true,
             sameSite: 'lax',
@@ -81,6 +108,13 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
     }
 });
 
+// Oauth2 Logout
+app.get('/auth/oauth/logout', (req, res) => {
+    res.clearCookie('idToken');
+    return res.redirect(homeUrl);
+})
+
+// Fetch User Info
 app.get('/api/userinfo', (req, res) => {
     const idToken = req.cookies.idToken;
     if (!idToken) {
@@ -96,9 +130,25 @@ app.get('/api/userinfo', (req, res) => {
     }
   });
 
+// Return status 401 if failed authentication
 app.get('/auth/failure', (req, res) => {
     res.status(401).json({ error: 'Authentication Failed' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+/* # Oauth2 Google Login End */
+
+/* Request Python Run Start */
+app.get('', (req, res) => {
+
+});
+
+// Open API server with port 5000 and trying to connect database
+initDatabase().
+    then(() => {
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+    })
+    .catch(err => {
+        console.error('Failed to initialize database: ', err);
+        process.exit(1);
+    });
