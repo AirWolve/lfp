@@ -1,10 +1,9 @@
-import SchemaModels from './schema.js';
-import mongoose from 'mongoose';
-
+const mongoose = require('mongoose');
+const { SchemaModels } = require('./schema');
 const MongoUri = process.env.LFP_MONGO_URI;
 const User = mongoose.model("User", SchemaModels.userSchema);
 
-export async function initDatabase() {
+async function initDatabase() {
   try {
     await mongoose.connect(MongoUri, {
       useNewUrlParser: true,
@@ -27,6 +26,8 @@ export async function initDatabase() {
   }
 }
 
-export const Models = {
+const Models = {
     User,
 };
+
+module.exports = { initDatabase, Models };
