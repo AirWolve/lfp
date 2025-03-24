@@ -1,11 +1,24 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { constPath } from '../config.js';
 import "./Profile.css";
 import profileImg from "../assets/profile.png";
 import backIcon from "../assets/backArrow.svg";
 
 const Profile = () => {
+  const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    axios.get('https://lfp-api.simpo.pro/api/userinfo', { withCredentials: true })
+      .then((response) => {
+        setUserInfo(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching user info:", error);
+        navigate(`${constPath.signIn}`);
+      });
+  }, [navigate]);
 
   const handleBack = () => {
     navigate(-1);
@@ -22,10 +35,10 @@ const Profile = () => {
       <div className="profilePage">
         <div className="userInfo">
           <div className="imageWrap">
-            <img src={profileImg} alt="userImage" style={{ width: "60px", height: "60px" }} />
+            <img src={userInfo?.picture || profileImg} alt="userImage" style={{ width: "60px", height: "60px" }} />
           </div>
-          <p style={{ fontSize: "15px" }}>Someone@gmail.com</p>
-          <p style={{ fontSize: "13px", marginTop: "5px" }}>Last access time: 13:40:30</p>
+          <p style={{ fontSize: "15px" }}>{ userInfo?.email || "Someone@gmail.com" }</p>
+          <p style={{ fontSize: "13px", marginTop: "5px" }}>Last access time: {new Date().toLocaleTimeString()}</p>
         </div>
 
         <div className="profileList">

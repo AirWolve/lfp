@@ -3,10 +3,25 @@ import "./Dashboard.css";
 import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";
+import { useNavigate } from "react-router";
 
 const Dashboard = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // withCredentials: true를 설정하여 HTTP‑Only 쿠키가 함께 전송되도록 함.
+    axios.get('https://lfp-api.simpo.pro/api/userinfo', { withCredentials: true })
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.error("User info fetch error:", error);
+        navigate(`${constPath.signIn}`);
+      });
+  }, [navigate]);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
