@@ -13,8 +13,6 @@ app.get('/auth/oauth/google', (req, res) => {
     }) ;
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-    const referer = req.get('referer'); // 혹은 req.headers.referer
-    console.log('Referer:', referer);
     res.redirect(authUrl);
 });
 
@@ -44,7 +42,9 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
             return res.redirect('/auth/failure');
         }
 
-        return res.redirect('https://dlfp.simpo.pro/AW-12');
+        const referer = req.get('referer');
+        const home_url = `${referer}` == 'https://lfp.simpo.pro' ? `${referer}/Dashboard` : `${referer}/AW-12/#/Dashboard`
+        return res.redirect(home_url);
     } catch (error) {
         console.error('Error exchanging code for token:', error);
         res.redirect('/auth/failure');
