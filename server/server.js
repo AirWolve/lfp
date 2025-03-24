@@ -1,16 +1,20 @@
 const express = require('express');
 const { URLSearchParams } = require('url');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const app = express();
 let homeUrl = "";
+const app = express();
+
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
 app.get('/auth/oauth/google', (req, res) => {
     const params = new URLSearchParams({
         client_id: process.env.LFP_GOOGLE_AUTH_CLIENT_ID,
         redirect_uri: process.env.LFP_REDIRECT_URL,
         response_type: 'code',
-        scope: 'email profile',
+        scope: 'openid email profile',
     }) ;
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
@@ -45,12 +49,33 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
             return res.redirect('/auth/failure');
         }
 
+        res.cookie('idToken', tokenData.id_token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            maxAge: tokenData.expires_in * 1000
+        });
+
         return res.redirect(homeUrl);
     } catch (error) {
         console.error('Error exchanging code for token:', error);
         res.redirect('/auth/failure');
     }
 });
+
+app.get('/api/userinfo', (req, res) => {
+    const idToken = req.cookies.idToken;
+    if (!idToken) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+  
+    try {
+      const decoded = jwt.decode(idToken);
+      return res.json(decoded);
+    } catch (error) {
+      console.error('Token decode error:', error);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+  });
 
 app.get('/auth/failure', (req, res) => {
     res.status(401).json({ error: 'Authentication Failed' });
