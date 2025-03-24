@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./IncomeExpense.css";
-import constPath from "../config.js";
+import { constPath } from "../config.js";
 
 const IncomeExpense = () => {
     const navigate = useNavigate();
