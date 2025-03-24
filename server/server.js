@@ -7,7 +7,26 @@ require('dotenv').config();
 let homeUrl = "";
 const app = express();
 
-app.use(cookieParser(process.env.LFP_COOKIE_SECRET));
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",")
+  : ["https://lfp.simpo.pro", "https://dlfp.simpo.pro"];
+app.use(
+  cors({
+    origin: (origin, callback)  => {
+      // 요청 origin이 없으면(예: 서버 간 통신) 허용
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        // 요청의 origin이 허용 목록에 있으면 그대로 허용
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Accept"],
+  }), cookieParser(process.env.LFP_COOKIE_SECRET)
+);
 
 app.get('/auth/oauth/google', (req, res) => {
     const params = new URLSearchParams({
