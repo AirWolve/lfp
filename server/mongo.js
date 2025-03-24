@@ -1,6 +1,5 @@
 import SchemaModels from './schema.js';
-
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
 const MongoUri = process.env.LFP_MONGO_URI;
 const User = mongoose.model("User", SchemaModels.userSchema);
