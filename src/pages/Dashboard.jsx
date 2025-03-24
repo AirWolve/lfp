@@ -32,6 +32,10 @@ const Dashboard = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   };
 
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
