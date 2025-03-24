@@ -72,7 +72,7 @@ const Dashboard = () => {
         </div>
 
         <div className="content">
-          <h2>Good to see you again!</h2>
+          <h2>Good to see you again! {user.email}</h2>
           <div className="button-grid">
             <button className="plan-button"><a href={`${constPath.basicSetting}`}>Create New Plan</a></button>
             <button className="plan-button">Import Plan</button>
