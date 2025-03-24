@@ -3,7 +3,7 @@ const { URLSearchParams } = require('url');
 require('dotenv').config();
 
 const app = express();
-const homeUrl = "";
+let homeUrl = "";
 
 app.get('/auth/oauth/google', (req, res) => {
     const params = new URLSearchParams({
