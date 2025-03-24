@@ -24,7 +24,6 @@ const Dashboard = () => {
           <h2>Life Financial Planning</h2>
           <ul>
             <li>Dashboard</li>
-            <li>Progress</li>
             <li>Senario</li>
             <li>Simulation</li>
             <li>Previous Result</li>

@@ -35,8 +35,8 @@ const SignIn = () => {
         </nav>
         <div className="login-box">
             <h2>Welcome aboard,</h2>
-            <button className="google-button">
-            <img src={googleLogo} alt="Google Logo" onClick={handleLogin} className="google-logo"/>
+            <button className="google-button" onClick={handleLogin}>
+            <img src={googleLogo} alt="Google Logo" className="google-logo"/>
                 Sign-in for Google account
             </button>
             <p style={{fontSize: "12px", color: "white"}}>You have no account? <a href={`${constPath.signUp}`} className="no-account">Create account</a></p>

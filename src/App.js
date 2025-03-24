@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import BasicSetting from "./pages/BasicSetting.jsx";
 import IncomeExpense from "./pages/IncomeExpense.jsx";
 import Overview from "./pages/Overview.jsx";
+import CashFlow from './pages/CashFlow.jsx';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/BasicSetting" element={<BasicSetting />} />
           <Route path="/IncomeExpense" element={<IncomeExpense />} />
           <Route path="/Overview" element={<Overview />} />
+          <Route path="/CashFlow" element={<CashFlow />} />
         </Routes>
       </header>
     </div>

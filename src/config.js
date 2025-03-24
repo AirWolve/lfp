@@ -13,6 +13,7 @@ export const constPath = {
     basicSetting: `${baseDir}BasicSetting`,
     overview: `${baseDir}Overview`,
     incomeExpense: `${baseDir}IncomeExpense`,
+    cashFlow: `${baseDir}CashFlow`,
 };
 
 export const RouterType = buildType === 'test' ? HashRouter : BrowserRouter;
