@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { SchemaModels } = require('./schema');
 const MongoUri = process.env.LFP_MONGO_URI;
 const User = mongoose.model("User", SchemaModels.userSchema);
+require('dotenv').config();
 
 async function initDatabase() {
   try {
