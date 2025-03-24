@@ -1,6 +1,7 @@
 const express = require('express');
 const { URLSearchParams } = require('url');
 const cookieParser = require('cookie-parser');
+const cors = require("cors");
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
