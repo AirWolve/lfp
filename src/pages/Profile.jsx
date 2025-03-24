@@ -13,7 +13,7 @@ const Profile = () => {
 
   return (
     <div>
-      <div className="topbar">
+      <div className="topbar" style={{backgroundColor: "#f0f0f0", justifyContent: "start"}}>
         <button className="backButton" onClick={handleBack}>
           <img src={backIcon} alt="back" className="backIcon" />
         </button>

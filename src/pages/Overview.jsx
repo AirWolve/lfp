@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Overview.css";
 import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
@@ -6,6 +7,7 @@ import { constPath } from "../config.js";
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis } from "recharts";
 
 const Overview = () => {
+  const navigate = useNavigate();
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -16,6 +18,11 @@ const Overview = () => {
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   };
+
+  const handleMakePlan = (e) => {
+    e.preventDefault();
+    navigate(`${constPath.cashFlow}`);
+  }
 
   const pieData = [
     { name: "Category A", value: 50 },
@@ -40,7 +47,6 @@ const Overview = () => {
           <h2>Life Financial Planning</h2>
           <ul>
             <li>Dashboard</li>
-            <li>Progress</li>
             <li>Senario</li>
             <li>Simulation</li>
             <li>Previous Result</li>
@@ -76,8 +82,8 @@ const Overview = () => {
         
         {/* Content */}
         <div className="main-content">
-        <button className="make-plan-btn">Make Plan</button>
-        
+        <button className="make-plan-btn" onClick={handleMakePlan}>Make Plan</button>
+
           {/* Charts */}
           <div className="charts">
             <div className="pie-group">
