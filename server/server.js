@@ -3,6 +3,7 @@ const { URLSearchParams } = require('url');
 require('dotenv').config();
 
 const app = express();
+const homeUrl = "";
 
 app.get('/auth/oauth/google', (req, res) => {
     const params = new URLSearchParams({
@@ -13,6 +14,7 @@ app.get('/auth/oauth/google', (req, res) => {
     }) ;
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    homeUrl = `${referer}` == 'https://lfp.simpo.pro' ? `${referer}/Dashboard` : `${referer}/AW-12/#/Dashboard`
     res.redirect(authUrl);
 });
 
@@ -42,9 +44,7 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
             return res.redirect('/auth/failure');
         }
 
-        const referer = req.get('referer');
-        const home_url = `${referer}` == 'https://lfp.simpo.pro' ? `${referer}/Dashboard` : `${referer}/AW-12/#/Dashboard`
-        return res.redirect(home_url);
+        return res.redirect(homeUrl);
     } catch (error) {
         console.error('Error exchanging code for token:', error);
         res.redirect('/auth/failure');
