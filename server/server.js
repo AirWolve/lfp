@@ -3,7 +3,7 @@ const { URLSearchParams } = require('url');
 const cookieParser = require('cookie-parser');
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
-const { initDatabase, models } = require('./mongo');
+const { initDatabase, Models } = require('./mongo');
 require('dotenv').config();
 
 let homeUrl = "";
@@ -79,12 +79,12 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
             return res.redirect('/auth/failure');
         }
 
-        const isUserExist = await models.User.findOne({
+        const isUserExist = await Models.User.findOne({
             email: decoded.email
         });
 
         if (!isUserExist) {
-            const newUserInfo = new models.User({
+            const newUserInfo = new Models.User({
                 email: decoded.email,
                 name: decoded.name,
                 picture: decoded.picture,

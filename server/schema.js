@@ -5,5 +5,5 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const models = { userSchema };
-export default models;
+const SchemaModels = { userSchema };
+export default SchemaModels;

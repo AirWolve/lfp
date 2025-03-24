@@ -1,9 +1,9 @@
-import models from './schema.js';
+import SchemaModels from './schema.js';
 
 const mongoose = require("mongoose");
 
 const MongoUri = process.env.LFP_MONGO_URI;
-const User = mongoose.model("User", models.userSchema);
+const User = mongoose.model("User", SchemaModels.userSchema);
 
 async function initDatabase() {
   try {
@@ -28,7 +28,7 @@ async function initDatabase() {
   }
 }
 
-const models = {
+const Models = {
     User,
 };
-module.exports = { initDatabase, models };
+module.exports = { initDatabase, Models };
