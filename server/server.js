@@ -71,6 +71,7 @@ app.get('/api/userinfo', (req, res) => {
   
     try {
       const decoded = jwt.decode(idToken);
+      console.log(res.json(decoded));
       return res.json(decoded);
     } catch (error) {
       console.error('Token decode error:', error);
