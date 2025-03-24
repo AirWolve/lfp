@@ -39,8 +39,7 @@ app.get('/auth/oauth/google', (req, res) => {
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
     const referer = req.get('referer');
-    homeUrl = `${referer}` == 'https://lfp.simpo.pro/' ? `${referer}Dashboard` : `${referer}/AW-12/#/Dashboard`
-    console.log(`${referer}, ${homeUrl}`);
+    homeUrl = `${referer}` == 'https://lfp.simpo.pro/' ? `${referer}Dashboard` : `${referer}/AW-12/#/Dashboard`;
     res.redirect(authUrl);
 });
 
@@ -69,7 +68,6 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
             console.error('Token exchange error: ', tokenData);
             return res.redirect('/auth/failure');
         }
-        console.log(tokenData);
         res.cookie('idToken', tokenData.id_token, {
             httpOnly: true,
             sameSite: 'lax',
@@ -91,7 +89,6 @@ app.get('/api/userinfo', (req, res) => {
   
     try {
       const decoded = jwt.decode(idToken);
-      console.log(decoded);
       return res.json(decoded);
     } catch (error) {
       console.error('Token decode error:', error);
