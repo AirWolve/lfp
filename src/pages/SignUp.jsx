@@ -5,6 +5,10 @@ import { constPath } from "../config.js";
 
 const SignUp = () => {
 
+    const handleSignUp = () => {
+        window.location.href = `https://lfp-api.simpo.pro/auth/oauth/google`
+    };
+
     return (
     <div className="login-container">
         <nav className="navBar">
@@ -18,7 +22,7 @@ const SignUp = () => {
         <div className="login-box">
             <h2>Creat Account,</h2>
             <p style={{fontSize: "15px", color: "white", marginBottom: "20px"}}>Welcome! Choose how you would like to get started.</p>
-            <button className="google-button">
+            <button className="google-button" onClick={handleSignUp}>
             <img src={googleLogo} alt="Google Logo" className="google-logo"/>
                 Sign-up for Google account
             </button>
