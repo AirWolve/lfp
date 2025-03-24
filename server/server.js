@@ -20,6 +20,7 @@ app.get('/auth/oauth/google', (req, res) => {
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
     const referer = req.get('referer');
     homeUrl = `${referer}` == 'https://lfp.simpo.pro' ? `${referer}/Dashboard` : `${referer}/AW-19/#/Dashboard`
+    console.log(`${referer}, ${homeUrl}`);
     res.redirect(authUrl);
 });
 
