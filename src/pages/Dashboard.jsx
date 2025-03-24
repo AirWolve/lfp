@@ -61,7 +61,7 @@ const Dashboard = () => {
           </button>
           <div className="profile-section">
             <img
-              src={profileImg}
+              src={userInfo?.picture || profileImg}
               alt="profile"
               className="profile-img"
               onClick={toggleProfileMenu}
@@ -76,7 +76,7 @@ const Dashboard = () => {
         </div>
 
         <div className="content">
-          <h2>Good to see you again! {user.email}</h2>
+          <h2>Good to see you again!<br/>{user.name}</h2>
           <div className="button-grid">
             <button className="plan-button"><a href={`${constPath.basicSetting}`}>Create New Plan</a></button>
             <button className="plan-button">Import Plan</button>
