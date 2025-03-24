@@ -1,12 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./Dashboard.css";
 import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";
+import { useNavigate } from "react-router";
 
 const Dashboard = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // withCredentials: true를 설정하여 HTTP‑Only 쿠키가 함께 전송되도록 함.
+    axios.get('https://lfp-api.simpo.pro/api/userinfo', { withCredentials: true })
+      .then((response) => {
+        setUser(response.data);
+      })
+      .catch((error) => {
+        console.error("User info fetch error:", error);
+        navigate(`${constPath.signIn}`);
+      });
+  }, [navigate]);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
@@ -15,6 +31,10 @@ const Dashboard = () => {
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   };
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="dashboard-container">
@@ -41,7 +61,7 @@ const Dashboard = () => {
           </button>
           <div className="profile-section">
             <img
-              src={profileImg}
+              src={user.picture || profileImg}
               alt="profile"
               className="profile-img"
               onClick={toggleProfileMenu}
@@ -56,7 +76,7 @@ const Dashboard = () => {
         </div>
 
         <div className="content">
-          <h2>Good to see you again!</h2>
+          <h2>Good to see you again!<br/>{user.name}</h2>
           <div className="button-grid">
             <button className="plan-button"><a href={`${constPath.basicSetting}`}>Create New Plan</a></button>
             <button className="plan-button">Import Plan</button>
