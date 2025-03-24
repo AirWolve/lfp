@@ -61,7 +61,7 @@ const Dashboard = () => {
           </button>
           <div className="profile-section">
             <img
-              src={userInfo?.picture || profileImg}
+              src={user.picture || profileImg}
               alt="profile"
               className="profile-img"
               onClick={toggleProfileMenu}
