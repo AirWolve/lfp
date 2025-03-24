@@ -49,7 +49,7 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
             console.error('Token exchange error: ', tokenData);
             return res.redirect('/auth/failure');
         }
-
+        console.log(tokenData);
         res.cookie('idToken', tokenData.id_token, {
             httpOnly: true,
             sameSite: 'lax',
