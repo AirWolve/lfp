@@ -7,7 +7,7 @@ require('dotenv').config();
 let homeUrl = "";
 const app = express();
 
-app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(cookieParser(process.env.LFP_COOKIE_SECRET));
 
 app.get('/auth/oauth/google', (req, res) => {
     const params = new URLSearchParams({
@@ -19,7 +19,7 @@ app.get('/auth/oauth/google', (req, res) => {
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
     const referer = req.get('referer');
-    homeUrl = `${referer}` == 'https://lfp.simpo.pro' ? `${referer}/Dashboard` : `${referer}/AW-12/#/Dashboard`
+    homeUrl = `${referer}` == 'https://lfp.simpo.pro' ? `${referer}/Dashboard` : `${referer}/AW-19/#/Dashboard`
     res.redirect(authUrl);
 });
 
