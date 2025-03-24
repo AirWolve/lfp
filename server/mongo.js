@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 const MongoUri = process.env.LFP_MONGO_URI;
 const User = mongoose.model("User", SchemaModels.userSchema);
 
-async function initDatabase() {
+export async function initDatabase() {
   try {
     await mongoose.connect(MongoUri, {
       useNewUrlParser: true,
@@ -27,7 +27,6 @@ async function initDatabase() {
   }
 }
 
-const Models = {
+export const Models = {
     User,
 };
-module.exports = { initDatabase, Models };
