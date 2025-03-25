@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import numpy as np
 import requests
+import yaml
 
 class RMDCalculator:
     """
@@ -33,8 +34,10 @@ class RMDCalculator:
 
 class TaxCalculator:
     def __init__(self):
-        self.apiKey = ""
-    
+        with open('./api_key.json') as f:
+            js = json.loads(f.read()).copy()
+        self.apiKey = js["key"]
+
     # Tax Calculator
     def taxCalculator(self, data:dict, amount:int, country:str|None = 'US'):
         region = data["residenceState"]
@@ -51,7 +54,7 @@ class TaxCalculator:
         filePath = './tex_income.json'
 
         year = datetime.date.today().year
-        api_url = 'https://api.api-ninjas.com/v1/incometax?country={}&year={}&federal_only={}'.format(country, year, data["residenceState"])
+        api_url = 'https://api.api-ninjas.com/v1/incometax?country={}&year={}'.format(country, year)
         
         res = requests.get(api_url, headers={'X-Api-Key': self.apiKey})
         
@@ -60,6 +63,31 @@ class TaxCalculator:
                 json.dump(res.text, f, ensure_ascii=False, indent="\t")
         
         return filePath
+    
+    def capitalGainTax():
+        """
+        This is a function to calculate capital gains tax
+
+        consider all taxable investment
+        """
+
+
+    def readYaml(file:str):
+        """
+        This is a function to read imported tax YAML file
+
+        Args:
+        ----
+            file: a path for the YAML file to read
+        
+        Output:
+        ----
+            output: returns a dictionary that read yaml data
+        """
+        with open(file) as f:
+            yaml_data = yaml.load(f, Loader=yaml.FullLoader)
+        
+        return yaml_data
 
 # Inflation Assumption
 class Inflation:
