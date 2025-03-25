@@ -9,7 +9,7 @@ const BasicSetting = () => {
 
     const handleNext = (e) => {
       e.preventDefault();
-      navigate(`${constPath.incomeExpense}`);
+      navigate(`${constPath.investmentType}`);
     };
 
     const handleBack = (e) => {
@@ -19,6 +19,9 @@ const BasicSetting = () => {
 
     const [ScenarioName, setScenarioName] = useState("Scenario Name");
     const [isEditing, setIsEditing] = useState(false);
+    const [isCouple, setIsCouple] = useState(false);
+    const [birthYear, setBirthYear] = useState();
+    const [spouseBirthYear, setSpouseBirthYear] = useState();
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -33,6 +36,10 @@ const BasicSetting = () => {
             setIsEditing(false);
         }
     };
+
+    const handleCouple = (e) => {
+      setIsCouple(e.target.value === "yes");
+    }
 
     return (
       <div className="scenario-wrapper">
@@ -69,24 +76,61 @@ const BasicSetting = () => {
             <div className="form-row">
               <label>Nationality</label>
               <select>
-                <option>Korean</option>
                 <option>American</option>
                 <option>Other</option>
               </select>
-
-              <label>Age</label>
-              <input type="number" placeholder="e.g. 30" />
-            </div>
-
-            <div className="form-row">
-              <label>Married or not</label>
-              <div className="radio-group">
-                <label><input type="radio" name="married" /> Yes</label>
-                <label><input type="radio" name="married" /> No</label>
+              <div className="form-row">
+                <label>Couple</label>
+                <div className="radio-group">
+                  <label>
+                    <input 
+                    type="radio" 
+                    name="married" 
+                    value="yes" 
+                    checked={isCouple} 
+                    onChange={handleCouple}
+                    /> {" "} Yes
+                  </label>
+                  <label>
+                    <input 
+                    type="radio" 
+                    name="married" 
+                    value="no" 
+                    checked={!isCouple} 
+                    onChange={handleCouple}
+                    /> {" "} No
+                    </label>
+                </div>
               </div>
-
-              <label>Number of Children</label>
-              <input type="number" placeholder="e.g. 2" />
+              {isCouple && (
+                <div className="form-row">
+                  <label>User Birth Year</label>
+                  <input
+                  type="fixed"
+                  placeholder="e.g. 1980"
+                  value={birthYear}
+                  onChange={(e) => setBirthYear(e.target.value)}
+                  />
+                  <label>Spouse Birth Year</label>
+                  <input
+                  type="fixed"
+                  placeholder="e.g. 1980"
+                  value={spouseBirthYear}
+                  onChange={(e) => setSpouseBirthYear(e.target.value)}
+                  />
+                </div>
+              )}
+              {!isCouple && (
+                <div className="form-row">
+                  <label>User Birth Year</label>
+                  <input
+                  type="fixed"
+                  placeholder="e.g. 1980"
+                  value={birthYear}
+                  onChange={(e) => setBirthYear(e.target.value)}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="form-row">
@@ -94,12 +138,7 @@ const BasicSetting = () => {
               <input type="number" placeholder="e.g. 65" />
 
               <label>Life expectancy</label>
-              <input type="number" placeholder="e.g. 85" />
-            </div>
-
-            <div className="form-row single">
-              <label>Recent address</label>
-              <input type="text" placeholder="address" />
+              <input type="fixed" placeholder="e.g. 85" />
             </div>
 
             <div className="form-buttons">
