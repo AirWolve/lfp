@@ -1,6 +1,6 @@
 asttokens==3.0.0
 backcall==0.2.0
-brotli-python==1.0.9
+brotli==1.0.9
 colorama==0.4.6
 debugpy==1.8.11
 decorator==5.2.1
