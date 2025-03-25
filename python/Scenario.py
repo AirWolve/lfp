@@ -1,8 +1,8 @@
 import yaml
 import pickle
 import os
-from Calculator import RMDCalculator
-import Calculator
+# from Calculator import RMDCalculator
+# import Calculator
 
 class Scenario:
     """
@@ -50,6 +50,38 @@ class Scenario:
         else:
             print("Invalid Setting!")
     
+    def toDict(self):
+        """
+        This is a function that modify Scenario object into dictionary type
+
+        Args:
+        ----
+            
+        """
+
+        result = {
+            "name": self.name,
+            "maritalStatus": self.maritalStatus,
+            "birthYears": self.birthYears,
+            "lifeExpectancy": self.lifeExpectancy,
+            "investmentTypes": [i.toDict() for i in self.investmentTypes],
+            "investments": [i.toDict() for i in self.investments],
+            "eventSeries": [i.toDict() for i in self.eventSeries],
+            "inflationAssumption": self.inflationAssumption,
+            "afterTaxContributionLimit": self.afterTaxContributionLimit,
+            "spendingStrategy": self.spendingStrategy,
+            "expenseWithdrawalStrategy": self.expenseWithdrawalStrategy,
+            "RMDStrategy": self.RMDStrategy,
+            "RothConversionOpt": self.RothConversionOpt,
+            "RothConversionStart": self.RothConversionStart,
+            "RothConversionEnd": self.RothConversionEnd,
+            "RothConversionStrategy": self.RothConversionStrategy,
+            "financialGoal": self.financialGoal,
+            "residenceState": self.residenceState
+        }
+
+        return result
+    
 class InvestmentTypes:
     def __init__(self, parameters:dict):
         self.name:str = parameters["name"]
@@ -60,6 +92,24 @@ class InvestmentTypes:
         self.incomeAmtOrPct:str = parameters["incomeAmtOrPct"]
         self.incomeDistribution:dict = parameters["incomeDistribution"].copy()
         self.taxability:bool = parameters["taxability"]
+    
+    def toDict(self):
+        """
+        This function modifies InvestmentTypes object into dictionary type
+        """
+        
+        result = {
+            "name": self.name,
+            "description": self.description,
+            "returnAmtOrPct": self.returnAmtOrPct,
+            "returnDistribution": self.returnDistribution,
+            "expenseRatio": self.expenseRatio,
+            "incomeAmtOrPct": self.incomeAmtOrPct,
+            "incomeDistribution": self.incomeDistribution,
+            "taxability": self.taxability
+        }
+
+        return result
 
 class Investments:
     def __init__(self, parameters:dict):
@@ -67,52 +117,20 @@ class Investments:
         self.value:int = parameters["value"]
         self.taxStatus:str = parameters["taxStatus"]  # "non-retirement", "pre-tax", or "after-tax"
         self.id:str = parameters["id"]
+    
+    def toDict(self):
+        """
+        This function modifies Investments object into dictionray type
+        """
+        
+        result = {
+            "investmentType": self.investmentType,
+            "value": self.value,
+            "taxStatus": self.taxStatus,
+            "id": self.id
+        }
 
-class EventSeries:
-    """
-    This is a class for the EventSeries in Yaml file
-
-    Args:
-    ----
-        name: this is a name for event
-        start: this is a list containing type of distribution
-            type: fixed, normal, uniform, startWith, startAfter
-            ex) {type: fixed, vlaue: 2025}
-                {type: startWith, eventSeries: salary}
-        duration: this is a dictionary containing type and duration value
-            if value exceeded the lifetime, it lasts for the rest of the user's life
-            ex) {type: fixed, value: 200}
-                {type: fixed, value: 40}
-        type: this is type of event, there are four types (income, expense, invest, or rebalance)
-        initialAmount: this is a initialAmount of the event
-        changeAmtOrPct: this is a change amount or percentage
-        changeDistribution: this is a distribution setting in dict form
-            ex) {type: uniform, lower: 500, upper: 2000}
-                {type: normal, mean: 0.02, stdev: 0.01}
-                {type: fixed, value: 0}
-        inflationAdjusted: this is a boolean value whether adjust inflation or not
-        userFraction: this is a fraction of the amount associated with the user.
-        socialSecurity: this is a boolean
-    """
-    def __init__(self, parameters:dict):
-        if parameters["type"] == "invest":
-            Invest(parameters)
-        elif parameters["type"] == "rebalance":
-            Rebalance(parameters)
-        else:    
-            self.name:str = parameters["name"]
-            self.start:dict = parameters["start"].copy()
-            self.duration:dict = parameters["duration"].copy()
-            self.type:str = parameters["type"]    # income, expense, invest, or rebalance
-            self.initialAmount:int = parameters["initialAmount"]
-            self.changeAmtOrPct:str = parameters["changeAmtOrPct"]
-            self.changeDistribution:dict = parameters["changeDistribution"].copy()
-            self.inflationAdjusted:bool = parameters["inflationAdjusted"]
-            self.userFraction:float = parameters["userFraction"]
-            if parameters["type"] == "income":
-                self.socialSecurity:bool = parameters["socialSecurity"]
-            else:
-                self.discretionary:bool = parameters["discretionary"]
+        return result
 
 class Invest:
     """
@@ -147,6 +165,26 @@ class Invest:
 
         if self.glidePath is True:
             self.assetAllocation2:dict = parameters["assetAllocation2"]
+    
+    def toDict(self):
+        """
+        This function modifies Invest object into dictionary type
+        """
+        
+        result = {
+            "name": self.name,
+            "start": self.start,
+            "duration": self.duration,
+            "type": self.type,
+            "assetAllocation": self.assetAllocation,
+            "glidePath": self.glidePath,
+            "maxCash": self.maxCash
+        }
+
+        if self.glidePath is True:
+            result["assetAllocation2"] = self.assetAllocation2
+        
+        return result
 
 class Rebalance:
     """
@@ -172,7 +210,105 @@ class Rebalance:
         self.duration:dict = parameters["duration"].copy()
         self.type:str = parameters["type"]
         self.assetAllocation:dict = parameters["assetAllocation"].copy()
+    
+    def toDict(self):
+        """
+        This function modifies Rebalance object into dictionary type
+        """
 
+        result = {
+            "name": self.name,
+            "start": self.start,
+            "duration": self.duration,
+            "type": self.type,
+            "assetAllocation": self.assetAllocation
+        }
+
+        return result
+    
+class EventSeries:
+    """
+    This is a class for the EventSeries in Yaml file
+
+    Args:
+    ----
+        name: this is a name for event
+        start: this is a list containing type of distribution
+            type: fixed, normal, uniform, startWith, startAfter
+            ex) {type: fixed, vlaue: 2025}
+                {type: startWith, eventSeries: salary}
+        duration: this is a dictionary containing type and duration value
+            if value exceeded the lifetime, it lasts for the rest of the user's life
+            ex) {type: fixed, value: 200}
+                {type: fixed, value: 40}
+        type: this is type of event, there are four types (income, expense, invest, or rebalance)
+        initialAmount: this is a initialAmount of the event
+        changeAmtOrPct: this is a change amount or percentage
+        changeDistribution: this is a distribution setting in dict form
+            ex) {type: uniform, lower: 500, upper: 2000}
+                {type: normal, mean: 0.02, stdev: 0.01}
+                {type: fixed, value: 0}
+        inflationAdjusted: this is a boolean value whether adjust inflation or not
+        userFraction: this is a fraction of the amount associated with the user.
+        socialSecurity: this is a boolean
+    """
+    def __init__(self, parameters:dict):
+        if parameters["type"] == "invest":
+            self.invest = Invest(parameters)
+        elif parameters["type"] == "rebalance":
+            self.rebalance = Rebalance(parameters)
+        else:    
+            self.name:str = parameters["name"]
+            self.start:dict = parameters["start"].copy()
+            self.duration:dict = parameters["duration"].copy()
+            self.type:str = parameters["type"]    # income, expense, invest, or rebalance
+            self.initialAmount:int = parameters["initialAmount"]
+            self.changeAmtOrPct:str = parameters["changeAmtOrPct"]
+            self.changeDistribution:dict = parameters["changeDistribution"].copy()
+            self.inflationAdjusted:bool = parameters["inflationAdjusted"]
+            self.userFraction:float = parameters["userFraction"]
+            if parameters["type"] == "income":
+                self.socialSecurity:bool = parameters["socialSecurity"]
+            else:
+                self.discretionary:bool = parameters["discretionary"]
+    
+    def toDict(self):
+        """
+        This is a function modifies basic EventSeries types into dictionary
+        """
+
+        try:
+            if self.invest is not None:
+                return self.invest.toDict()
+        except:
+            pass
+
+        try:
+            if self.rebalance is not None:
+                return self.rebalance.toDict()
+        except:
+            pass
+
+        result = {
+            "name": self.name,
+            "start": self.start,
+            "duration": self.duration,
+            "type": self.type,
+            "initialAmount": self.initialAmount,
+            "changeAmtOrPct": self.changeAmtOrPct,
+            "changeDistribution": self.changeDistribution,
+            "inflationAdjusted": self.inflationAdjusted,
+            "userFraction": self.userFraction,
+        }
+
+        try:
+            if self.socialSecurity is not None:
+                result["socialSecurity"] = self.socialSecurity
+        except:
+            result["discretionary"] = self.discretionary
+        
+        return result
+    
 def importJson(file:str):
         """
         This is a function for importing JSON file
@@ -207,3 +343,15 @@ def importJson(file:str):
             yaml_data = yaml.load(f, Loader=yaml.FullLoader)
         
         return Scenario(yaml_data)
+
+def exportYAML(data:Scenario):
+    """
+    This is a function for exporting YAML file
+
+    Args:
+    ----
+        data: this is a Scenario object that stores the setting values
+    """
+
+    with open('./export_user.yaml', 'w') as f:
+        yaml.dump(data.toDict(), f, default_flow_style=False, sort_keys=False)
