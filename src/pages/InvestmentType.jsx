@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./InvestmentType.css";
 import { useNavigate } from "react-router-dom";
+import { constPath } from "../config.js";
 
 const InvestmentType = () => {
   const [investments, setInvestments] = useState([]);
@@ -43,7 +44,7 @@ const InvestmentType = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    navigate();
+    navigate(`${constPath.investments}`);
   }
 
   return (

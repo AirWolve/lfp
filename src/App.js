@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import BasicSetting from "./pages/BasicSetting.jsx";
 import Investments from './pages/Investments.jsx';
 import InvestmentType from './pages/InvestmentType.jsx';
+import EventSeries from './pages/EventSeries.jsx';
 import IncomeExpense from "./pages/IncomeExpense.jsx";
 import Overview from "./pages/Overview.jsx";
 import CashFlow from './pages/CashFlow.jsx';
@@ -25,6 +26,7 @@ function App() {
           <Route path="/BasicSetting" element={<BasicSetting />} />
           <Route path="/Investments" element={<Investments />} />
           <Route path="/InvestmentType" element={<InvestmentType />} />
+          <Route path="/EventSeries" element={<EventSeries />} />
           <Route path="/IncomeExpense" element={<IncomeExpense />} />
           <Route path="/Overview" element={<Overview />} />
           <Route path="/CashFlow" element={<CashFlow />} />

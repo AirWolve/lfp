@@ -1,37 +1,38 @@
-.investment-wrapper {
+.eventseries-wrapper {
     background-color: white;
-    max-width: 600px;
-    margin: 50px auto;
+    max-width: 650px;
+    margin: 40px auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    font-family: Arial, sans-serif;
     border-radius: 10px;
   }
   
   .add-btn {
     padding: 10px 20px;
-    background-color: #4a90e2;
+    background-color: #5b8def;
     color: white;
     border: none;
     border-radius: 20px;
     cursor: pointer;
-    font-size: 15px;
     margin-bottom: 20px;
+    font-size: 15px;
   }
   
   .add-btn:hover {
-    background-color: #357abd;
+    background-color: #3d71cc;
   }
   
-  .investment-item {
-    background-color: #f4f7fa;
+  .event-item {
     width: 100%;
-    padding: 12px 15px;
+    background-color: #f3f7fc;
     border-radius: 8px;
-    margin-top: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 10px 15px;
+    margin-top: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-size: 14px;
   }
   
   .modal-overlay {
@@ -40,7 +41,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0,0,0,0.6);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -49,35 +50,45 @@
   
   .modal-content {
     background-color: white;
-    border-radius: 10px;
-    width: 400px;
+    width: 450px;
     padding: 25px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
   }
   
   .modal-content h4 {
-    margin-bottom: 15px;
     text-align: center;
+    margin-bottom: 18px;
   }
   
-  .modal-content select,
-  .modal-content input[type="number"] {
-    padding: 10px;
+  .modal-content input[type="text"],
+  .modal-content input[type="number"],
+  .modal-content select {
+    padding: 8px;
     margin-bottom: 15px;
-    border-radius: 5px;
+    border-radius: 6px;
     border: 1px solid #ccc;
     font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .modal-content label {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   
   .modal-content button {
-    padding: 8px 15px;
-    border: none;
+    padding: 8px;
+    margin-top: 5px;
     border-radius: 5px;
-    color: white;
+    border: none;
     cursor: pointer;
+    color: white;
     font-size: 14px;
   }
   
@@ -87,15 +98,10 @@
   
   .modal-content button.close-btn {
     background-color: #aaa;
-    margin-top: 5px;
+    margin-top: 8px;
   }
   
   .modal-content button:not(.close-btn) {
-    background-color: #4a90e2;
+    background-color: #5b8def;
   }
   
-  .formButtons {
-    margin-top: 20px;
-    display: flex;
-    
-  }

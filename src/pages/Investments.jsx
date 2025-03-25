@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Investments.css";
 import { useNavigate } from "react-router-dom";
+import { constPath } from "../config.js";
 
 const Investments = () => {
   const [investments, setInvestments] = useState([]);
@@ -14,7 +15,7 @@ const Investments = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    navigate();
+    navigate(`${constPath.eventSeries}`);
   }
   const [newInvestment, setNewInvestment] = useState({
     type: "",
