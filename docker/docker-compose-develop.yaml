@@ -1,0 +1,80 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:latest
+    container_name: lfp_jenkins
+    user: root
+    expose:
+      - "8080"
+    volumes:
+      - ./jenkins:/var/jenkins_home
+      - ./dep_node:/var/jenkins_home/pipeBuild/dep_node
+      - ./dev_node:/var/jenkins_home/pipeBuild/dev_node
+      - ./api_node:/var/jenkins_home/pipeBuild/api_server
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    group_add:
+      - "Docker Group ID"
+    restart: unless-stopped
+    networks:
+      - lfp
+
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: lfp_mongo
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+    expose:
+      - '27017'
+    environment:
+      MONGODB_INITDB_ROOT_USERNAME: 'root'
+      MONGODB_INITDB_ROOT_PASSWORD: 'lfp@123'
+      MONGODB_INITDB_DATABASE: 'lfp_database'
+    networks:
+      - lfp
+
+  depnode:
+    image: node:22.14.0-alpine
+    container_name: lfp_deploy
+    restart: unless-stopped
+    volumes:
+      - ./dep_node:/app/build
+    expose:
+      - '3000'
+    command: npx serve -s /app/build -l 3000
+    networks:
+      - lfp
+
+  devnode:
+    image: node:22.14.0-alpine
+    container_name: lfp_dev
+    restart: unless-stopped
+    volumes:
+      - ./dev_node:/app
+      - ./dev_node/serve.json:/app/serve.json
+    expose:
+      - '3000'
+    command: npx serve /app -l 3000 --config /app/serve.json
+    networks:
+      - lfp
+
+  apinode:
+    image: node:22.14.0-alpine
+    container_name: lfp_api
+    working_dir: /app
+    restart: unless-stopped
+    volumes:
+      - ./api_node:/app
+    expose:
+      - '5000'
+    command: sh -c "npm install && npm install -g pm2 && pm2-runtime ./server.js"
+    networks:
+      - lfp
+
+volumes:
+  mongodata:
+
+networks:
+  lfp:

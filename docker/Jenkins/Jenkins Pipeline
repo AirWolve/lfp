@@ -1,0 +1,130 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Setup Safe Directory') {
+            steps {
+                sh '''
+                  echo "Registering safe directory for Git..."
+                  git config --global --add safe.directory /var/jenkins_home/workspace/LFP_main
+                '''
+            }
+        }
+        stage('Checkout') {
+            steps {
+                checkout scm
+             //git branch: env.GIT_BRANCH, url: 'https://github.com/AirWolve/lfp.git'
+            }
+        }
+        stage('Set Build Type') {
+            steps {
+                script {
+                    // set BUILD TYPE to prod for main branch, server for server branch and test branch for dev/* branches
+                    // For the dev/* branch set REACT_APP_BRANCH to dev/* after remove dev/ from it.
+                    if (env.GIT_BRANCH == 'main') {
+                        env.BUILD_TYPE = 'prod'
+                        env.REACT_APP_BRANCH = ''
+                    } else if (env.GIT_BRANCH == 'server') {
+                        env.BUILD_TYPE = 'server'
+                        env.REACT_APP_BRANCH = ''
+                    } else {
+                        env.BUILD_TYPE = 'test'
+                        // e.g.: "dev/AW-13" -> "AW-13"
+                        env.REACT_APP_BRANCH = env.GIT_BRANCH.replaceFirst(/^dev\//, '')
+                    }
+                    echo "Build type set to: ${env.BUILD_TYPE}"
+                    echo "Branch set to: ${env.REACT_APP_BRANCH}"
+                }
+            }
+        }
+        stage('Build') {
+            when {
+                // skip build step when the branch is server
+                expression { env.GIT_BRANCH != 'server' }
+            }
+            steps {
+              nodejs(nodeJSInstallationName: 'node-js') {
+                sh '''
+                  npm install
+                  if [ "${BUILD_TYPE}" = "test" ]; then
+                    echo "Test build: setting PUBLIC_URL=./"
+                    npx cross-env REACT_APP_BUILD_TYPE=${BUILD_TYPE} PUBLIC_URL=./ npm run build
+                  else
+                    echo "Prod build: using default PUBLIC_URL"
+                    npx cross-env REACT_APP_BUILD_TYPE=${BUILD_TYPE} npm run build
+                  fi
+                '''
+              }
+            }
+        }
+        // before deploy dev branches, remove directory from server that no longer exists on remove branch.
+        stage('Clean up orphaned dev directories') {
+            when {
+                expression { env.GIT_BRANCH ==~ /^dev\/.*/ }
+            }
+            steps {
+                sh '''
+                    echo "Cleaning up dev directories..."
+                    # From the remote, extract the list of dev branch (e.g. : refs/heads/dev/AW1 -> AW1)
+                    REMOTE_DEV_BRANCHES=$(git ls-remote --heads origin | grep 'refs/heads/dev/' | sed 's#refs/heads/dev/##')
+                    echo "Remote dev branches: $REMOTE_DEV_BRANCHES"
+                    DEV_DIR=/var/jenkins_home/pipeBuild/dev_node
+                    # execute the logic when the dev_dir exists.
+                    if [ -d "$DEV_DIR" ]; then
+					  echo "Stop dev docker before delete $folder"
+					  docker stop lfp_dev
+                      for folder in $(find "$DEV_DIR" -maxdepth 1 -mindepth 1 -type d -printf "%f\n"); do
+                          if ! echo "$REMOTE_DEV_BRANCHES" | grep -qw "$folder"; then    
+                              echo "Deleting folder $folder as its branch no longer exists."
+                              rm -rf "$DEV_DIR/$folder" || true
+                          fi
+                      done
+					  echo "Restart dev docker"
+					  docker start lfp_dev
+                    fi
+                '''
+            }
+        }
+        stage('deploy to LFP_API when the branch is server') {
+          when {
+            expression {  env.GIT_BRANCH == 'server' } 
+          }
+          steps {
+            sh '''
+              echo "Stop API Docker"
+			  docker stop lfp_api
+			  echo "trying to copyin new server to LFP_API"
+              cp -r server/* /var/jenkins_home/pipeBuild/api_server/ 
+			  echo "Restart API Docker"
+			  docker start lfp_api
+			  echo "Process Done"
+            '''
+          }
+        }
+        stage('delopy to LFP_DEV when the branch start with dev') {
+            when {
+                expression { env.GIT_BRANCH ==~ /^dev\/.*/ }
+            }
+            steps {
+                sh '''
+                    echo "Deploying on develop server for branch: ${GIT_BRANCH}"
+                    # delete dev/ from the branch name and create a folder (e.g: dev/AW1 -> AW1)
+                    BRANCH_NAME=$(echo ${GIT_BRANCH} | sed 's#dev/##')
+                    mkdir -p /var/jenkins_home/pipeBuild/dev_node/${BRANCH_NAME}
+                    cp -r build/* /var/jenkins_home/pipeBuild/dev_node/${BRANCH_NAME}/ &
+                '''
+            }
+        }
+        stage('Deploy to LFP_DEP when the branch is main') {
+            when {
+                expression { env.GIT_BRANCH == 'main' }
+            }
+            steps {
+					sh '''
+                        echo "trying to deploy on main server"
+                        cp -r build/* /var/jenkins_home/pipeBuild/dep_node/ &
+                    '''
+            }
+        }
+    }
+}
