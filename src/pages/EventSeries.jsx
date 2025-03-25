@@ -88,6 +88,7 @@ const EventSeries = () => {
               onClick={() => handleDelete(idx)}
             />
           </div>
+          {/* Prompt to ChatGPT: "How can I export the input format depending on the type? For example, if user choose Income, it export start Year, Duration, Amount. However, if user choose invest, then it should export start year, duration, assestAllocation, gildepath, and cash" */}
             {event.type === "income" || event.type === "expense" ? (
               <div>
                 <div>Start Year: {event.startYear}</div>
@@ -106,13 +107,13 @@ const EventSeries = () => {
                 <div>Cash: ${event.maxCash}</div>
               </div>
             ) : (
-              /* rebalance인 경우 */
+              /* rebalance */
               <div> (No extra fields) </div>
             )}
           </div>
         ))}
 
-        {/* 모달 팝업 */}
+        {/* modal popup */}
         {showModal && (
           <div className="modal-overlay" onClick={closeModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -237,7 +238,7 @@ const EventSeries = () => {
                         setNewEvent({
                           ...newEvent,
                           glidePath: e.target.checked,
-                          // glidePath를 해제하면 assetAllocation2 초기화
+                          // if release glidePath, then reset assetAllocation2
                           ...(e.target.checked === false
                             ? { assetAllocation2: "" }
                             : {}),
@@ -281,7 +282,7 @@ const EventSeries = () => {
                 </>
               )}
 
-              {/* rebalance -> (별도 항목 X) */}
+              {/* rebalance */}
 
               <button onClick={handleConfirm}>Confirm</button>
               <button className="close-btn" onClick={closeModal}>

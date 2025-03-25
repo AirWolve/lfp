@@ -69,7 +69,7 @@ const InvestmentType = () => {
             </ul>
           </div>
         ))}
-
+        {/* Prompt to ChatGPT: "How can I make the modal popup in this page?" */}
         {showModal && (
           <div className="modal-overlay" onClick={closeModal}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
