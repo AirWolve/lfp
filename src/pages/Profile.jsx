@@ -11,7 +11,7 @@ const Profile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('https://lfp-api.simpo.pro/api/userinfo', { withCredentials: true })
+    axios.get(`${process.env.REACT_APP_LFP_API_URL}/api/userinfo`, { withCredentials: true })
       .then((response) => {
         setUserInfo(response.data);
       })
