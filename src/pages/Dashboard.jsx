@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./Dashboard.css";
@@ -16,7 +14,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     // withCredentials: true를 설정하여 HTTP‑Only 쿠키가 함께 전송되도록 함.
-    axios.get(`${process.env.LFP_API_URL}/api/userinfo`, { withCredentials: true })
+    axios.get(`${process.env.REACT_APP_LFP_API_URL}/api/userinfo`, { withCredentials: true })
       .then((response) => {
         setUser(response.data);
       })
@@ -71,7 +69,7 @@ const Dashboard = () => {
             {isProfileMenuOpen && (
               <div className="profile-dropdown">
                 <a href={`${constPath.profile}`}>View your profile</a>
-                <a href={`${process.env.LFP_API_URL}/auth/oauth/logout`}>Log out</a>
+                <a href={`${process.env.REACT_APP_LFP_API_URL}/auth/oauth/logout`}>Log out</a>
               </div>
             )}
           </div>
