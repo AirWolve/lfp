@@ -79,11 +79,13 @@ const Overview = () => {
             )}
           </div>
         </div>
-        
+
         {/* Content */}
         <div className="main-content">
-        <button className="make-plan-btn" onClick={handleMakePlan}>Make Plan</button>
-
+          <button className="make-plan-btn" onClick={handleMakePlan}>
+            Make Plan
+          </button>
+          {/* Prompt to ChatGPT: "Can you let me know how I create charts in HTML" */}
           {/* Charts */}
           <div className="charts">
             <div className="pie-group">
@@ -91,9 +93,17 @@ const Overview = () => {
                 <div key={idx} className="pie-chart-box">
                   <h4>{label}</h4>
                   <PieChart width={140} height={140}>
-                    <Pie data={pieData} dataKey="value" outerRadius={60} innerRadius={35}>
+                    <Pie
+                      data={pieData}
+                      dataKey="value"
+                      outerRadius={60}
+                      innerRadius={35}
+                    >
                       {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                   </PieChart>
@@ -127,13 +137,27 @@ const Overview = () => {
 
           {/* Summary */}
           <div className="summary-box">
-            <p><strong>Monthly Income</strong> <span>$0,000</span></p>
-            <p><strong>Yearly Income</strong> <span>$00,000</span></p>
-            <p><strong>Living expense</strong> <span>$000</span></p>
-            <p><strong>Regular expense</strong> <span>$000</span></p>
-            <p><strong>Debt</strong> <span>$00,000</span></p>
-            <p><strong>Assets</strong> <span>$000,000</span></p>
-            <p><strong>Tax</strong> <span>0.00%</span></p>
+            <p>
+              <strong>Monthly Income</strong> <span>$0,000</span>
+            </p>
+            <p>
+              <strong>Yearly Income</strong> <span>$00,000</span>
+            </p>
+            <p>
+              <strong>Living expense</strong> <span>$000</span>
+            </p>
+            <p>
+              <strong>Regular expense</strong> <span>$000</span>
+            </p>
+            <p>
+              <strong>Debt</strong> <span>$00,000</span>
+            </p>
+            <p>
+              <strong>Assets</strong> <span>$000,000</span>
+            </p>
+            <p>
+              <strong>Tax</strong> <span>0.00%</span>
+            </p>
           </div>
         </div>
       </div>

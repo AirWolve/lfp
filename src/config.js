@@ -13,6 +13,7 @@ export const constPath = {
     basicSetting: `${baseDir}BasicSetting`,
     investments: `${baseDir}Investments`,
     investmentType: `${baseDir}InvestmentType`,
+    eventSeries: `${baseDir}EventSeries`,
     overview: `${baseDir}Overview`,
     incomeExpense: `${baseDir}IncomeExpense`,
     cashFlow: `${baseDir}CashFlow`,
