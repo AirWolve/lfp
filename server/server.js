@@ -7,6 +7,7 @@ const { initDatabase, Models } = require('./mongo');
 require('dotenv').config();
 
 let homeUrl = "";
+let baseUrl = "";
 const app = express();
 
 const allowedOrigins = process.env.CORS_ORIGIN
@@ -42,8 +43,8 @@ app.get('/auth/oauth/google', (req, res) => {
     }) ;
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-    const referer = req.get('referer');
-    homeUrl = `${referer}` == 'https://lfp.simpo.pro/' ? `${referer}Dashboard` : `${referer}/AW-12/#/Dashboard`;
+    baseUrl = req.get('referer');
+    homeUrl = `${baseUrl}` == 'https://lfp.simpo.pro/' ? `${baseUrl}Dashboard` : `${baseUrl}/AW-12/#/Dashboard`;
     res.redirect(authUrl);
 });
 
@@ -111,7 +112,7 @@ app.get('/auth/oauth/google/callback', async (req, res) => {
 // Oauth2 Logout
 app.get('/auth/oauth/logout', (req, res) => {
     res.clearCookie('idToken');
-    return res.redirect(homeUrl);
+    return res.redirect(baseUrl);
 })
 
 // Fetch User Info
