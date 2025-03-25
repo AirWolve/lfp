@@ -14,7 +14,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     // withCredentials: true를 설정하여 HTTP‑Only 쿠키가 함께 전송되도록 함.
-    axios.get('https://lfp-api.simpo.pro/api/userinfo', { withCredentials: true })
+    axios
+      .get(`${process.env.REACT_APP_LFP_API_URL}/api/userinfo`, {
+        withCredentials: true,
+      })
       .then((response) => {
         setUser(response.data);
       })
@@ -69,16 +72,26 @@ const Dashboard = () => {
             {isProfileMenuOpen && (
               <div className="profile-dropdown">
                 <a href={`${constPath.profile}`}>View your profile</a>
-                <a href={`${constPath.home}`}>Log out</a>
+                <a
+                  href={`${process.env.REACT_APP_LFP_API_URL}/auth/oauth/logout`}
+                >
+                  Log out
+                </a>
               </div>
             )}
           </div>
         </div>
 
         <div className="content">
-          <h2>Good to see you again!<br/>{user.name}</h2>
+          <h2>
+            Good to see you again!
+            <br />
+            {user.name}
+          </h2>
           <div className="button-grid">
-            <button className="plan-button"><a href={`${constPath.basicSetting}`}>Create New Plan</a></button>
+            <button className="plan-button">
+              <a href={`${constPath.basicSetting}`}>Create New Plan</a>
+            </button>
             <button className="plan-button">Import Plan</button>
             <button className="plan-button">Export Plan</button>
             <button className="plan-button">Existing Plans</button>
