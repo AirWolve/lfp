@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { constPath } from "../config.js";
 import "./Investments.css";
 import { useNavigate } from "react-router-dom";
 
