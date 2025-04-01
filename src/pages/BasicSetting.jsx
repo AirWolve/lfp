@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+//import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import "./BasicSetting.css";
 import editIcon from "../assets/editIcon.svg";
