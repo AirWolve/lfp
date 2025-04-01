@@ -2,7 +2,3 @@ numpy
 pandas
 requests
 PyYAML
-os
-requests
-json
-pickle
