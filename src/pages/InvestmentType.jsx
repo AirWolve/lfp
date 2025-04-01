@@ -44,7 +44,8 @@ const InvestmentType = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    navigate(`${constPath.investments}`);
+    window.location.href = `${constPath.investments}`;
+    //navigate(`${constPath.investments}`);
   }
 
   return (

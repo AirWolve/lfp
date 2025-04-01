@@ -7,7 +7,7 @@ import { constPath } from "../config.js";
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis } from "recharts";
 
 const Overview = () => {
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -21,7 +21,8 @@ const Overview = () => {
 
   const handleMakePlan = (e) => {
     e.preventDefault();
-    navigate(`${constPath.cashFlow}`);
+    window.location.href = `${constPath.cashFlow}`;
+    //navigate(`${constPath.cashFlow}`);
   }
 
   const pieData = [

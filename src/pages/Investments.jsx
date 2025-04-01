@@ -15,7 +15,8 @@ const Investments = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    navigate(`${constPath.eventSeries}`);
+    window.location.href = `${constPath.eventSeries}`;
+    //navigate(`${constPath.eventSeries}`);
   }
   const [newInvestment, setNewInvestment] = useState({
     type: "",

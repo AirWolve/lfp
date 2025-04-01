@@ -5,16 +5,18 @@ import "./BasicSetting.css";
 import editIcon from "../assets/editIcon.svg";
 
 const BasicSetting = () => {
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     const handleNext = (e) => {
       e.preventDefault();
-      navigate(`${constPath.investmentType}`);
+      window.location.href = `${constPath.investmentType}`;
+      //navigate(`${constPath.investmentType}`);
     };
 
     const handleBack = (e) => {
       e.preventDefault();
-      navigate(`${constPath.dashboard}`);
+      window.location.href = `${constPath.dashboard}`;
+      //navigate(`${constPath.dashboard}`);
     }
 
     const [ScenarioName, setScenarioName] = useState("Scenario Name");

@@ -8,7 +8,8 @@ const IncomeExpense = () => {
 
     const handleNext = (e) => {
       e.preventDefault();
-      navigate(`${constPath.overview}`);
+      window.location.href = `${constPath.overview}`;
+      //navigate(`${constPath.overview}`);
     };
 
     const handleBack = (e) => {

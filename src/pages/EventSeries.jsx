@@ -16,7 +16,8 @@ const EventSeries = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    navigate(`${constPath.overview}`);
+    window.location.href = `${constPath.overview}`;
+    //navigate(`${constPath.overview}`);
   }
 
   const eventTypes = ["income", "expense", "invest", "rebalance"];
