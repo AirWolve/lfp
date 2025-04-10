@@ -34,43 +34,118 @@ class RMDCalculator:
 
 class TaxCalculator:
     def __init__(self):
-        with open('./api_key.json') as f:
-            js = json.loads(f.read()).copy()
-        self.apiKey = js["key"]
+        self.year = datetime.date.today().year
+        with open('./2024_federal_tax.yaml') as f:
+            self.federalTax = yaml.load(f, Loader=yaml.FullLoader)
+        with open('./ctTax.yaml') as f:
+            self.capTax = yaml.load(f, Loader=yaml.FullLoader)
+        with open('./stateTax.yaml') as f:
+            self.stateTax = yaml.load(f, Loader=yaml.FullLoader)
 
     # Tax Calculator
-    def taxCalculator(self, data:dict, amount:int, country:str|None = 'US'):
-        region = data["residenceState"]
-        filing_status = 'married' if data["maritalStatus"] == "couple" else 'single'
-        api_url = 'https://api.api-ninjas.com/v1/incometaxcalculator?country={}&region={}&income={}&filing_status={}'.format(country, region, amount, filing_status)
-        res = requests.get(api_url, headers={'X-Api-Key': self.apiKey["key"]})
+    def federalTaxCalculator(self, data:dict, amount:int):
+        """
+        This is a function to calculate tax amount
+        """
+        taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
+        if taxable < 0:
+            if data["maritalStatus"] == "couple":
+                for key, value in self.federalTax["couple"].items():
+                    if key == "inf":
+                        return taxable * value
+                    elif taxable < int(key):
+                        return taxable * value
 
-        if res.status_code == requests.codes.ok:
-            return res.text
+            else:
+                for key, value in self.federalTax["individual"].items():
+                    if key == "inf":
+                        return taxable * value
+                    elif taxable < int(key):
+                        return taxable * value
         else:
-            raise RuntimeError(f"Error: {res.status_code}, {res.text}")
+            return 0
     
-    def scrapeTable(self, data:dict, country:str|None = 'US'):
-        filePath = './tex_income.json'
-
-        year = datetime.date.today().year
-        api_url = 'https://api.api-ninjas.com/v1/incometax?country={}&year={}'.format(country, year)
-        
-        res = requests.get(api_url, headers={'X-Api-Key': self.apiKey})
-        
-        if res.status_code == requests.codes.ok:
-            with open(filePath, 'w', encoding="utf-8") as f:
-                json.dump(res.text, f, ensure_ascii=False, indent="\t")
-        
-        return filePath
-    
-    def capitalGainTax():
+    def capitalGainTax(self, data:dict, amount:int):
         """
         This is a function to calculate capital gains tax
 
         consider all taxable investment
         """
+        taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
+        if taxable < 0:
+            if data["maritalStatus"] == "couple":
+                for key, value in self.capTax["couple"].items():
+                    if key == "inf":
+                        return taxable * value
+                    elif taxable < int(key):
+                        return taxable * value
+            else:
+                for key, value in self.capTax["individual"].items():
+                    if key == "inf":
+                        return taxable * value
+                    elif taxable < int(key):
+                        return taxable * value
+        else:
+            return 0
+        
+    def stateTaxCalculator(self, data:dict, amount:int, state:str):
+        """
+        This is a function to calculate state tax amount
 
+        Args:
+        ----
+            state: a string value of state name such as NJ, NY, etc.
+        """
+        taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
+        
+        if state not in self.stateTax.keys():
+            return 0, "State Tax Not Found!"
+        
+        if taxable < 0:
+            if data["maritalStatus"] == "couple":
+                for key, value in self.stateTax[state]["couple"].items():
+                    if key == "inf":
+                        return taxable * value
+                    elif taxable < int(key):
+                        return taxable * value
+            else:
+                for key, value in self.stateTax[state]["individual"].items():
+                    if key == "inf":
+                        return taxable * value
+                    elif taxable < int(key):
+                        return taxable * value
+        else:
+            return 0
+        
+    def earlyWithdrawal(self, data:dict, withdrawal:int):
+        """
+        This is a function to calculate early withdrawal tax
+        
+        Args:
+        ----
+            withdrawal: a integer value of withdrawal amount
+        """
+        age = data["birthYears"][0]-self.year
+
+        if age < 59:
+            return withdrawal * 0.1
+        else:
+            return 0
+        
+    def updateTaxTable(self, taxTable:str):
+        """
+        This is a function to add tax table to the state tax yaml file
+
+        Args:
+        ----
+            taxTable: a string value of tax table file path
+                      each of the tax table should be in a yaml format with same structure
+        """
+        with open(taxTable) as f:
+            taxTable = yaml.load(f, Loader=yaml.FullLoader)
+        with open('./stateTax.yaml') as f:
+            state = yaml.load(f, Loader=yaml.FullLoader)
+        state.update(taxTable)
 
     def readYaml(file:str):
         """
@@ -89,10 +164,21 @@ class TaxCalculator:
         
         return yaml_data
 
+    def socialSecurity(self, state:str):
+        """
+        This is a function to get social security tax amount
+
+        Args:
+        ----
+            state: a string value of state name such as NJ, NY, etc.
+        """
+        if state in self.stateTax["nonsocialsecurity"]:
+            return "We ignore the social security for this state"
+
 # Inflation Assumption
 class Inflation:
     def __init__(self, data:dict):
-        self.type = data["inflationAssumption"]["type"].copy()
+        self.type = data["inflationAssumption"]["type"]
         self.assumption = data["inflationAssumption"].copy()
         self.data = data.copy()
     
@@ -108,49 +194,49 @@ class Inflation:
 
         for idx, row in df_es.iterrows():
             values = list()
-            if row["inflationAdjusted"].item() == "false":
+            if row["inflationAdjusted"] == False:
                 continue
             else:
-                duration = row["duration"]["value"].item()
+                duration = row["duration"]["value"]
                 
-                if row["start"]["type"].item() == "fixed":
-                    start = row["start"]["value"].item()
+                if row["start"]["type"] == "fixed":
+                    start = row["start"]["value"]
                     
                     if start == curYear:
-                        values.append(row["initialAmount"].item() * (1-self.assumption["value"].item()))
+                        values.append(row["initialAmount"] * (1-self.assumption["value"]))
                     else:
                         if not values:
                             for i in range(start, curYear):
                                 values.append(None)
 
                         for i in range(duration):
-                            values.append(values[-1]*(1-self.assumption["value"].item())**len(values))
+                            values.append(values[-1]*(1-self.assumption["value"])**len(values))
                         
-                elif row["start"]["type"].item() == "startWith":
-                    start = df_es[df_es["name"] == row["start"]["eventSeries"]]["start"]["value"].item()
+                elif row["start"]["type"] == "startWith":
+                    start = df_es[df_es["name"] == row["start"]["eventSeries"]]["start"]["value"]
 
                     if start == curYear:
-                        values.append(row["initialAmount"].item() * (1-self.assumption["value"].item()))
+                        values.append(row["initialAmount"] * (1-self.assumption["value"]))
                     else:
                         if not values:
                             for i in range(start, curYear):
                                 values.append(None)
 
                         for i in range(duration):
-                            values.append(values[-1]*(1-self.assumption["value"].item())**len(values))
+                            values.append(values[-1]*(1-self.assumption["value"])**len(values))
                 
-                elif row["start"]["type"].item() == "startAfter":
-                    start = df_es[df_es["name"] == row["start"]["eventSeries"]]["start"]["value"].item()
+                elif row["start"]["type"] == "startAfter":
+                    start = df_es[df_es["name"] == row["start"]["eventSeries"]]["start"]["value"]
 
                     if start == curYear:
-                        values.append(row["initialAmount"].item() * (1-self.assumption["value"].item()))
+                        values.append(row["initialAmount"] * (1-self.assumption["value"]))
                     else:
                         if not values:
                             for i in range(start, curYear):
                                 values.append(None)
 
                         for i in range(duration):
-                            values.append(values[-1]*(1-self.assumption["value"].item())**len(values))
+                            values.append(values[-1]*(1-self.assumption["value"])**len(values))
             
             result.append({row["name"]: values})
 

@@ -1,0 +1,5 @@
+name: "Captial Tax Rate"
+id: "CAP"
+year: 2024
+individual: { "47025": 0, "518900": 0.15, "inf": 0.2}
+couple: { "94050": 0, "583750": 0.15, "inf": 0.2}
