@@ -1,0 +1,44 @@
+.loadingPage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #526673; /* 다크 블루 배경 */
+    color: white;
+    z-index: 1000;
+    animation: fadeIn 0.6s ease-in-out;
+  }
+  
+  .loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 8px solid rgba(255, 255, 255, 0.2);
+    border-top: 8px solid #526673; /* 하늘색 포인트 */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+  
+  .loading-text {
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    animation: fadeIn 1.2s ease-in-out;
+  }
+  
+  /* 회전 애니메이션 */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* 페이드인 애니메이션 */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
