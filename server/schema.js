@@ -7,5 +7,15 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-const SchemaModels = { userSchema };
+const userDataSchema = new mongoose.Schema({
+  email: { type: String, required: true },
+  data: { type: Object, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const SchemaModels = { 
+  userSchema,
+  userDataSchema 
+};
+
 module.exports = { SchemaModels };
