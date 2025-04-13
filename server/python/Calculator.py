@@ -4,6 +4,8 @@ import datetime
 import numpy as np
 import requests
 import yaml
+from bs4 import BeautifulSoup
+import re
 
 class RMDCalculator:
     """
@@ -47,7 +49,18 @@ class TaxCalculator:
         """
         This is a function to calculate tax amount
         """
-        taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
+        sc = False
+
+        for d in data["eventSeries"]:
+            if d.type == "income":
+                sc = d.socialSecurity
+                break
+
+        if sc:
+            taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]       
+        else:
+            taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
+        
         if taxable < 0:
             if data["maritalStatus"] == "couple":
                 for key, value in self.federalTax["couple"].items():
@@ -164,16 +177,101 @@ class TaxCalculator:
         
         return yaml_data
 
-    def socialSecurity(self, state:str):
+    def socialSecurity(self, amount:int, state:str):
         """
         This is a function to get social security tax amount
 
         Args:
         ----
+            amount: a integer value of amount to calculate tax
             state: a string value of state name such as NJ, NY, etc.
         """
         if state in self.stateTax["nonsocialsecurity"]:
             return "We ignore the social security for this state"
+        else:
+            pass
+
+    def updateFederalTax(self):
+        """
+        This is a function to scrape newer federal tax table and standard deduction from irs website
+        """
+        url = 'https://www.irs.gov/filing/federal-income-tax-rates-and-brackets'
+        res = requests.get(url)
+
+        if res.status_code != 200:
+            raise Exception("Failed to load IRS website")
+
+        soup = BeautifulSoup(res.text, "html.parser")
+        tables = soup.select("table.table.complex-table.table-striped.table-bordered.table-responsive")
+        
+        final = []
+        
+        if tables:
+            for table in tables:
+                result = {}
+                tds = table.select("td")
+                for td in range(0, len(tds), 3):
+                    if tds[td+2].text == 'And up':
+                        result["inf"] = int(tds[td].text.replace("%", ""))/100
+                    else:
+                        result[tds[td+2].text.replace("$","").replace(",","")] = int(tds[td].text.replace("%", ""))/100
+                final.append(result)
+        
+        url2 = "https://www.irs.gov/publications/p17"
+        res = requests.get(url2)
+        
+        if res.status_code != 200:
+            raise Exception("Failed to load IRS website")
+        
+        soup = BeautifulSoup(res.text, 'html.parser')
+
+        tabels = soup.find("table", attrs={"summary": "Table 10-1.Standard Deduction Chart for Most People*"})
+        tds = tabels.select('td')
+
+        result = {}
+
+        for idx, td in enumerate(tds):
+            if td.get_text(strip=True) == 'Single or Married filing separately':
+                result['individual'] = int(tds[idx + 1].get_text(strip=True).replace("$","").replace(",",""))
+            elif td.get_text(strip=True) == 'Married filing jointly or Qualifying surviving spouse':
+                result['couple'] = int(tds[idx + 1].get_text(strip=True).replace("$","").replace(",",""))
+        
+        with open('./2024_federal_tax.yaml') as f:
+            federal = yaml.load(f, Loader=yaml.FullLoader)
+            federal["individual"] = final[0]
+            federal["couple"] = final[1]
+            federal["standardDeduction"] = result
+        with open('./2024_federal_tax.yaml', 'w') as f:
+            yaml.dump(federal, f, default_flow_style=False, sort_keys=False)
+    
+    def updateCapitalGain(self):
+        """
+        This is a function to scrape newer capital gain tax table from irs website
+        """
+        url = "https://www.irs.gov/taxtopics/tc409"
+        res = requests.get(url)
+
+        if res.status_code != 200:
+            raise Exception("Failed to load IRS website")
+
+        soup = BeautifulSoup(res.text, 'html.parser')
+
+        lis = [li for li in soup.find_all("li") if li.find(True) is None]
+        b_tags = soup.select("p b")[:2]
+        strong = soup.select("p strong")[0]
+
+        result_in = {re.findall(r'\d{1,3}(?:,\d{3})*(?:\.\d+)?', lis[1].text)[0].replace(",", ""): int(b_tags[0].text.replace("%", ""))/100,
+                    re.findall(r'\d{1,3}(?:,\d{3})*(?:\.\d+)?', lis[4].text)[1].replace(",", ""): int(b_tags[1].text.replace("%", ""))/100}
+        result_co = {re.findall(r'\d{1,3}(?:,\d{3})*(?:\.\d+)?', lis[2].text)[0].replace(",", ""): int(b_tags[0].text.replace("%", ""))/100,
+                    re.findall(r'\d{1,3}(?:,\d{3})*(?:\.\d+)?', lis[6].text)[1].replace(",", ""): int(b_tags[1].text.replace("%", ""))/100,
+                    "inf": int(strong.text.replace("%", ""))/100}
+
+        with open('./asd.yaml') as f:
+            tax = yaml.load(f, Loader=yaml.FullLoader)
+            tax["couple"] = result_co
+            tax["individual"] = result_in
+        with open('./asd.yaml', 'w') as f:
+            yaml.dump(tax, f, default_flow_style=False, sort_keys=False)
 
 # Inflation Assumption
 class Inflation:
