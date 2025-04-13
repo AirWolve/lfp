@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./InvestmentType.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
+import { toast } from "react-toastify";
 import trashIcon from "../assets/trash.svg";
 
 const InvestmentType = () => {
@@ -32,6 +33,14 @@ const InvestmentType = () => {
   const [investmentType, setInvestmentType] = useState(investmentTypeForm);
 
   const handleConfirm = () => {
+    if (
+      !investmentType.name ||
+      !investmentType.expenseRatio
+    ) {
+      toast.warning("Please Fill in all fields");
+      return;
+    }
+
     const updatedList = [...investmentTypes, investmentType];
     setInvestmentTypes(updatedList);
 

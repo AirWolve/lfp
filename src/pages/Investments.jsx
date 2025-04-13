@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./Investments.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
+import { toast } from "react-toastify";
 
 const Investments = () => {
   const [investments, setInvestments] = useState([]);
@@ -27,6 +28,14 @@ const Investments = () => {
   const closeModal = () => setShowModal(false);
 
   const handleConfirm = () => {
+    if (
+      !newInvestment.id ||
+      !newInvestment.type ||
+      !newInvestment.amount
+    ) {
+      toast.warning("Please Fill in all fields");
+      return;
+    }
     setInvestments([...investments, newInvestment]);
     setNewInvestment({ type: "", amount: 0, taxStatus: "non-retirement" });
     closeModal();
