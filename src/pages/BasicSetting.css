@@ -99,7 +99,7 @@ body {
   }
   
   .radio-group input[type="radio"] {
-    accent-color: #3f545c; /* ✅ 체크된 색상 (모던 브라우저 지원) */
+    accent-color: #3f545c;
     transform: scale(1.2);
     cursor: pointer;
   }
