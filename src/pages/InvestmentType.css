@@ -45,6 +45,7 @@
   }
   
   .investment-item li {
+    text-align: left;
     margin-top: 10px;
     margin-bottom: 10px;
   }
@@ -111,4 +112,14 @@
   .modal-content .close-btn:hover {
     background-color: #666;
   }
+
+  .formButton {
+    margin-top: 40px;
+    display: flex;
+    gap: 350px;
+  }
   
+  .trashIcon {
+    align-items: center;
+    float: right;
+  }
