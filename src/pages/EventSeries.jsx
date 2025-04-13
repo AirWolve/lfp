@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./EventSeries.css";
 import { constPath } from "../config.js";
 import { useNavigate } from "react-router-dom";
@@ -61,6 +61,12 @@ const EventSeries = () => {
       toast.warning("Cash cannot exceed 1000.");
       return;
     }
+
+    const updatedList = [...events, newEvent];
+    setEvents(updatedList);
+
+    localStorage.setItem("EventSeries", JSON.stringify(updatedList));
+
     setEvents([...events, newEvent]);
     setNewEvent(initialEvent);
     closeModal();
@@ -69,7 +75,20 @@ const EventSeries = () => {
   const handleDelete = (index) => {
     const updated = events.filter((_, i) => i !== index);
     setEvents(updated);
+    localStorage.setItem("EventSeries", JSON.stringify(updated));
   }
+
+    useEffect(() => {
+      const savedList = localStorage.getItem("EventSeries");
+      if(savedList) {
+        setEvents(JSON.parse(savedList));
+      }
+  
+      const savedEventSeries = localStorage.getItem("EventSeries");
+      if (savedEventSeries) {
+        setEvents(JSON.parse(savedEventSeries));
+      }
+    }, []);
 
   return (
     <div className="eventSeries-container">
