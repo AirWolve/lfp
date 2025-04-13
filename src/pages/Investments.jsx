@@ -33,7 +33,6 @@ const Investments = () => {
 
   const handleConfirm = () => {
     if (
-      !newInvestment.id ||
       !newInvestment.type ||
       !newInvestment.amount
     ) {
