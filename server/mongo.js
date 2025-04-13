@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const { SchemaModels } = require('./schema');
 const MongoUri = process.env.LFP_MONGO_URI;
 const User = mongoose.model("User", SchemaModels.userSchema);
+const UserData = mongoose.model("UserData", SchemaModels.userDataSchema);
 
 async function initDatabase() {
   try {
@@ -16,12 +17,13 @@ async function initDatabase() {
     // 등록된 모델들의 인덱스를 미리 생성 (추후 추가할 모델들도 여기에 포함)
     await Promise.all([
       User.init(),
+      UserData.init(),
       // 예: Product.init(), Order.init(), ...
     ]);
     console.log("Indexes ensured");
 
     // 추후 다른 모델을 추가할 수 있도록 models 객체에 포함
-    return { User };
+    return { User, UserData };
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
     throw error;
@@ -30,6 +32,7 @@ async function initDatabase() {
 
 const Models = {
     User,
+    UserData
 };
 
 module.exports = { initDatabase, Models };

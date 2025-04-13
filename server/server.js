@@ -142,6 +142,33 @@ app.get("/auth/failure", (req, res) => {
 
 /* # Oauth2 Google Login End */
 
+// Save user data
+app.post("/api/save-user-data", async (req, res) => {
+  const idToken = req.cookies.idToken;
+  if (!idToken) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const decoded = jwt.decode(idToken);
+    const userData = req.body;
+
+    // 새로운 사용자 데이터 생성
+    const newUserData = new Models.UserData({
+      email: decoded.email,
+      data: userData,
+    });
+
+    // 데이터베이스에 저장
+    await newUserData.save();
+
+    res.json({ message: "Data saved successfully" });
+  } catch (error) {
+    console.error("Error saving user data:", error);
+    res.status(500).json({ error: "Failed to save data" });
+  }
+});
+
 /* Request Python Run Start */
 app.get("", (req, res) => {});
 
