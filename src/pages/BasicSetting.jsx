@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import "./BasicSetting.css";
@@ -7,30 +7,28 @@ import editIcon from "../assets/editIcon.svg";
 const BasicSetting = () => {
     const navigate = useNavigate();
 
-    const handleNext = (e) => {
-      e.preventDefault();
-      navigate(`${constPath.investmentType}`);
-    };
-
-    const handleBack = (e) => {
-      e.preventDefault();
-      navigate(`${constPath.dashboard}`);
-    }
-
+    //Storing Scenario Name which is editing
     const [ScenarioName, setScenarioName] = useState("Scenario Name");
     const [isEditing, setIsEditing] = useState(false);
+
+    //Storage user's basic information
     const [isCouple, setIsCouple] = useState(false);
     const [birthYear, setBirthYear] = useState();
     const [spouseBirthYear, setSpouseBirthYear] = useState();
+    const [lifeExpectancy, setLifeExpectancy] = useState();
+    const [spouseLifeExpectancy, setSpouseLifeExpectancy] = useState();
 
+    //Handling Scenario name edit button
     const handleEditClick = () => {
         setIsEditing(true);
     };
     
+    //Handling for changing sceanrio name
     const handleNameChange = (e) => {
         setScenarioName(e.target.value);
     };
 
+    //For changing the Scenario name
     const handleBlurOrEnter = (e) => {
         if (e.type === "blur" || e.key === "Enter") {
             setIsEditing(false);
@@ -40,6 +38,60 @@ const BasicSetting = () => {
     const handleCouple = (e) => {
       setIsCouple(e.target.value === "yes");
     }
+   useEffect(() => {
+    const saveUserInfoData = localStorage.getItem("basicInfo");
+    if (saveUserInfoData) {
+      const parsed = JSON.parse(saveUserInfoData);
+      setScenarioName(parsed.ScenarioName ?? "Scenario Name");
+      setIsCouple(parsed.maritalStatus === "couple");
+      setBirthYear(parsed.birthYears?.[0] ?? undefined);
+      setSpouseBirthYear(parsed.maritalStatus === "couple" ? parsed.birthYears?.[1] : undefined);
+      setLifeExpectancy(parsed.lifeExpectancy?.[0] ?? undefined);
+      setSpouseLifeExpectancy(parsed.maritalStatus === "couple" ? parsed.lifeExpectancy?.[1] : undefined);
+    }
+  }, []);
+  // Control the buttons
+   // Storing if user click next.
+    const handleNext = (e) => {
+      e.preventDefault();
+      localStorage.setItem(
+        'basicInfo',
+        JSON.stringify({
+          name: ScenarioName,
+          maritalStatus: isCouple ? "couple" : "individual",
+          birthYears: isCouple ? [birthYear, spouseBirthYear] : [birthYear],
+          lifeExpectancy: isCouple ? [lifeExpectancy, spouseLifeExpectancy] : [lifeExpectancy],
+        })
+      );
+      navigate(`${constPath.investmentType}`);
+      };
+
+    const handleBack = (e) => {
+    e.preventDefault();
+    navigate(`${constPath.dashboard}`);
+  }
+    // Storing to local storage about user information
+   
+
+    // useEffect(() => {
+    //   const basicInfoData = {
+    //       ScenarioName,
+    //       isCouple,
+    //       birthYear,
+    //       spouseBirthYear,
+    //       lifeExpectancy,
+    //       spouseLifeExpectancy,
+    //     };
+    //     localStorage.setItem("basicInfo", JSON.stringify(basicInfoData));
+    // }, [ScenarioName, isCouple, birthYear, spouseBirthYear, lifeExpectancy, spouseLifeExpectancy]);
+
+    // useEffect(() => {
+    //   const saveData = localStorage.getItem("basicInfo");
+
+    //   if (saveData) {
+        
+    //   }
+    // }, []);
 
     return (
       <div className="scenario-wrapper">
@@ -74,11 +126,6 @@ const BasicSetting = () => {
 
           <form className="info-form">
             <div className="form-row">
-              <label>Nationality</label>
-              <select>
-                <option>American</option>
-                <option>Other</option>
-              </select>
               <div className="form-row">
                 <label>Couple</label>
                 <div className="radio-group">
@@ -118,6 +165,22 @@ const BasicSetting = () => {
                   value={spouseBirthYear}
                   onChange={(e) => setSpouseBirthYear(e.target.value)}
                   />
+                  <div className="form-row">
+                    <label>User Life expectancy</label>
+
+                    <input 
+                    type="fixed" 
+                    placeholder="e.g. 85"
+                    value={lifeExpectancy}
+                    onChange={(e) => setLifeExpectancy(e.target.value)}/>
+
+                    <label>Spouse Life expectancy</label>
+                    <input 
+                    type="fixed" 
+                    placeholder="e.g. 85"
+                    value={spouseLifeExpectancy}
+                    onChange={(e) => setSpouseLifeExpectancy(e.target.value)}/>
+                  </div>
                 </div>
               )}
               {!isCouple && (
@@ -129,16 +192,14 @@ const BasicSetting = () => {
                   value={birthYear}
                   onChange={(e) => setBirthYear(e.target.value)}
                   />
+                  <label>User Life expectancy</label>
+                  <input 
+                  type="fixed" 
+                  placeholder="e.g. 85"
+                  value={lifeExpectancy}
+                  onChange={(e) => setLifeExpectancy(e.target.value)}/>
                 </div>
               )}
-            </div>
-
-            <div className="form-row">
-              <label>Retirement age</label>
-              <input type="number" placeholder="e.g. 65" />
-
-              <label>Life expectancy</label>
-              <input type="fixed" placeholder="e.g. 85" />
             </div>
 
             <div className="form-buttons">
