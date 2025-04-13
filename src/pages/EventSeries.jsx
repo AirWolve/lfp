@@ -15,10 +15,48 @@ const EventSeries = () => {
     navigate(-1);
   }
 
-  const handleNext = (e) => {
+  const handleNext = async (e) => {
     e.preventDefault();
-    navigate(`${constPath.overview}`);
-  }
+    
+    // 각 페이지의 데이터 가져오기
+    const basicSettings = JSON.parse(localStorage.getItem("BasicSetting") || "{}");
+    const investmentType = JSON.parse(localStorage.getItem("InvestmentType") || "{}");
+    const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
+    const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
+
+    // 모든 데이터를 하나의 객체로 통합
+    const combinedData = {
+      basicSettings,
+      investmentType,
+      investments,
+      eventSeries
+    };
+
+    // 통합된 데이터를 새로운 키로 저장
+    localStorage.setItem("combinedUserData", JSON.stringify(combinedData));
+
+    try {
+      // 서버에 데이터 전송
+      const response = await fetch("/api/save-user-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(combinedData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save data");
+      }
+
+      // 데이터 저장 성공 시 Overview 페이지로 이동
+      navigate(`${constPath.overview}`);
+    } catch (error) {
+      console.error("Error saving data:", error);
+      toast.error("Failed to save data. Please try again.");
+    }
+  };
 
   const eventTypes = ["income", "expense", "invest", "rebalance"];
 
