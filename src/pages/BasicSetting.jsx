@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { constPath } from "../config.js";
 import "./BasicSetting.css";
 import editIcon from "../assets/editIcon.svg";
@@ -65,6 +66,17 @@ const BasicSetting = () => {
   // Storing if user click next.
   const handleNext = (e) => {
     e.preventDefault();
+    if (
+      !ScenarioName ||
+      !birthYear ||
+      (isCouple && !spouseBirthYear) ||
+      !lifeExpectancy ||
+      (isCouple && !spouseLifeExpectancy)
+    ) {
+      toast.warning("Please Fill in all fields");
+      return;
+    }
+
     localStorage.setItem(
       "basicInfo",
       JSON.stringify({
