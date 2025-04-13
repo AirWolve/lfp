@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Investments.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
+import { toast } from "react-toastify";
 
 const Investments = () => {
   const [investments, setInvestments] = useState([]);
@@ -17,20 +18,52 @@ const Investments = () => {
     e.preventDefault();
     navigate(`${constPath.eventSeries}`);
   }
-  const [newInvestment, setNewInvestment] = useState({
+
+  const investmentsForm = {
     type: "",
     amount: 0,
     taxStatus: "non-retirement",
-  });
+    id: ""
+  };
+
+  const [newInvestment, setNewInvestment] = useState(investmentsForm);
 
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
 
   const handleConfirm = () => {
+    if (
+      !newInvestment.id ||
+      !newInvestment.type ||
+      !newInvestment.amount
+    ) {
+      toast.warning("Please Fill in all fields");
+      return;
+    }
+
+    newInvestment.id = newInvestment.type === "S&P 500" ? newInvestment.type + " " + newInvestment.taxStatus : newInvestment.type;
+    const updatedList = [...investments, newInvestment];
+    setInvestments(updatedList);
+
+    localStorage.setItem("Investments", JSON.stringify(updatedList));
+
     setInvestments([...investments, newInvestment]);
-    setNewInvestment({ type: "", amount: 0, taxStatus: "non-retirement" });
+    setNewInvestment({ investmentsForm });
     closeModal();
   };
+
+    // For maintain investment type information even though user return to this page from next page.
+    useEffect(() => {
+      const savedList = localStorage.getItem("Investments");
+      if(savedList) {
+        setInvestments(JSON.parse(savedList));
+      }
+  
+      const savedInvestments = localStorage.getItem("Investments");
+      if (savedInvestments) {
+        setInvestments(JSON.parse(savedInvestments));
+      }
+    }, []);
 
   //Js import after connecting back-end
   // const investmentTypes = JSON.parse(localStorage.getItem("investmentTypes")) || [];

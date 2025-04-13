@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./EventSeries.css";
 import { constPath } from "../config.js";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import trashIcon from "../assets/trash.svg";
 
 const EventSeries = () => {
@@ -48,11 +49,24 @@ const EventSeries = () => {
 
   // add the list when click confirm
   const handleConfirm = () => {
-    // max cash to 1000
-    if (newEvent.maxCash > 1000) {
-      alert("Cash cannot exceed 1000.");
+    if (
+      !newEvent.name
+    ) {
+      toast.warning("Please Fill in all fields");
       return;
     }
+
+    // max cash to 1000
+    if (newEvent.maxCash > 1000) {
+      toast.warning("Cash cannot exceed 1000.");
+      return;
+    }
+
+    const updatedList = [...events, newEvent];
+    setEvents(updatedList);
+
+    localStorage.setItem("EventSeries", JSON.stringify(updatedList));
+
     setEvents([...events, newEvent]);
     setNewEvent(initialEvent);
     closeModal();
@@ -61,7 +75,20 @@ const EventSeries = () => {
   const handleDelete = (index) => {
     const updated = events.filter((_, i) => i !== index);
     setEvents(updated);
+    localStorage.setItem("EventSeries", JSON.stringify(updated));
   }
+
+    useEffect(() => {
+      const savedList = localStorage.getItem("EventSeries");
+      if(savedList) {
+        setEvents(JSON.parse(savedList));
+      }
+  
+      const savedEventSeries = localStorage.getItem("EventSeries");
+      if (savedEventSeries) {
+        setEvents(JSON.parse(savedEventSeries));
+      }
+    }, []);
 
   return (
     <div className="eventSeries-container">
