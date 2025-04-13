@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./EventSeries.css";
 import { constPath } from "../config.js";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import trashIcon from "../assets/trash.svg";
 
 const EventSeries = () => {
@@ -48,9 +49,16 @@ const EventSeries = () => {
 
   // add the list when click confirm
   const handleConfirm = () => {
+    if (
+      !newEvent.name
+    ) {
+      toast.warning("Please Fill in all fields");
+      return;
+    }
+
     // max cash to 1000
     if (newEvent.maxCash > 1000) {
-      alert("Cash cannot exceed 1000.");
+      toast.warning("Cash cannot exceed 1000.");
       return;
     }
     setEvents([...events, newEvent]);
