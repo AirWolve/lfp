@@ -19,8 +19,8 @@ const EventSeries = () => {
     e.preventDefault();
     
     // 각 페이지의 데이터 가져오기
-    const basicSettings = JSON.parse(localStorage.getItem("BasicSetting") || "{}");
-    const investmentType = JSON.parse(localStorage.getItem("InvestmentType") || "{}");
+    const basicSettings = JSON.parse(localStorage.getItem("basicInfo") || "{}");
+    const investmentType = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
     const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
 
@@ -48,6 +48,8 @@ const EventSeries = () => {
 
       if (!response.ok) {
         throw new Error("Failed to save data");
+      } else {
+        console.log("Successfully saved");
       }
 
       // 데이터 저장 성공 시 Overview 페이지로 이동
