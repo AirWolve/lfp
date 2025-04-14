@@ -3,6 +3,7 @@ import "./Investments.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";
+import trashIcon from "../assets/trash.svg";
 
 const Investments = () => {
   const [investments, setInvestments] = useState([]);
@@ -18,6 +19,12 @@ const Investments = () => {
     e.preventDefault();
     navigate(`${constPath.eventSeries}`);
   }
+
+  const handleDelete = (index) => {
+    const updated = investmentTypes.filter((_, i) => i !== index);
+    setInvestments(updated);
+    localStorage.setItem("Investments", JSON.stringify(updated));
+  };
 
   const investmentsForm = {
     type: "",
@@ -40,7 +47,7 @@ const Investments = () => {
       return;
     }
 
-    newInvestment.id = newInvestment.type === "S&P 500" ? newInvestment.type + " " + newInvestment.taxStatus : newInvestment.type;
+    newInvestment.id = newInvestment.type + " " + newInvestment.taxStatus;
     const updatedList = [...investments, newInvestment];
     setInvestments(updatedList);
 
@@ -85,6 +92,12 @@ const Investments = () => {
         {investments.map((inv, idx) => (
           <div key={idx} className="investment-item">
             <strong>{inv.type}</strong>: ${inv.amount}
+            <img
+              src={trashIcon}
+              alt="delete"
+              className="trashIcon"
+              onClick={() => handleDelete(idx)}
+            />
             <ul>
               <li>Tax: {inv.taxStatus}</li>
             </ul>
