@@ -156,7 +156,7 @@ const EventSeries = () => {
       stdev: 0.0,
     },
     inflationAdjusted: false,
-    userFranction: null,
+    userFraction: null,
     socialSecurity: false,
     assetAllocation: {},
     glidePath: false,
@@ -428,11 +428,11 @@ const EventSeries = () => {
                   <input
                     type="number"
                     placeholder="e.g. 0.3"
-                    value={newEvent.userFranction}
+                    value={newEvent.userFraction}
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        userFranction: parseFloat(e.target.value, 10),
+                        userFraction: parseFloat(e.target.value, 10),
                       })
                     }
                   />
@@ -630,11 +630,11 @@ const EventSeries = () => {
                   <input
                     type="number"
                     placeholder="e.g. 0.3"
-                    value={newEvent.userFranction}
+                    value={newEvent.userFraction}
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        userFranction: parseFloat(e.target.value, 10),
+                        userFraction: parseFloat(e.target.value, 10),
                       })
                     }
                   />
