@@ -42,7 +42,7 @@ const EventSeries = () => {
 
     try {
       // Send scenario data to server
-      const response = await fetch("/api/save-scenario", {
+      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/save-scenario`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const EventSeries = () => {
         scenarioName: result.scenarioName
       });
 
-      const simResponse = await fetch(`/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
+      const simResponse = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
         credentials: "include"
       });
 
