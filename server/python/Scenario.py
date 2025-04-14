@@ -38,7 +38,7 @@ class Scenario:
         # self.RothConversionEnd:int = parameters["RothConversionEnd"]
         # self.RothConversionStrategy:list = parameters["RothConversionStrategy"].copy()
         # self.financialGoal:int = parameters["financialGoal"]
-        # self.residenceState:str = parameters["residenceState"]
+        self.residenceState:str = "NY" #parameters["residenceState"]
 
     def getParameters(self, key):
         return self.parameters.get(key)
