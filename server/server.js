@@ -20,6 +20,7 @@ app.use(express.json());
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",")
   : [`${process.env.LFP_HOME_DIR}`, `${process.env.LFP_DEV_HOME_DIR}`];
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -181,7 +182,7 @@ app.post("/api/save-user-data", async (req, res) => {
   }
 });
 
-// Save user data as YAML and run Python script
+// Save scenario data as YAML
 app.post("/api/save-scenario", async (req, res) => {
   const idToken = req.cookies.idToken;
   if (!idToken) {
@@ -195,20 +196,23 @@ app.post("/api/save-scenario", async (req, res) => {
     if (!scenarioData.name) {
       return res.status(400).json({ error: "Scenario name is required" });
     }
-    
-    // 저장할 디렉토리 경로 생성
-    const userDir = path.join(__dirname, 'python', 'scenario', decoded.email);
+
+    // Python 스크립트의 scenario 디렉토리 경로
+    const pythonDir = path.join(__dirname, "python");
+    const userDir = path.join(pythonDir, "scenario", decoded.email);
     await fs.ensureDir(userDir);
-    
-    // 파일 이름 생성 (이메일-시나리오이름.yaml)
+
+    // Generate file name
     const fileName = `${decoded.email}-${scenarioData.name}.yaml`;
     const filePath = path.join(userDir, fileName);
-    
-    // 데이터를 YAML 형식으로 변환하여 저장
+
+    // Save scenario as YAML
     const yamlStr = YAML.stringify(scenarioData);
     await fs.writeFile(filePath, yamlStr, 'utf8');
 
-    res.json({ 
+    console.log('Scenario saved to:', filePath);
+
+    res.json({
       message: "Scenario saved successfully",
       filePath: filePath,
       email: decoded.email,
@@ -216,7 +220,7 @@ app.post("/api/save-scenario", async (req, res) => {
     });
   } catch (error) {
     console.error("Error saving scenario:", error);
-    res.status(500).json({ error: "Failed to save scenario" });
+    res.status(500).json({ error: "Failed to save scenario", details: error.message });
   }
 });
 
@@ -229,48 +233,82 @@ app.get("/api/run-simulation", async (req, res) => {
   }
 
   try {
-    // Python 스크립트 실행
-    const pythonProcess = spawn('python', [
-      path.join(__dirname, 'python', 'demo_main.py'),
-      email,
-      scenarioName
-    ]);
+    // Python 스크립트 경로 확인
+    const pythonScriptPath = path.join(__dirname, 'python', 'demo_main.py');
+    console.log('Python script path:', pythonScriptPath);
+    
+    if (!fs.existsSync(pythonScriptPath)) {
+      throw new Error(`Python script not found at: ${pythonScriptPath}`);
+    }
+
+    // 시나리오 파일 경로 확인
+    const scenarioPath = path.join(__dirname, 'python', 'scenario', email, `${email}-${scenarioName}.yaml`);
+    console.log('Looking for scenario file at:', scenarioPath);
+    
+    if (!fs.existsSync(scenarioPath)) {
+      throw new Error(`Scenario file not found at: ${scenarioPath}`);
+    }
+
+    console.log('Starting Python simulation...');
+
+    // Python 프로세스 실행
+    const pythonProcess = spawn('python', [pythonScriptPath, email, scenarioName], {
+      cwd: path.join(__dirname, 'python')
+    });
 
     let pythonOutput = '';
     let pythonError = '';
 
     // Python 스크립트의 출력 수집
     pythonProcess.stdout.on('data', (data) => {
-      pythonOutput += data.toString();
+      const output = data.toString();
+      console.log('Python stdout:', output);
+      pythonOutput += output;
     });
 
     pythonProcess.stderr.on('data', (data) => {
-      pythonError += data.toString();
+      const error = data.toString();
+      console.error('Python stderr:', error);
+      pythonError += error;
     });
 
     // Python 스크립트 실행 완료 대기
     await new Promise((resolve, reject) => {
       pythonProcess.on('close', (code) => {
+        console.log('Python process exited with code:', code);
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`Python process exited with code ${code}`));
+          reject(new Error(`Python process exited with code ${code}\nError: ${pythonError}`));
         }
+      });
+
+      pythonProcess.on('error', (err) => {
+        console.error('Failed to start Python process:', err);
+        reject(new Error(`Failed to start Python process: ${err.message}`));
       });
     });
 
     if (pythonError) {
       console.error('Python script error:', pythonError);
-      return res.status(500).json({ error: 'Python script execution failed', details: pythonError });
+      return res.status(500).json({ 
+        error: 'Python script execution failed', 
+        details: pythonError,
+        output: pythonOutput
+      });
     }
 
+    console.log('Simulation completed successfully');
     res.json({ 
       message: "Simulation completed successfully",
       output: pythonOutput
     });
   } catch (error) {
     console.error("Error running simulation:", error);
-    res.status(500).json({ error: "Failed to run simulation" });
+    res.status(500).json({ 
+      error: "Failed to run simulation",
+      details: error.message
+    });
   }
 });
 
