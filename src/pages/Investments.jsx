@@ -130,7 +130,7 @@ const Investments = () => {
                 onChange={(e) =>
                   setNewInvestment({
                     ...newInvestment,
-                    amount: parseFloat(e.target.value),
+                    value: parseFloat(e.target.value),
                   })
                 }
               />
