@@ -18,6 +18,7 @@ const EventSeries = () => {
   const handleNext = async (e) => {
     e.preventDefault();
 
+    //----모든 데이터 통합---//
     // 각 페이지의 데이터 가져오기
     const basicSettings = JSON.parse(localStorage.getItem("basicInfo") || "{}");
     const investmentType = JSON.parse(
@@ -36,7 +37,8 @@ const EventSeries = () => {
 
     // 통합된 데이터를 새로운 키로 저장
     localStorage.setItem("combinedUserData", JSON.stringify(combinedData));
-
+    //----모든 데이터 통합---//
+    // 서버에 데이터 전송 //
     try {
       // 서버에 데이터 전송
       const response = await fetch("/api/save-user-data", {
@@ -61,22 +63,28 @@ const EventSeries = () => {
       toast.error("Failed to save data. Please try again.");
     }
   };
-
+  // 서버에 데이터 전송 //
   //--------------------------------------------------------------------------------------------------
   const eventTypes = ["income", "expense", "invest", "rebalance"];
 
   // storing data for allocation1
-  const [selectInvestment, setSelectInvestment] = useState("");
-  const [allocationNum, setAllocationNum] = useState("");
+  const [selectInvestment, setSelectInvestment] = useState();
+  const [allocationNum, setAllocationNum] = useState();
 
   //storing data for allocation2
-  const [selectInvestment2, setSelectInvestment2] = useState("");
-  const [allocationNum2, setAllocationNum2] = useState("");
+  const [selectInvestment2, setSelectInvestment2] = useState();
+  const [allocationNum2, setAllocationNum2] = useState();
+
   // Investments 데이터를 로컬스토리지에서 불러와 JSON으로 파싱한 후, 각 Investment의 id로 구성된 배열 생성
   const investmentsData = JSON.parse(
     localStorage.getItem("Investments") || "[]"
   );
+
   const assetAllocations = investmentsData.map((investment) => investment.id);
+  const incomeEvents = events.filter((event) => event.type === "income");
+
+  const openModal = () => setShowModal(true);
+  const closeModal = () => setShowModal(false);
 
   // initial event status
   const initialEvent = {
@@ -84,7 +92,7 @@ const EventSeries = () => {
     start: {
       type: "fixed",
       value: 0,
-      eventSeries: "selectedIncomeId",
+      eventSeries: "",
       lower: 0,
       upper: 0,
     },
@@ -93,7 +101,7 @@ const EventSeries = () => {
     initialAmount: null,
     changeAmtOrPct: "",
     changeDistribution: {
-      type: "uniform",
+      type: "",
       lower: 0,
       upper: 0,
       mean: 0.0,
@@ -109,10 +117,8 @@ const EventSeries = () => {
     discretionary: false,
   };
 
+  //모달 내에서 저장되는 정보들을 임시적으로 저장 --> confirm을 하면 저장
   const [newEvent, setNewEvent] = useState(initialEvent);
-
-  const openModal = () => setShowModal(true);
-  const closeModal = () => setShowModal(false);
 
   // add the list when click confirm
   const handleConfirm = () => {
@@ -127,9 +133,11 @@ const EventSeries = () => {
       return;
     }
 
+    //유저가 입력하는 정보들이 스택되려면 필요함(계속 갱신해줘야함)
     const updatedList = [...events, newEvent];
     setEvents(updatedList);
 
+    //EventSeries:[] 형태로 로컬스토리지에 저장
     localStorage.setItem("EventSeries", JSON.stringify(updatedList));
 
     setEvents([...events, newEvent]);
@@ -143,6 +151,7 @@ const EventSeries = () => {
     localStorage.setItem("EventSeries", JSON.stringify(updated));
   };
 
+  //loading event series which is saved in local storage
   useEffect(() => {
     const savedList = localStorage.getItem("EventSeries");
     if (savedList) {
@@ -155,11 +164,8 @@ const EventSeries = () => {
     }
   }, []);
 
-  const incomeEvents = events.filter((event) => event.type === "income");
-
   return (
     <div className="eventSeries-container">
-      <div className="topbar"></div>
       <h2 style={{ textAlign: "center", color: "white" }}>
         Event Series Setting
       </h2>
@@ -167,6 +173,9 @@ const EventSeries = () => {
         <p style={{ color: "#888888" }}>
           You can enter information about your income, expenses, investments,
           etc.
+        </p>
+        <p style={{ fontSize: "13px", color: "red" }}>
+          Please enter your income information first.
         </p>
         <button className="add-btn" onClick={openModal}>
           add event
@@ -176,7 +185,7 @@ const EventSeries = () => {
           <div key={idx} className="event-item">
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <div>
-                <strong>{event.name}</strong> ({event.type})
+                <strong>{event.name}</strong>
               </div>
               <img
                 src={trashIcon}
@@ -186,19 +195,10 @@ const EventSeries = () => {
               />
             </div>
             {/* Prompt to ChatGPT: "How can I export the input format depending on the type? For example, if user choose Income, it export start Year, Duration, Amount. However, if user choose invest, then it should export start year, duration, assestAllocation, gildepath, and cash" */}
-            {event.type === "income" || event.type === "expense" ? (
+            {event.type && (
               <div>
-                <div>Start Year: {event.start}</div>
-                <div>Duration: {event.duration} year(s)</div>
+                <div>Type: {event.type} </div>
               </div>
-            ) : event.type === "invest" || event.type === "rebalance" ? (
-              <div>
-                <div>Start Year: {event.start}</div>
-                <div>Duration: {event.duration} year(s)</div>
-              </div>
-            ) : (
-              /* rebalance */
-              <div> (No extra fields) </div>
             )}
           </div>
         ))}
@@ -242,7 +242,7 @@ const EventSeries = () => {
                   <input
                     type="number"
                     placeholder="e.g. 2025"
-                    value={newEvent.start}
+                    value={newEvent.start.value}
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
@@ -254,7 +254,7 @@ const EventSeries = () => {
                   <input
                     type="number"
                     placeholder="e.g. 20"
-                    value={newEvent.duration}
+                    value={newEvent.duration.value}
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
@@ -277,13 +277,15 @@ const EventSeries = () => {
                   <label>Amount change trend</label>
                   <select
                     value={newEvent.changeAmtOrPct}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        changeAmtOrPct: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const selectedValue = e.target.value;
+                      setNewEvent((prev) => ({
+                        ...prev,
+                        changeAmtOrPct: selectedValue,
+                      }));
+                    }}
                   >
+                    <option value="">-- Select Notation Type --</option>
                     <option value="amount">Notation for Amount</option>
                     <option value="percent">Notation for Percent</option>
                   </select>
@@ -305,6 +307,7 @@ const EventSeries = () => {
                           changeDistribution: {
                             ...newEvent.changeDistribution,
                             lower: value,
+                            type: "uniform",
                           },
                         });
                       } else {
@@ -313,11 +316,12 @@ const EventSeries = () => {
                           changeDistribution: {
                             ...newEvent.changeDistribution,
                             mean: value,
+                            type: "normal",
                           },
                         });
                       }
                     }}
-                  />{" "}
+                  />
                   ~
                   <input
                     style={{ width: "150px" }}
@@ -397,22 +401,58 @@ const EventSeries = () => {
                 <>
                   <label>Start Year with:</label>
                   <select
-                    value={newEvent.start.eventSeries || ""}
+                    value={newEvent.start.type || ""}
                     onChange={(e) => {
-                      const selectedIncomeId = e.target.value;
-                      // 선택한 income 이벤트를 찾기 (고유 id로)
-                      const selectedIncome = incomeEvents.find(
-                        (income) => income.id === selectedIncomeId
-                      );
-                      // income 이벤트가 존재하면 그 start 연도를 가져옴
+                      const selectedType = e.target.value;
                       setNewEvent({
                         ...newEvent,
                         start: {
-                          type: "startWith",
+                          ...newEvent.start,
+                          type: selectedType,
+                        },
+                      });
+                    }}
+                  >
+                    <option value="">-- Set Start Year --</option>
+                    <option value="startWith">
+                      Start Year (Same year with income)
+                    </option>
+                    <option value="startAfter">Start Year after income</option>
+                  </select>
+                  <label>Income Event</label>
+                  <select
+                    value={newEvent.start.eventSeries || ""}
+                    onChange={(e) => {
+                      const selectedIncomeId = e.target.value;
+                      // 선택한 income 이벤트를 찾기
+                      const selectedIncome = incomeEvents.find(
+                        (income) => income.id === selectedIncomeId
+                      );
+
+                      let startValue;
+
+                      if (selectedIncome) {
+                        // "startWith"인 경우 income의 시작 연도를 사용
+                        if (newEvent.start.type === "startWith") {
+                          startValue = selectedIncome.start.value;
+                        }
+                        // "startAfter"인 경우 income의 시작 연도 + 기간을 사용
+                        else if (newEvent.start.type === "startAfter") {
+                          startValue =
+                            selectedIncome.start.value +
+                            selectedIncome.duration;
+                        } else {
+                          // 선택 타입이 없는 경우 기본값
+                          startValue = selectedIncome.start.value;
+                        }
+                      }
+
+                      setNewEvent({
+                        ...newEvent,
+                        start: {
+                          ...newEvent.start,
                           eventSeries: selectedIncomeId,
-                          value: selectedIncome
-                            ? selectedIncome.start.value
-                            : null,
+                          value: startValue,
                         },
                       });
                     }}
@@ -420,10 +460,11 @@ const EventSeries = () => {
                     <option value="">-- Select Income Event --</option>
                     {incomeEvents.map((income) => (
                       <option key={income.id} value={income.id}>
-                        {income.name} ({income.start.value})
+                        {income.name}
                       </option>
                     ))}
                   </select>
+                  
                   <label>Amount</label>
                   <input
                     type="number"
@@ -446,6 +487,7 @@ const EventSeries = () => {
                       })
                     }
                   >
+                    <option value="">-- Select Notation Type --</option>
                     <option value="amount">Notation for Amount</option>
                     <option value="percent">Notation for Percent</option>
                   </select>
@@ -467,6 +509,7 @@ const EventSeries = () => {
                           changeDistribution: {
                             ...newEvent.changeDistribution,
                             lower: value,
+                            type: "uniform",
                           },
                         });
                       } else {
@@ -475,11 +518,12 @@ const EventSeries = () => {
                           changeDistribution: {
                             ...newEvent.changeDistribution,
                             mean: value,
+                            type: "normal",
                           },
                         });
                       }
                     }}
-                  />{" "}
+                  />
                   ~
                   <input
                     style={{ width: "150px" }}
@@ -563,22 +607,36 @@ const EventSeries = () => {
                     placeholder="Start Year"
                     value={newEvent.start.lower}
                     onChange={(e) =>
+                    {
+                      const lowerValue = parseInt(e.target.value, 10);
                       setNewEvent({
                         ...newEvent,
-                        start: parseInt(e.target.value, 10),
+                        start: {
+                          ...newEvent.start,
+                          lower: lowerValue,
+                          type: "uniform",
+                        }
                       })
                     }
-                  />{" "}
+                    }
+                  />
                   ~
                   <input
                     type="number"
                     placeholder="End Year (Expected)"
                     value={newEvent.start.upper}
                     onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        start: parseInt(e.target.value, 10),
-                      })
+                      {
+                        const upperValue = parseInt(e.target.value, 10);
+                        setNewEvent({
+                          ...newEvent,
+                          start: {
+                            ...newEvent.start,
+                            upper: upperValue,
+                            type: "uniform",
+                          }
+                        })
+                      }
                     }
                   />
                   <input
@@ -710,14 +768,17 @@ const EventSeries = () => {
                           type="number"
                           placeholder="e.g. 0.4"
                           value={allocationNum2}
-                          onChange={(e) => setAllocationNum2(e.target.value, 10)}
+                          onChange={(e) =>
+                            setAllocationNum2(e.target.value, 10)
+                          }
                           style={{ width: "50px" }}
                         />
                         <button
                           onClick={() => {
                             // 값이 모두 입력되어 있다면, assetAllocation 객체에 추가
                             if (selectInvestment2 && allocationNum2) {
-                              const allocationValue = parseFloat(allocationNum2);
+                              const allocationValue =
+                                parseFloat(allocationNum2);
                               setNewEvent({
                                 ...newEvent,
                                 assetAllocation2: {
@@ -791,7 +852,7 @@ const EventSeries = () => {
                         start: parseInt(e.target.value, 10),
                       })
                     }
-                  />{" "}
+                  />
                   ~
                   <input
                     type="number"
