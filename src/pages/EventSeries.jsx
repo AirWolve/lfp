@@ -294,7 +294,7 @@ const EventSeries = () => {
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        start: {value: parseInt(e.target.value, 10)},
+                        start: {...start, value: parseInt(e.target.value, 10)},
                       })
                     }
                   />
@@ -306,7 +306,7 @@ const EventSeries = () => {
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        duration: parseInt(e.target.value, 10),
+                        duration: {...duration, value: parseInt(e.target.value, 10)},
                       })
                     }
                   />
