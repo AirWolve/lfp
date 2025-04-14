@@ -28,7 +28,7 @@ const Investments = () => {
 
   const investmentsForm = {
     investmentType: "",
-    amount: null,
+    value: null,
     taxStatus: "non-retirement",
     id: ""
   };
@@ -41,7 +41,7 @@ const Investments = () => {
   const handleConfirm = () => {
     if (
       !newInvestment.investmentType ||
-      !newInvestment.amount
+      !newInvestment.value
     ) {
       toast.warning("Please Fill in all fields");
       return;
@@ -91,7 +91,7 @@ const Investments = () => {
 
         {investments.map((inv, idx) => (
           <div key={idx} className="investment-item">
-            <strong>{inv.investmentType}</strong>: ${inv.amount}
+            <strong>{inv.investmentType}</strong>: ${inv.value}
             <img
               src={trashIcon}
               alt="delete"
@@ -126,7 +126,7 @@ const Investments = () => {
               <input
                 type="number"
                 placeholder="Investment Amount"
-                value={newInvestment.amount}
+                value={newInvestment.value}
                 onChange={(e) =>
                   setNewInvestment({
                     ...newInvestment,
