@@ -3,7 +3,11 @@ const { URLSearchParams } = require("url");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const YAML = require('yaml');
+const fs = require('fs-extra');
+const path = require('path');
 const { initDatabase, Models } = require("./mongo");
+const { spawn } = require('child_process');
 require("dotenv").config();
 
 let homeUrl = "";
@@ -171,6 +175,99 @@ app.post("/api/save-user-data", async (req, res) => {
   } catch (error) {
     console.error("Error saving user data:", error);
     res.status(500).json({ error: "Failed to save data" });
+  }
+});
+
+// Save user data as YAML and run Python script
+app.post("/api/save-scenario", async (req, res) => {
+  const idToken = req.cookies.idToken;
+  if (!idToken) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const decoded = jwt.decode(idToken);
+    const scenarioData = req.body;
+    
+    if (!scenarioData.name) {
+      return res.status(400).json({ error: "Scenario name is required" });
+    }
+    
+    // 저장할 디렉토리 경로 생성
+    const userDir = path.join(__dirname, 'python', 'scenario', decoded.email);
+    await fs.ensureDir(userDir);
+    
+    // 파일 이름 생성 (이메일-시나리오이름.yaml)
+    const fileName = `${decoded.email}-${scenarioData.name}.yaml`;
+    const filePath = path.join(userDir, fileName);
+    
+    // 데이터를 YAML 형식으로 변환하여 저장
+    const yamlStr = YAML.stringify(scenarioData);
+    await fs.writeFile(filePath, yamlStr, 'utf8');
+
+    res.json({ 
+      message: "Scenario saved successfully",
+      filePath: filePath,
+      email: decoded.email,
+      scenarioName: scenarioData.name
+    });
+  } catch (error) {
+    console.error("Error saving scenario:", error);
+    res.status(500).json({ error: "Failed to save scenario" });
+  }
+});
+
+// Run Python simulation
+app.get("/api/run-simulation", async (req, res) => {
+  const { email, scenarioName } = req.query;
+  
+  if (!email || !scenarioName) {
+    return res.status(400).json({ error: "Email and scenario name are required" });
+  }
+
+  try {
+    // Python 스크립트 실행
+    const pythonProcess = spawn('python', [
+      path.join(__dirname, 'python', 'demo_main.py'),
+      email,
+      scenarioName
+    ]);
+
+    let pythonOutput = '';
+    let pythonError = '';
+
+    // Python 스크립트의 출력 수집
+    pythonProcess.stdout.on('data', (data) => {
+      pythonOutput += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      pythonError += data.toString();
+    });
+
+    // Python 스크립트 실행 완료 대기
+    await new Promise((resolve, reject) => {
+      pythonProcess.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Python process exited with code ${code}`));
+        }
+      });
+    });
+
+    if (pythonError) {
+      console.error('Python script error:', pythonError);
+      return res.status(500).json({ error: 'Python script execution failed', details: pythonError });
+    }
+
+    res.json({ 
+      message: "Simulation completed successfully",
+      output: pythonOutput
+    });
+  } catch (error) {
+    console.error("Error running simulation:", error);
+    res.status(500).json({ error: "Failed to run simulation" });
   }
 });
 
