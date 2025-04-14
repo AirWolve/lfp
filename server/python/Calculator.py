@@ -336,21 +336,27 @@ class Inflation:
         returns list of dictionary of series inflation assumed amount values
         """
         result = list()
-        df_es = pd.DataFrame(self.data.eventSeries)
         curYear = datetime.date.today().year
+        df_es = pd.DataFrame(self.data.eventSeries)
+        start = 0
 
         for idx, row in df_es.iterrows():
+            row = row.item()
             values = list()
-            if row.inflationAdjusted == False:
+
+            if row.type == "rebalance" or row.type == "invest":
                 continue
+            elif row.inflationAdjusted == False:
+                continue
+
             else:
-                duration = row["duration"]["value"]
+                duration = row.duration["value"]
                 
-                if row["start"]["type"] == "fixed":
-                    start = row["start"]["value"]
+                if row.start["type"] == "fixed":
+                    start = row.start["value"]
                     
                     if start == curYear:
-                        values.append(row["initialAmount"] * (1-self.assumption["value"]))
+                        values.append(row.initialAmount * (1-self.assumption["value"]))
                     else:
                         if not values:
                             for i in range(start, curYear):
@@ -359,11 +365,15 @@ class Inflation:
                         for i in range(duration):
                             values.append(values[-1]*(1-self.assumption["value"])**len(values))
                         
-                elif row["start"]["type"] == "startWith":
-                    start = df_es[df_es["name"] == row["start"]["eventSeries"]]["start"]["value"]
+                elif row.start["type"] == "startWith":
+                    for id, da in df_es.iterrows():
+                        da = da.item()
+                        if da.name == row.start["eventSeries"]:
+                            start = da.start["value"]
+                            break
 
                     if start == curYear:
-                        values.append(row["initialAmount"] * (1-self.assumption["value"]))
+                        values.append(row.initialAmount * (1-self.assumption["value"]))
                     else:
                         if not values:
                             for i in range(start, curYear):
@@ -372,11 +382,15 @@ class Inflation:
                         for i in range(duration):
                             values.append(values[-1]*(1-self.assumption["value"])**len(values))
                 
-                elif row["start"]["type"] == "startAfter":
-                    start = df_es[df_es["name"] == row["start"]["eventSeries"]]["start"]["value"]
-
+                elif row.start["type"] == "startAfter":
+                    for id, da in df_es.iterrows():
+                        da = da.item()
+                        if da.name == row.start["eventSeries"]:
+                            start = da.start["value"]
+                            break
+                
                     if start == curYear:
-                        values.append(row["initialAmount"] * (1-self.assumption["value"]))
+                        values.append(row.initialAmount * (1-self.assumption["value"]))
                     else:
                         if not values:
                             for i in range(start, curYear):
@@ -385,34 +399,175 @@ class Inflation:
                         for i in range(duration):
                             values.append(values[-1]*(1-self.assumption["value"])**len(values))
             
-            result.append({row["name"]: values})
+            result.append({row.name: values})
 
         return result
 
 
     def uniformInflation(self):
-        return None
+        """
+        This function is for uniform inflation assumption
+        """
+        
+        result = list()
+        curYear = datetime.date.today().year
+        df_es = pd.DataFrame(self.data.eventSeries)
+        start = 0
+
+        self.assumption
+        if self.type == "uniform":
+            low = self.assumption["lower"]
+            high = self.assumption["upper"]
+
+        for idx, row in df_es.iterrows():
+            row = row.item()
+            values = list()
+
+            if row.type == "rebalance" or row.type == "invest":
+                continue
+            elif row.inflationAdjusted == False:
+                continue
+
+            else:
+                duration = row.duration["value"]
+                
+                if row.start["type"] == "fixed":
+                    start = row.start["value"]
+                    
+                    if start == curYear:
+                        values.append(row.initialAmount * (1-np.random.uniform(low, high)))
+                    else:
+                        if not values:
+                            for i in range(start, curYear):
+                                values.append(None)
+
+                        for i in range(duration):
+                            values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
+                        
+                elif row.start["type"] == "startWith":
+                    for id, da in df_es.iterrows():
+                        da = da.item()
+                        if da.name == row.start["eventSeries"]:
+                            start = da.start["value"]
+                            break
+
+                    if start == curYear:
+                        values.append(row.initialAmount * (1-np.random.uniform(low, high)))
+                    else:
+                        if not values:
+                            for i in range(start, curYear):
+                                values.append(None)
+
+                        for i in range(duration):
+                            values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
+                
+                elif row.start["type"] == "startAfter":
+                    for id, da in df_es.iterrows():
+                        da = da.item()
+                        if da.name == row.start["eventSeries"]:
+                            start = da.start["value"]
+                            break
+                
+                    if start == curYear:
+                        values.append(row.initialAmount * (1-np.random.uniform(low, high)))
+                    else:
+                        if not values:
+                            for i in range(start, curYear):
+                                values.append(None)
+
+                        for i in range(duration):
+                            values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
+            
+            result.append({row.name: values})
+
+        return result
 
     def normalInflation(self):
-        return None
+        """
+        This function is for normal inflation assumption
+        """
+        result = list()
+        curYear = datetime.date.today().year
+        df_es = pd.DataFrame(self.data.eventSeries)
+        start = 0
+
+        self.assumption
+        if self.type == "normal":
+            mean = self.assumption["mean"]
+            std = self.assumption["stdev"]
+
+        for idx, row in df_es.iterrows():
+            row = row.item()
+            values = list()
+
+            if row.type == "rebalance" or row.type == "invest":
+                continue
+            elif row.inflationAdjusted == False:
+                continue
+
+            else:
+                duration = row.duration["value"]
+                
+                if row.start["type"] == "fixed":
+                    start = row.start["value"]
+                    
+                    if start == curYear:
+                        values.append(row.initialAmount * (1-np.random.normal(mean, std)))
+                    else:
+                        if not values:
+                            for i in range(start, curYear):
+                                values.append(None)
+
+                        for i in range(duration):
+                            values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
+                        
+                elif row.start["type"] == "startWith":
+                    for id, da in df_es.iterrows():
+                        da = da.item()
+                        if da.name == row.start["eventSeries"]:
+                            start = da.start["value"]
+                            break
+
+                    if start == curYear:
+                        values.append(row.initialAmount * (1-np.random.normal(mean, std)))
+                    else:
+                        if not values:
+                            for i in range(start, curYear):
+                                values.append(None)
+
+                        for i in range(duration):
+                            values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
+                
+                elif row.start["type"] == "startAfter":
+                    for id, da in df_es.iterrows():
+                        da = da.item()
+                        if da.name == row.start["eventSeries"]:
+                            start = da.start["value"]
+                            break
+                
+                    if start == curYear:
+                        values.append(row.initialAmount * (1-np.random.normal(mean, std)))
+                    else:
+                        if not values:
+                            for i in range(start, curYear):
+                                values.append(None)
+
+                        for i in range(duration):
+                            values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
+            
+            result.append({row.name: values})
+
+        return result
 
     def runInflation(self):
         if self.type == "fixed":
-            self.baseInflation()
+            return self.baseInflation()
         elif self.type == "uniform":
-            self.uniformInflation()
+            return self.uniformInflation()
         elif self.type == "normal":
-            self.normalInflation()
+            return self.normalInflation()
         else:
             raise ValueError("Invalid Type of Inflation Assumption!")
-"""
-Re-start
-
-def inflationAssumption(initialYear, expenseYearAmount, initialAmount, inflationRate = 3.0):
-    if initialYear == True:
-        return initialAmount * (1+inflationRate)
-    return expenseYearAmount * (1+inflationRate)
-"""
 
 # Expense Withdrawal Strategy
 def expenseWithdrawal(initialAmount, annualReturn, yearRest):
