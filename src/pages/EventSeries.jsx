@@ -17,29 +17,30 @@ const EventSeries = () => {
 
   const handleNext = async (e) => {
     e.preventDefault();
-
-    // 각 페이지의 데이터 가져오기
-    const basicSettings = JSON.parse(localStorage.getItem("basicInfo") || "{}");
-    const investmentType = JSON.parse(
-      localStorage.getItem("InvestmentTypes") || "{}"
-    );
+    
+    // Gahtering data from localStorage
+    const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
+    const investmentType = JSON.parse(localStorage.getItem("InvestmentType") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
     const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
 
-    // 모든 데이터를 하나의 객체로 통합
+    if (!basicInfo.name) {
+      toast.error("Scenario name is required in Basic Settings");
+      return;
+    }
+
+    // Merge all data into one object (flattened basicInfo)
+    // flatten basicInfo to make sure it looks similar to the sample scenario.yaml
     const combinedData = {
-      basicSettings,
+      ...basicInfo,
       investmentType,
       investments,
-      eventSeries,
+      eventSeries
     };
 
-    // 통합된 데이터를 새로운 키로 저장
-    localStorage.setItem("combinedUserData", JSON.stringify(combinedData));
-
     try {
-      // 서버에 데이터 전송
-      const response = await fetch("/api/save-user-data", {
+      // Send scenario data to server
+      const response = await fetch("/api/save-scenario", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,16 +50,32 @@ const EventSeries = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save data");
-      } else {
-        console.log("Successfully saved");
+        throw new Error("Failed to save scenario");
       }
 
-      // 데이터 저장 성공 시 Overview 페이지로 이동
+      const result = await response.json();
+      console.log("Scenario saved:", result.filePath);
+
+      // Python 시뮬레이션 실행
+      const simResponse = await fetch(`/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
+        credentials: "include"
+      });
+
+      if (!simResponse.ok) {
+        throw new Error("Failed to run simulation");
+      }
+
+      const simResult = await simResponse.json();
+      console.log("Simulation completed:", simResult.output);
+
+      // Save the result of simulation to localStorage
+      localStorage.setItem("simulationResult", simResult.output);
+
+      // Go to overview page
       navigate(`${constPath.overview}`);
     } catch (error) {
-      console.error("Error saving data:", error);
-      toast.error("Failed to save data. Please try again.");
+      console.error("Error:", error);
+      toast.error(error.message || "An error occurred");
     }
   };
 
