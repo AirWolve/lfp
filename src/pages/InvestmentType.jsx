@@ -34,8 +34,7 @@ const InvestmentType = () => {
 
   const handleConfirm = () => {
     if (
-      !investmentType.name ||
-      !investmentType.expenseRatio
+      !investmentType.name
     ) {
       toast.warning("Please Fill in all fields");
       return;
