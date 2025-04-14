@@ -38,6 +38,8 @@ const EventSeries = () => {
       eventSeries
     };
 
+    console.log("Sending data to server:", combinedData);
+
     try {
       // Send scenario data to server
       const response = await fetch("/api/save-scenario", {
@@ -49,34 +51,54 @@ const EventSeries = () => {
         body: JSON.stringify(combinedData),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to save scenario: ${errorText}`);
+      console.log("Server response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        throw new Error(`Server response is not valid JSON: ${responseText}`);
       }
 
-      const result = await response.json();
-      console.log("Scenario saved:", result.filePath);
+      console.log("Parsed response:", result);
+
+      if (!response.ok) {
+        throw new Error(`Failed to save scenario: ${result.error || responseText}`);
+      }
+
+      // Run simulation
+      console.log("Starting simulation with:", {
+        email: result.email,
+        scenarioName: result.scenarioName
+      });
 
       const simResponse = await fetch(`/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
         credentials: "include"
       });
 
+      console.log("Simulation response status:", simResponse.status);
+      console.log("Simulation headers:", Object.fromEntries(simResponse.headers.entries()));
+
+      const simResponseText = await simResponse.text();
+      console.log("Raw simulation response:", simResponseText);
+
       if (!simResponse.ok) {
-        const errorText = await simResponse.text();
-        throw new Error(`Failed to run simulation: ${errorText}`);
+        throw new Error(`Failed to run simulation: ${simResponseText}`);
       }
 
       let simResult;
-      const contentType = simResponse.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        simResult = await simResponse.json();
-        console.log("Simulation completed:", simResult.output);
-        // Save the result of simulation to localStorage
+      try {
+        simResult = JSON.parse(simResponseText);
+        console.log("Parsed simulation result:", simResult);
         localStorage.setItem("simulationResult", simResult.output);
-      } else {
-        const textResult = await simResponse.text();
-        console.log("Simulation completed with text response:", textResult);
-        localStorage.setItem("simulationResult", textResult);
+      } catch (parseError) {
+        console.log("Simulation returned non-JSON response:", simResponseText);
+        localStorage.setItem("simulationResult", simResponseText);
       }
 
       // Go to overview page
