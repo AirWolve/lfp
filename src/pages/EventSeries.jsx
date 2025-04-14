@@ -17,31 +17,35 @@ const EventSeries = () => {
 
   const handleNext = async (e) => {
     e.preventDefault();
-
-    //----모든 데이터 통합---//
-    // 각 페이지의 데이터 가져오기
-    const basicSettings = JSON.parse(localStorage.getItem("basicInfo") || "{}");
-    const investmentType = JSON.parse(
-      localStorage.getItem("InvestmentTypes") || "{}"
-    );
+    //----Integrating all data---//
+    // Gahtering data from localStorage
+    const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
+    const investmentType = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
     const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
 
-    // 모든 데이터를 하나의 객체로 통합
+    if (!basicInfo.name) {
+      toast.error("Scenario name is required in Basic Settings");
+      return;
+    }
+
+    // Merge all data into one object (flattened basicInfo)
+    // flatten basicInfo to make sure it looks similar to the sample scenario.yaml
     const combinedData = {
-      basicSettings,
+      ...basicInfo,
       investmentType,
       investments,
-      eventSeries,
+      eventSeries
     };
 
-    // 통합된 데이터를 새로운 키로 저장
+    // Saved integrated data into new key 'combinedUserData'
     localStorage.setItem("combinedUserData", JSON.stringify(combinedData));
-    //----모든 데이터 통합---//
-    // 서버에 데이터 전송 //
+    
+    // Debug line
+    console.log("Sending data to server:", combinedData);
     try {
-      // 서버에 데이터 전송
-      const response = await fetch("/api/save-user-data", {
+      // Send scenario data to server
+      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/save-scenario`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,17 +54,61 @@ const EventSeries = () => {
         body: JSON.stringify(combinedData),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save data");
-      } else {
-        console.log("Successfully saved");
+      console.log("Server response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        throw new Error(`Server response is not valid JSON: ${responseText}`);
       }
 
-      // 데이터 저장 성공 시 Overview 페이지로 이동
+      console.log("Parsed response:", result);
+
+      if (!response.ok) {
+        throw new Error(`Failed to save scenario: ${result.error || responseText}`);
+      }
+
+      // Run simulation
+      console.log("Starting simulation with:", {
+        email: result.email,
+        scenarioName: result.scenarioName
+      });
+
+      // const simResponse = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
+      //   credentials: "include"
+      // });
+
+      // console.log("Simulation response status:", simResponse.status);
+      // console.log("Simulation headers:", Object.fromEntries(simResponse.headers.entries()));
+
+      // const simResponseText = await simResponse.text();
+      // console.log("Raw simulation response:", simResponseText);
+
+      // if (!simResponse.ok) {
+      //   throw new Error(`Failed to run simulation: ${simResponseText}`);
+      // }
+
+      // let simResult;
+      // try {
+      //   simResult = JSON.parse(simResponseText);
+      //   console.log("Parsed simulation result:", simResult);
+      //   localStorage.setItem("simulationResult", simResult.output);
+      // } catch (parseError) {
+      //   console.log("Simulation returned non-JSON response:", simResponseText);
+      //   localStorage.setItem("simulationResult", simResponseText);
+      // }
+
+      // Go to overview page
       navigate(`${constPath.overview}`);
     } catch (error) {
-      console.error("Error saving data:", error);
-      toast.error("Failed to save data. Please try again.");
+      console.error("Error:", error);
+      toast.error(error.message || "An error occurred");
     }
   };
   // 서버에 데이터 전송 //
