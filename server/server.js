@@ -14,6 +14,9 @@ let homeUrl = "";
 let baseUrl = "";
 const app = express();
 
+// Add body parser middleware
+app.use(express.json());
+
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",")
   : [`${process.env.LFP_HOME_DIR}`, `${process.env.LFP_DEV_HOME_DIR}`];
