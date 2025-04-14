@@ -56,6 +56,8 @@
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    max-height: 80vh;
+    overflow-y: auto;
   }
   
   .modal-content h4 {
@@ -105,3 +107,8 @@
     background-color: #5b8def;
   }
   
+  .formButtons {
+    margin-top: 20px;
+    display: flex;
+    gap: 350px;
+  }
