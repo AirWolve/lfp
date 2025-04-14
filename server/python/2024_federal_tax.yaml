@@ -1,8 +1,21 @@
-# a tax will be seperated into two: indicidual and couple
-# in every dictionary, the key is maximum amount to implement the tax rate
-
-name: "Federal Tax 2024"
+name: Federal Tax 2024
 year: 2024
-individual: {"11600": 0.1, "47150": 0.12, "100525": 0.22, "191950": 0.24, "243725": 0.32, "609350": 0.35, "inf": 0.37}
-couple: {"23200": 0.1, "94300": 0.12, "201050": 0.22, "383900": 0.24, "487450": 0.32, "731200": 0.35, "inf": 0.37}
-standardDeduction: {"individual": 14600, "couple": 29200}
+individual:
+  '11600': 0.1
+  '47150': 0.12
+  '100525': 0.22
+  '191950': 0.24
+  '243725': 0.32
+  '609350': 0.35
+  inf: 0.37
+couple:
+  '23200': 0.1
+  '94300': 0.12
+  '201050': 0.22
+  '383900': 0.24
+  '487450': 0.32
+  '731200': 0.35
+  inf: 0.37
+standardDeduction:
+  individual: 14600
+  couple: 29200
