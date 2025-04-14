@@ -104,6 +104,7 @@ app.get("/auth/oauth/google/callback", async (req, res) => {
       httpOnly: true,
       sameSite: "lax",
       maxAge: tokenData.expires_in * 1000,
+      path: "/",
     });
 
     return res.redirect(homeUrl);
@@ -115,7 +116,11 @@ app.get("/auth/oauth/google/callback", async (req, res) => {
 
 // Oauth2 Logout
 app.get("/auth/oauth/logout", (req, res) => {
-  res.clearCookie("idToken");
+  res.clearCookie("idToken", {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+  });
   return res.redirect(baseUrl);
 });
 
