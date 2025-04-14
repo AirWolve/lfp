@@ -28,17 +28,17 @@ class Scenario:
         self.investmentTypes:list = [InvestmentTypes(params) for params in parameters["investmentTypes"]]
         self.investments:list = [Investments(params) for params in parameters["investments"]]
         self.eventSeries:list = [EventSeries(params) for params in parameters["eventSeries"]]
-        self.inflationAssumption:dict = parameters["inflationAssumption"].copy()
-        self.afterTaxContributionLimit:int = parameters["afterTaxContributionLimit"]
-        self.spendingStrategy:list = parameters["spendingStrategy"].copy()
-        self.expenseWithdrawalStrategy:list = parameters["expenseWithdrawalStrategy"].copy()
-        self.RMDStrategy:list = parameters["RMDStrategy"].copy()
-        self.RothConversionOpt:bool = parameters["RothConversionOpt"]
-        self.RothConversionStart:int = parameters["RothConversionStart"]
-        self.RothConversionEnd:int = parameters["RothConversionEnd"]
-        self.RothConversionStrategy:list = parameters["RothConversionStrategy"].copy()
-        self.financialGoal:int = parameters["financialGoal"]
-        self.residenceState:str = parameters["residenceState"]
+        # self.inflationAssumption:dict = parameters["inflationAssumption"].copy()
+        # self.afterTaxContributionLimit:int = parameters["afterTaxContributionLimit"]
+        # self.spendingStrategy:list = parameters["spendingStrategy"].copy()
+        # self.expenseWithdrawalStrategy:list = parameters["expenseWithdrawalStrategy"].copy()
+        # self.RMDStrategy:list = parameters["RMDStrategy"].copy()
+        # self.RothConversionOpt:bool = parameters["RothConversionOpt"]
+        # self.RothConversionStart:int = parameters["RothConversionStart"]
+        # self.RothConversionEnd:int = parameters["RothConversionEnd"]
+        # self.RothConversionStrategy:list = parameters["RothConversionStrategy"].copy()
+        # self.financialGoal:int = parameters["financialGoal"]
+        # self.residenceState:str = parameters["residenceState"]
 
     def getParameters(self, key):
         return self.parameters.get(key)
