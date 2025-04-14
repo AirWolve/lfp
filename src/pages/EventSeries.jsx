@@ -50,26 +50,34 @@ const EventSeries = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save scenario");
+        const errorText = await response.text();
+        throw new Error(`Failed to save scenario: ${errorText}`);
       }
 
       const result = await response.json();
       console.log("Scenario saved:", result.filePath);
 
-      // Python 시뮬레이션 실행
       const simResponse = await fetch(`/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
         credentials: "include"
       });
 
       if (!simResponse.ok) {
-        throw new Error("Failed to run simulation");
+        const errorText = await simResponse.text();
+        throw new Error(`Failed to run simulation: ${errorText}`);
       }
 
-      const simResult = await simResponse.json();
-      console.log("Simulation completed:", simResult.output);
-
-      // Save the result of simulation to localStorage
-      localStorage.setItem("simulationResult", simResult.output);
+      let simResult;
+      const contentType = simResponse.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        simResult = await simResponse.json();
+        console.log("Simulation completed:", simResult.output);
+        // Save the result of simulation to localStorage
+        localStorage.setItem("simulationResult", simResult.output);
+      } else {
+        const textResult = await simResponse.text();
+        console.log("Simulation completed with text response:", textResult);
+        localStorage.setItem("simulationResult", textResult);
+      }
 
       // Go to overview page
       navigate(`${constPath.overview}`);
