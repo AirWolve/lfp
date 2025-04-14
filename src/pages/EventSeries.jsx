@@ -20,7 +20,7 @@ const EventSeries = () => {
     //----Integrating all data---//
     // Gahtering data from localStorage
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
-    const investmentType = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
+    const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
     const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
 
@@ -33,7 +33,7 @@ const EventSeries = () => {
     // flatten basicInfo to make sure it looks similar to the sample scenario.yaml
     const combinedData = {
       ...basicInfo,
-      investmentType,
+      investmentTypes,
       investments,
       eventSeries
     };
