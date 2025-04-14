@@ -18,7 +18,7 @@ const EventSeries = () => {
   const handleNext = async (e) => {
     e.preventDefault();
     
-    // 각 페이지의 데이터 가져오기
+    // Gahtering data from localStorage
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
     const investmentType = JSON.parse(localStorage.getItem("InvestmentType") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
@@ -29,7 +29,8 @@ const EventSeries = () => {
       return;
     }
 
-    // 모든 데이터를 하나의 객체로 통합 (basicInfo는 평면화)
+    // Merge all data into one object (flattened basicInfo)
+    // flatten basicInfo to make sure it looks similar to the sample scenario.yaml
     const combinedData = {
       ...basicInfo,
       investmentType,
@@ -38,7 +39,7 @@ const EventSeries = () => {
     };
 
     try {
-      // 서버에 시나리오 데이터 전송
+      // Send scenario data to server
       const response = await fetch("/api/save-scenario", {
         method: "POST",
         headers: {
@@ -67,10 +68,10 @@ const EventSeries = () => {
       const simResult = await simResponse.json();
       console.log("Simulation completed:", simResult.output);
 
-      // 시뮬레이션 결과를 localStorage에 저장
+      // Save the result of simulation to localStorage
       localStorage.setItem("simulationResult", simResult.output);
 
-      // Overview 페이지로 이동
+      // Go to overview page
       navigate(`${constPath.overview}`);
     } catch (error) {
       console.error("Error:", error);
