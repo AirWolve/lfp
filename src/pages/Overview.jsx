@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Overview.css";
 import profileImg from "../assets/profile.png";
@@ -10,6 +10,22 @@ const Overview = () => {
   const navigate = useNavigate();
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [simulationResult, setSimulationResult] = useState(null);
+
+  useEffect(() => {
+    // Get simulation result from localStorage
+    const result = localStorage.getItem("simulationResult");
+    if (result) {
+      try {
+        // if the result is json type then parse it
+        const parsedResult = JSON.parse(result);
+        setSimulationResult(parsedResult);
+      } catch (e) {
+        //Otherwise, just use it on its own
+        setSimulationResult(result);
+      }
+    }
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
@@ -137,27 +153,46 @@ const Overview = () => {
 
           {/* Summary */}
           <div className="summary-box">
-            <p>
-              <strong>Monthly Income</strong> <span>$0,000</span>
-            </p>
-            <p>
-              <strong>Yearly Income</strong> <span>$00,000</span>
-            </p>
-            <p>
-              <strong>Living expense</strong> <span>$000</span>
-            </p>
-            <p>
-              <strong>Regular expense</strong> <span>$000</span>
-            </p>
-            <p>
-              <strong>Debt</strong> <span>$00,000</span>
-            </p>
-            <p>
-              <strong>Assets</strong> <span>$000,000</span>
-            </p>
-            <p>
-              <strong>Tax</strong> <span>0.00%</span>
-            </p>
+            {simulationResult ? (
+              <div className="simulation-results">
+                <h3>Simulation Results</h3>
+                {typeof simulationResult === 'object' ? (
+                  // JSON 결과인 경우 객체의 각 필드를 표시
+                  Object.entries(simulationResult).map(([key, value]) => (
+                    <p key={key}>
+                      <strong>{key}:</strong> <span>{value}</span>
+                    </p>
+                  ))
+                ) : (
+                  // 문자열 결과인 경우 그대로 표시
+                  <pre>{simulationResult}</pre>
+                )}
+              </div>
+            ) : (
+              <>
+                <p>
+                  <strong>Monthly Income</strong> <span>$0,000</span>
+                </p>
+                <p>
+                  <strong>Yearly Income</strong> <span>$00,000</span>
+                </p>
+                <p>
+                  <strong>Living expense</strong> <span>$000</span>
+                </p>
+                <p>
+                  <strong>Regular expense</strong> <span>$000</span>
+                </p>
+                <p>
+                  <strong>Debt</strong> <span>$00,000</span>
+                </p>
+                <p>
+                  <strong>Assets</strong> <span>$000,000</span>
+                </p>
+                <p>
+                  <strong>Tax</strong> <span>0.00%</span>
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>
