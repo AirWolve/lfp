@@ -1,11 +1,14 @@
-import json
-import pandas as pd
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
 import datetime
+import json
 import numpy as np
+import os
+import pandas as pd
+import re
 import requests
 import yaml
-from bs4 import BeautifulSoup
-import re
 
 class RMDCalculator:
     """
@@ -17,6 +20,7 @@ class RMDCalculator:
         yaer = today's year integer value
     """
     def __init__(self):
+        load_dotenv()
         try:
             with open('./LFTTable.yaml') as f:
                 self.LFTTable = yaml.load(f, Loader=yaml.FullLoader).copy()   # scrape or something for the LFT table
@@ -30,7 +34,7 @@ class RMDCalculator:
         """
         This is for scraping RMD table from irs website
         """
-        url = "https://www.irs.gov/publications/p590b#en_US_2024_publink100090310"
+        url = os.getenv('LFP_PYTHON_LFT')
         res = requests.get(url)
         soup = BeautifulSoup(res.text, 'html.parser')
 
@@ -63,6 +67,7 @@ class RMDCalculator:
 
 class TaxCalculator:
     def __init__(self):
+        load_dotenv()
         self.year = datetime.date.today().year
         with open('./2024_federal_tax.yaml') as f:
             self.federalTax = yaml.load(f, Loader=yaml.FullLoader)
@@ -222,7 +227,7 @@ class TaxCalculator:
         """
         This is a function to scrape newer federal tax table and standard deduction from irs website
         """
-        url = 'https://www.irs.gov/filing/federal-income-tax-rates-and-brackets'
+        url = os.getenv('LFP_PYTHON_FEDERAL')
         res = requests.get(url)
 
         if res.status_code != 200:
@@ -244,7 +249,7 @@ class TaxCalculator:
                         result[tds[td+2].text.replace("$","").replace(",","")] = int(tds[td].text.replace("%", ""))/100
                 final.append(result)
         
-        url2 = "https://www.irs.gov/publications/p17"
+        url2 = os.getenv('LFP_PYTHON_STD')
         res = requests.get(url2)
         
         if res.status_code != 200:
@@ -275,7 +280,7 @@ class TaxCalculator:
         """
         This is a function to scrape newer capital gain tax table from irs website
         """
-        url = "https://www.irs.gov/taxtopics/tc409"
+        url = os.getenv('LFP_PYTHON_CGAIN')
         res = requests.get(url)
 
         if res.status_code != 200:
