@@ -13,22 +13,49 @@ class RMDCalculator:
     
     Args:
     ----
-        LFTTable = static path to read the json file which holds RMD ratio
+        LFTTable = static path to read the yaml file which holds RMD ratio
         yaer = today's year integer value
     """
     def __init__(self):
-        with open('./LFTTable.json') as f:
-            self.LFTTable = json.loads(f.read()).copy()   # scrape or something for the LFT table
+        try:
+            with open('./LFTTable.yaml') as f:
+                self.LFTTable = yaml.load(f, Loader=yaml.FullLoader).copy()   # scrape or something for the LFT table
+        except FileNotFoundError:
+            self.updateLFTTable()
+            with open('./LFTTable.yaml') as f:
+                self.LFTTable = yaml.load(f, Loader=yaml.FullLoader).copy()
         self.year = datetime.date.today().year
+    
+    def updateLFTTable(self):
+        """
+        This is for scraping RMD table from irs website
+        """
+        url = "https://www.irs.gov/publications/p590b#en_US_2024_publink100090310"
+        res = requests.get(url)
+        soup = BeautifulSoup(res.text, 'html.parser')
+
+        table = soup.find("table", attrs={"summary": "Appendix B. Uniform Lifetime Table"})
+        tds = table.select("td")
+
+        result = {}
+        for idx in range(11, 109, 2):
+            if tds[idx].text.strip() == "120 and over":
+                result['120'] = int(tds[idx+1].text.strip().replace(".",""))/10
+            else:
+                result[tds[idx].text.strip()] = int(tds[idx+1].text.strip().replace(".",""))/10
+        
+        with open('./LFTTable.yaml', 'w') as f:
+            yaml.dump(result, f, default_flow_style=False, sort_keys=False)
+
     # RMD Calculator
     def runRMD(self, data:dict):
-        df_invs = pd.DataFrame(data["investments"]).copy()
-        age = data["birthYears"][0]-self.year
+        df_invs = pd.DataFrame(data.investments)
+        age = data.birthYears[0]-self.year
         
         if age < 74:
             return 0
         else:
-            for idn in data["RMDStrategy"]:
+            for idn in data.RMDStrategy:
                 if age > 120:
                     return df_invs[df_invs["id"]==idn]["value"].item() / self.LFTTable.get(str(120))
                 else:
@@ -51,18 +78,18 @@ class TaxCalculator:
         """
         sc = False
 
-        for d in data["eventSeries"]:
+        for d in data.eventSeries:
             if d.type == "income":
                 sc = d.socialSecurity
                 break
 
         if sc:
-            taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]       
+            taxable = amount * 0.85 - self.federalTax["standardDeduction"][data.maritalStatus]       
         else:
-            taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
+            taxable = amount - self.federalTax["standardDeduction"][data.maritalStatus]
         
-        if taxable < 0:
-            if data["maritalStatus"] == "couple":
+        if taxable > 0:
+            if data.maritalStatus == "couple":
                 for key, value in self.federalTax["couple"].items():
                     if key == "inf":
                         return taxable * value
@@ -84,9 +111,9 @@ class TaxCalculator:
 
         consider all taxable investment
         """
-        taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
-        if taxable < 0:
-            if data["maritalStatus"] == "couple":
+        taxable = amount - self.federalTax["standardDeduction"][data.maritalStatus]
+        if taxable > 0:
+            if data.maritalStatus == "couple":
                 for key, value in self.capTax["couple"].items():
                     if key == "inf":
                         return taxable * value
@@ -109,20 +136,20 @@ class TaxCalculator:
         ----
             state: a string value of state name such as NJ, NY, etc.
         """
-        taxable = amount - self.federalTax["standardDeduction"][data["maritalStatus"]]
+        taxable = amount - self.federalTax["standardDeduction"][data.maritalStatus]
         
         if state not in self.stateTax.keys():
             return 0, "State Tax Not Found!"
         
-        if taxable < 0:
-            if data["maritalStatus"] == "couple":
-                for key, value in self.stateTax[state]["couple"].items():
+        if taxable > 0:
+            if data.maritalStatus == "couple":
+                for key, value in self.stateTax[state][0]["couple"].items():
                     if key == "inf":
                         return taxable * value
                     elif taxable < int(key):
                         return taxable * value
             else:
-                for key, value in self.stateTax[state]["individual"].items():
+                for key, value in self.stateTax[state][0]["individual"].items():
                     if key == "inf":
                         return taxable * value
                     elif taxable < int(key):
@@ -138,7 +165,7 @@ class TaxCalculator:
         ----
             withdrawal: a integer value of withdrawal amount
         """
-        age = data["birthYears"][0]-self.year
+        age = data.birthYears[0]-self.year
 
         if age < 59:
             return withdrawal * 0.1
@@ -177,7 +204,7 @@ class TaxCalculator:
         
         return yaml_data
 
-    def socialSecurity(self, amount:int, state:str):
+    def socialSecurity(self, state:str):
         """
         This is a function to get social security tax amount
 
@@ -266,19 +293,36 @@ class TaxCalculator:
                     re.findall(r'\d{1,3}(?:,\d{3})*(?:\.\d+)?', lis[6].text)[1].replace(",", ""): int(b_tags[1].text.replace("%", ""))/100,
                     "inf": int(strong.text.replace("%", ""))/100}
 
-        with open('./asd.yaml') as f:
+        with open('./ctTax.yaml') as f:
             tax = yaml.load(f, Loader=yaml.FullLoader)
             tax["couple"] = result_co
             tax["individual"] = result_in
-        with open('./asd.yaml', 'w') as f:
+        with open('./ctTax.yaml', 'w') as f:
             yaml.dump(tax, f, default_flow_style=False, sort_keys=False)
+
+    def runIncomeTax(self, data:dict):
+        """
+        This is a function to run all tax calculator
+
+        Args:
+        ----
+            data: a dictionary of data to calculate tax amount
+            amount: a integer value of income amount to calculate tax
+        """
+        for ev in data.eventSeries:
+            if ev.type == "income":
+                income = ev.initialAmount
+                break
+
+        return income - self.federalTaxCalculator(data, income)\
+                - self.stateTaxCalculator(data, income, data.residenceState)
 
 # Inflation Assumption
 class Inflation:
     def __init__(self, data:dict):
-        self.type = data["inflationAssumption"]["type"]
-        self.assumption = data["inflationAssumption"].copy()
-        self.data = data.copy()
+        self.type = data.inflationAssumption["type"]
+        self.assumption = data.inflationAssumption
+        self.data = data
     
     def baseInflation(self):
         """
@@ -287,12 +331,12 @@ class Inflation:
         returns list of dictionary of series inflation assumed amount values
         """
         result = list()
-        df_es = pd.DataFrame(self.data["eventSeries"]).copy()
+        df_es = pd.DataFrame(self.data.eventSeries)
         curYear = datetime.date.today().year
 
         for idx, row in df_es.iterrows():
             values = list()
-            if row["inflationAdjusted"] == False:
+            if row.inflationAdjusted == False:
                 continue
             else:
                 duration = row["duration"]["value"]
