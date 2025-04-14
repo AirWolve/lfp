@@ -21,7 +21,7 @@ const Investments = () => {
 
   const investmentsForm = {
     type: "",
-    amount: 0,
+    amount: null,
     taxStatus: "non-retirement",
     id: ""
   };
@@ -64,11 +64,8 @@ const Investments = () => {
       }
     }, []);
 
-  //Js import after connecting back-end
-  // const investmentTypes = JSON.parse(localStorage.getItem("investmentTypes")) || [];
-
-  // temporary investment type provide
-  const investmentTypes = ["Stocks", "Bonds", "Cryptocurrency"];
+  //load investment type as stored in local storage
+  const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes")) || [];
 
   return (
     <div>
@@ -106,9 +103,9 @@ const Investments = () => {
                 }
               >
                 <option value="">-- Select Investment Type --</option>
-                {investmentTypes.map((type, idx) => (
-                  <option key={idx} value={type}>
-                    {type}
+                {investmentTypes.map((typeObj, idx) => (
+                  <option key={idx} value={typeObj.name}>
+                    {typeObj.name}
                   </option>
                 ))}
               </select>
