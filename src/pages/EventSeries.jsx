@@ -20,7 +20,7 @@ const EventSeries = () => {
     
     // Gahtering data from localStorage
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
-    const investmentType = JSON.parse(localStorage.getItem("InvestmentType") || "{}");
+    const investmentType = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
     const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
 
