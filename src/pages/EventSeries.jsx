@@ -77,29 +77,29 @@ const EventSeries = () => {
         scenarioName: result.scenarioName
       });
 
-      const simResponse = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
-        credentials: "include"
-      });
+      // const simResponse = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/run-simulation?email=${encodeURIComponent(result.email)}&scenarioName=${encodeURIComponent(result.scenarioName)}`, {
+      //   credentials: "include"
+      // });
 
-      console.log("Simulation response status:", simResponse.status);
-      console.log("Simulation headers:", Object.fromEntries(simResponse.headers.entries()));
+      // console.log("Simulation response status:", simResponse.status);
+      // console.log("Simulation headers:", Object.fromEntries(simResponse.headers.entries()));
 
-      const simResponseText = await simResponse.text();
-      console.log("Raw simulation response:", simResponseText);
+      // const simResponseText = await simResponse.text();
+      // console.log("Raw simulation response:", simResponseText);
 
-      if (!simResponse.ok) {
-        throw new Error(`Failed to run simulation: ${simResponseText}`);
-      }
+      // if (!simResponse.ok) {
+      //   throw new Error(`Failed to run simulation: ${simResponseText}`);
+      // }
 
-      let simResult;
-      try {
-        simResult = JSON.parse(simResponseText);
-        console.log("Parsed simulation result:", simResult);
-        localStorage.setItem("simulationResult", simResult.output);
-      } catch (parseError) {
-        console.log("Simulation returned non-JSON response:", simResponseText);
-        localStorage.setItem("simulationResult", simResponseText);
-      }
+      // let simResult;
+      // try {
+      //   simResult = JSON.parse(simResponseText);
+      //   console.log("Parsed simulation result:", simResult);
+      //   localStorage.setItem("simulationResult", simResult.output);
+      // } catch (parseError) {
+      //   console.log("Simulation returned non-JSON response:", simResponseText);
+      //   localStorage.setItem("simulationResult", simResponseText);
+      // }
 
       // Go to overview page
       navigate(`${constPath.overview}`);
