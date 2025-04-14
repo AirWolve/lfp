@@ -13,15 +13,15 @@ const Overview = () => {
   const [simulationResult, setSimulationResult] = useState(null);
 
   useEffect(() => {
-    // localStorage에서 시뮬레이션 결과 가져오기
+    // Get simulation result from localStorage
     const result = localStorage.getItem("simulationResult");
     if (result) {
       try {
-        // 결과가 JSON 형식이면 파싱
+        // if the result is json type then parse it
         const parsedResult = JSON.parse(result);
         setSimulationResult(parsedResult);
       } catch (e) {
-        // JSON이 아니면 문자열 그대로 사용
+        //Otherwise, just use it on its own
         setSimulationResult(result);
       }
     }
