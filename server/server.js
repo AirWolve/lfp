@@ -14,16 +14,18 @@ let homeUrl = "";
 let baseUrl = "";
 const app = express();
 
+// Add body parser middleware
+app.use(express.json());
+
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",")
   : [`${process.env.LFP_HOME_DIR}`, `${process.env.LFP_DEV_HOME_DIR}`];
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // 요청 origin이 없으면(예: 서버 간 통신) 허용
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) !== -1) {
-        // 요청의 origin이 허용 목록에 있으면 그대로 허용
         return callback(null, true);
       } else {
         return callback(new Error("Not allowed by CORS"));
@@ -83,15 +85,19 @@ app.get("/auth/oauth/google/callback", async (req, res) => {
       return res.redirect("/auth/failure");
     }
 
+    // To get user information based on ID Token, we need to decode it with jwt decode
     const decoded = jwt.decode(tokenData.id_token);
+    // if failed, redirect to failure
     if (!decoded) {
       return res.redirect("/auth/failure");
     }
 
+    // Find whether user already exists or not.
     const isUserExist = await Models.User.findOne({
       email: decoded.email,
     });
 
+    // If user doesn't exist, then create data and insert it to Database
     if (!isUserExist) {
       const newUserInfo = new Models.User({
         email: decoded.email,
@@ -100,10 +106,14 @@ app.get("/auth/oauth/google/callback", async (req, res) => {
       });
       await newUserInfo.save();
       console.log("New user saved: ", newUserInfo);
-    } else {
-      console.log("User already exists: ", isUserExist);
     }
 
+    // Comment log for debug
+    // else {
+    //   console.log("User already exists: ", isUserExist);
+    // }
+
+    // Set cookie to notify that the web page know user login or not.
     res.cookie("idToken", tokenData.id_token, {
       httpOnly: true,
       sameSite: "lax",
@@ -111,6 +121,7 @@ app.get("/auth/oauth/google/callback", async (req, res) => {
       path: "/",
     });
 
+    // redirect to home Url after success login
     return res.redirect(homeUrl);
   } catch (error) {
     console.error("Error exchanging code for token:", error);
@@ -120,6 +131,7 @@ app.get("/auth/oauth/google/callback", async (req, res) => {
 
 // Oauth2 Logout
 app.get("/auth/oauth/logout", (req, res) => {
+  // Revoke cookie to log out from the web.
   res.clearCookie("idToken", {
     path: "/",
     httpOnly: true,
@@ -130,6 +142,7 @@ app.get("/auth/oauth/logout", (req, res) => {
 
 // Fetch User Info
 app.get("/api/userinfo", (req, res) => {
+  // Get idToken from cookie.
   const idToken = req.cookies.idToken;
   if (!idToken) {
     return res.status(401).json({ error: "Not authenticated" });
@@ -151,34 +164,7 @@ app.get("/auth/failure", (req, res) => {
 
 /* # Oauth2 Google Login End */
 
-// Save user data
-app.post("/api/save-user-data", async (req, res) => {
-  const idToken = req.cookies.idToken;
-  if (!idToken) {
-    return res.status(401).json({ error: "Not authenticated" });
-  }
-
-  try {
-    const decoded = jwt.decode(idToken);
-    const userData = req.body;
-
-    // 새로운 사용자 데이터 생성
-    const newUserData = new Models.UserData({
-      email: decoded.email,
-      data: userData,
-    });
-
-    // 데이터베이스에 저장
-    await newUserData.save();
-
-    res.json({ message: "Data saved successfully" });
-  } catch (error) {
-    console.error("Error saving user data:", error);
-    res.status(500).json({ error: "Failed to save data" });
-  }
-});
-
-// Save user data as YAML and run Python script
+// Save scenario data as YAML
 app.post("/api/save-scenario", async (req, res) => {
   const idToken = req.cookies.idToken;
   if (!idToken) {
@@ -188,91 +174,152 @@ app.post("/api/save-scenario", async (req, res) => {
   try {
     const decoded = jwt.decode(idToken);
     const scenarioData = req.body;
-    
+
     if (!scenarioData.name) {
       return res.status(400).json({ error: "Scenario name is required" });
     }
-    
-    // 저장할 디렉토리 경로 생성
-    const userDir = path.join(__dirname, 'python', 'scenario', decoded.email);
+
+    // Set the directory path of python
+    const pythonDir = path.join(__dirname, "python");
+    const userDir = path.join(pythonDir, "scenario", decoded.email);
     await fs.ensureDir(userDir);
-    
-    // 파일 이름 생성 (이메일-시나리오이름.yaml)
+
+    // Generate file name
     const fileName = `${decoded.email}-${scenarioData.name}.yaml`;
     const filePath = path.join(userDir, fileName);
-    
-    // 데이터를 YAML 형식으로 변환하여 저장
+
+    // Save scenario as YAML
     const yamlStr = YAML.stringify(scenarioData);
     await fs.writeFile(filePath, yamlStr, 'utf8');
 
-    res.json({ 
+    // Comment Debug log line
+    // console.log('Scenario saved to:', filePath);
+
+    const isSameNameExist = await Models.User.findOne({
+      scenarioPath: filePath,
+    });
+
+    // If scenario doesn't exist, then create data and insert it to Database
+    if (!isSameNameExist) {
+      const scenarioInfo = new Models.Scenario({
+        email: decoded.email,
+        scenarioPath: filePath,
+        createdAt: new Date()
+      });
+  
+      await scenarioInfo.save();
+      console.log('Scenario info saved to database');
+    }
+
+
+    res.json({
       message: "Scenario saved successfully",
       filePath: filePath,
       email: decoded.email,
       scenarioName: scenarioData.name
     });
+
   } catch (error) {
     console.error("Error saving scenario:", error);
-    res.status(500).json({ error: "Failed to save scenario" });
+    res.status(500).json({ error: "Failed to save scenario", details: error.message });
   }
 });
 
 // Run Python simulation
 app.get("/api/run-simulation", async (req, res) => {
   const { email, scenarioName } = req.query;
-  
+
   if (!email || !scenarioName) {
     return res.status(400).json({ error: "Email and scenario name are required" });
   }
 
   try {
-    // Python 스크립트 실행
-    const pythonProcess = spawn('python', [
-      path.join(__dirname, 'python', 'demo_main.py'),
-      email,
-      scenarioName
-    ]);
+    // Check the path of Python script to call
+    const pythonScriptPath = path.join(__dirname, 'python', 'demo_main.py');
+    // Comment Debug log line
+    // console.log('Python script path:', pythonScriptPath);
+
+    if (!fs.existsSync(pythonScriptPath)) {
+      throw new Error(`Python script not found at: ${pythonScriptPath}`);
+    }
+
+    // Check the path of Scenario File
+    const scenarioPath = path.join(__dirname, 'python', 'scenario', email, `${email}-${scenarioName}.yaml`);
+    // Comment Debug log line
+    // console.log('Looking for scenario file at:', scenarioPath);
+
+    if (!fs.existsSync(scenarioPath)) {
+      throw new Error(`Scenario file not found at: ${scenarioPath}`);
+    }
+
+    console.log('Starting Python simulation...');
+
+    // Execute Python Process with child process
+    const pythonProcess = spawn('python', [pythonScriptPath, email, scenarioName], {
+      cwd: path.join(__dirname, 'python')
+    });
 
     let pythonOutput = '';
     let pythonError = '';
 
-    // Python 스크립트의 출력 수집
+    // Collect the output of python execution
     pythonProcess.stdout.on('data', (data) => {
-      pythonOutput += data.toString();
+      const output = data.toString();
+      // Comment Debug log line
+      // console.log('Python stdout:', output);
+      pythonOutput += output;
     });
 
     pythonProcess.stderr.on('data', (data) => {
-      pythonError += data.toString();
+      const error = data.toString();
+      // Comment Debug log line
+      // console.error('Python stderr:', error);
+      pythonError += error;
     });
 
-    // Python 스크립트 실행 완료 대기
+    // Wait until python script finished to execute
     await new Promise((resolve, reject) => {
       pythonProcess.on('close', (code) => {
+        // Comment Debug log line
+        // console.log('Python process exited with code:', code);
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`Python process exited with code ${code}`));
+          reject(new Error(`Python process exited with code ${code}\nError: ${pythonError}`));
         }
+      });
+
+      pythonProcess.on('error', (err) => {
+        // Comment Debug log line
+        // console.error('Failed to start Python process:', err);
+        reject(new Error(`Failed to start Python process: ${err.message}`));
       });
     });
 
+    // If python occur error, it will print the log on api server
     if (pythonError) {
-      console.error('Python script error:', pythonError);
-      return res.status(500).json({ error: 'Python script execution failed', details: pythonError });
+      // Comment Debug log line
+      // console.error('Python script error:', pythonError);
+      return res.status(500).json({
+        error: 'Python script execution failed',
+        details: pythonError,
+        output: pythonOutput
+      });
     }
 
-    res.json({ 
+    console.log('Simulation completed successfully');
+    res.json({
       message: "Simulation completed successfully",
       output: pythonOutput
     });
   } catch (error) {
     console.error("Error running simulation:", error);
-    res.status(500).json({ error: "Failed to run simulation" });
+    res.status(500).json({
+      error: "Failed to run simulation",
+      details: error.message
+    });
   }
 });
-
-/* Request Python Run Start */
-app.get("", (req, res) => {});
 
 // Open API server with port 5000 and trying to connect database
 initDatabase()
