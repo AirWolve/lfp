@@ -4,7 +4,18 @@ import "./Overview.css";
 import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";
-import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis } from "recharts";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  BarChart,
+  Bar,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 const Overview = () => {
   const navigate = useNavigate();
@@ -38,22 +49,12 @@ const Overview = () => {
   const handleMakePlan = (e) => {
     e.preventDefault();
     navigate(`${constPath.cashFlow}`);
-  }
-
-  const pieData = [
-    { name: "Category A", value: 50 },
-    { name: "Category B", value: 20 },
-    { name: "Category C", value: 13 },
-    { name: "Category D", value: 10 },
-    { name: "Category E", value: 7 },
-  ];
+  };
 
   const lineData = Array.from({ length: 10 }, (_, i) => ({
     year: 35 + i,
     value: 31.5 + i * 0.1,
   }));
-
-  const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f7f", "#a0d8ef"];
 
   return (
     <div className="dashboard-container">
@@ -104,32 +105,48 @@ const Overview = () => {
           {/* Prompt to ChatGPT: "Can you let me know how I create charts in HTML" */}
           {/* Charts */}
           <div className="charts">
-            <div className="pie-group">
-              {["Income", "Account", "Assets"].map((label, idx) => (
-                <div key={idx} className="pie-chart-box">
-                  <h4>{label}</h4>
-                  <PieChart width={140} height={140}>
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      outerRadius={60}
-                      innerRadius={35}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </div>
-              ))}
+            {/* 1-Dimensional Graph */}
+            <div className="one-dimensional-graph">
+              <h3>Preview For assets</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={[
+                    { param: 1, result: 50 },
+                    { param: 2, result: 55 },
+                    { param: 3, result: 59 },
+                    { param: 4, result: 62 },
+                    { param: 5, result: 65 },
+                    { param: 6, result: 66 },
+                    { param: 7, result: 66.5 },
+                  ]}
+                >
+                  <XAxis
+                    dataKey="param"
+                    label={{
+                      value: "Assets type",
+                      position: "insideBottom",
+                      offset: -5,
+                    }}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Selected Quantity",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
+                  <Bar dataKey="result" fill="#82ca9d" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-
+            {/* 2-Dimensional Graph */}
             <div className="line-chart-box">
-              <ResponsiveContainer width={400} height={200}>
-                <LineChart data={lineData}>
+              <ResponsiveContainer width={400} height={250}>
+                <LineChart
+                  data={lineData}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="1 1" />
                   <XAxis
                     dataKey="year"
                     label={{
@@ -138,13 +155,25 @@ const Overview = () => {
                       offset: -5,
                     }}
                   />
-                  <YAxis domain={["dataMin", "dataMax"]} />
+                  <YAxis 
+                  domain={["dataMin - 1", "dataMax + 1"]}
+                  label={{
+                    value: "change trend of assets",
+                    angle: -90,
+                    position: "insideLeft",
+                    dy: 70,
+                  }}
+                  />
+                  <Tooltip />
+                  <Legend verticalAlign="top" height={30} />
                   <Line
                     type="monotone"
                     dataKey="value"
+                    name="Projected Value"
                     stroke="#3f545c"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -153,45 +182,24 @@ const Overview = () => {
 
           {/* Summary */}
           <div className="summary-box">
+            <p style={{fontWeight: "bold"}}>Overview your assets status</p>
             {simulationResult ? (
               <div className="simulation-results">
                 <h3>Simulation Results</h3>
-                {typeof simulationResult === 'object' ? (
-                  // JSON 결과인 경우 객체의 각 필드를 표시
+                {typeof simulationResult === "object" ? (
+                  // Load the save data which is storing in local storage
                   Object.entries(simulationResult).map(([key, value]) => (
                     <p key={key}>
                       <strong>{key}:</strong> <span>{value}</span>
                     </p>
                   ))
                 ) : (
-                  // 문자열 결과인 경우 그대로 표시
+                  // If it is a string, print it as is. 
                   <pre>{simulationResult}</pre>
                 )}
               </div>
             ) : (
-              <>
-                <p>
-                  <strong>Monthly Income</strong> <span>$0,000</span>
-                </p>
-                <p>
-                  <strong>Yearly Income</strong> <span>$00,000</span>
-                </p>
-                <p>
-                  <strong>Living expense</strong> <span>$000</span>
-                </p>
-                <p>
-                  <strong>Regular expense</strong> <span>$000</span>
-                </p>
-                <p>
-                  <strong>Debt</strong> <span>$00,000</span>
-                </p>
-                <p>
-                  <strong>Assets</strong> <span>$000,000</span>
-                </p>
-                <p>
-                  <strong>Tax</strong> <span>0.00%</span>
-                </p>
-              </>
+              <div></div>
             )}
           </div>
         </div>

@@ -27,8 +27,8 @@ const Investments = () => {
   };
 
   const investmentsForm = {
-    type: "",
-    amount: null,
+    investmentType: "",
+    value: null,
     taxStatus: "non-retirement",
     id: ""
   };
@@ -40,14 +40,14 @@ const Investments = () => {
 
   const handleConfirm = () => {
     if (
-      !newInvestment.type ||
-      !newInvestment.amount
+      !newInvestment.investmentType ||
+      !newInvestment.value
     ) {
       toast.warning("Please Fill in all fields");
       return;
     }
 
-    newInvestment.id = newInvestment.type + " " + newInvestment.taxStatus;
+    newInvestment.id = newInvestment.investmentType + " " + newInvestment.taxStatus;
     const updatedList = [...investments, newInvestment];
     setInvestments(updatedList);
 
@@ -91,7 +91,7 @@ const Investments = () => {
 
         {investments.map((inv, idx) => (
           <div key={idx} className="investment-item">
-            <strong>{inv.type}</strong>: ${inv.amount}
+            <strong>{inv.investmentType}</strong>: ${inv.value}
             <img
               src={trashIcon}
               alt="delete"
@@ -110,9 +110,9 @@ const Investments = () => {
               <h4>Add Investment</h4>
 
               <select
-                value={newInvestment.type}
+                value={newInvestment.investmentType}
                 onChange={(e) =>
-                  setNewInvestment({ ...newInvestment, type: e.target.value })
+                  setNewInvestment({ ...newInvestment, investmentType: e.target.value })
                 }
               >
                 <option value="">-- Select Investment Type --</option>
@@ -126,11 +126,11 @@ const Investments = () => {
               <input
                 type="number"
                 placeholder="Investment Amount"
-                value={newInvestment.amount}
+                value={newInvestment.value}
                 onChange={(e) =>
                   setNewInvestment({
                     ...newInvestment,
-                    amount: parseFloat(e.target.value),
+                    value: parseFloat(e.target.value),
                   })
                 }
               />

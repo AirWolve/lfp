@@ -20,7 +20,7 @@ const EventSeries = () => {
     //----Integrating all data---//
     // Gahtering data from localStorage
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
-    const investmentType = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
+    const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
     const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
 
@@ -33,7 +33,7 @@ const EventSeries = () => {
     // flatten basicInfo to make sure it looks similar to the sample scenario.yaml
     const combinedData = {
       ...basicInfo,
-      investmentType,
+      investmentTypes,
       investments,
       eventSeries
     };
@@ -103,15 +103,14 @@ const EventSeries = () => {
         console.log("Simulation returned non-JSON response:", simResponseText);
         localStorage.setItem("simulationResult", simResponseText);
       }
-
+      navigate(`${constPath.overview}`);
     } catch (error) {
       console.error("Error:", error);
       toast.error(error.message || "An error occurred");
       // Go to overview page
-      navigate(`${constPath.overview}`);
     }
   };
-  // 서버에 데이터 전송 //
+  // Send to server this data //
   //--------------------------------------------------------------------------------------------------
   const eventTypes = ["income", "expense", "invest", "rebalance"];
 
@@ -123,7 +122,7 @@ const EventSeries = () => {
   const [selectInvestment2, setSelectInvestment2] = useState();
   const [allocationNum2, setAllocationNum2] = useState();
 
-  // Investments 데이터를 로컬스토리지에서 불러와 JSON으로 파싱한 후, 각 Investment의 id로 구성된 배열 생성
+  // Import the investment data from local storage, parse it into JSON, and create an array consisting of the id of each investment.
   const investmentsData = JSON.parse(
     localStorage.getItem("Investments") || "[]"
   );
@@ -156,7 +155,7 @@ const EventSeries = () => {
       stdev: 0.0,
     },
     inflationAdjusted: false,
-    userFranction: null,
+    userFraction: null,
     socialSecurity: false,
     assetAllocation: {},
     glidePath: false,
@@ -165,7 +164,7 @@ const EventSeries = () => {
     discretionary: false,
   };
 
-  //모달 내에서 저장되는 정보들을 임시적으로 저장 --> confirm을 하면 저장
+  //Temporarily save information saved within the modal --> Save when confirmed
   const [newEvent, setNewEvent] = useState(initialEvent);
 
   // add the list when click confirm
@@ -181,11 +180,11 @@ const EventSeries = () => {
       return;
     }
 
-    //유저가 입력하는 정보들이 스택되려면 필요함(계속 갱신해줘야함)
+    //It is necessary for the information entered by the user to be stacked (needs to be continuously updated)
     const updatedList = [...events, newEvent];
     setEvents(updatedList);
 
-    //EventSeries:[] 형태로 로컬스토리지에 저장
+    //Save to local storage in Key: EventSeries, value:[] format
     localStorage.setItem("EventSeries", JSON.stringify(updatedList));
 
     setEvents([...events, newEvent]);
@@ -294,7 +293,10 @@ const EventSeries = () => {
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        start: parseInt(e.target.value, 10),
+                        start: {
+                          ...newEvent.start,
+                          value: parseInt(e.target.value, 10) || 0,
+                        },
                       })
                     }
                   />
@@ -306,7 +308,10 @@ const EventSeries = () => {
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        duration: parseInt(e.target.value, 10),
+                        duration: {
+                          ...newEvent.duration,
+                          value: parseInt(e.target.value, 10) || 0,
+                        },
                       })
                     }
                   />
@@ -422,11 +427,11 @@ const EventSeries = () => {
                   <input
                     type="number"
                     placeholder="e.g. 0.3"
-                    value={newEvent.userFranction}
+                    value={newEvent.userFraction}
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        userFranction: parseFloat(e.target.value, 10),
+                        userFraction: parseFloat(e.target.value, 10),
                       })
                     }
                   />
@@ -472,7 +477,7 @@ const EventSeries = () => {
                     value={newEvent.start.eventSeries || ""}
                     onChange={(e) => {
                       const selectedIncomeId = e.target.value;
-                      // 선택한 income 이벤트를 찾기
+                      // find the income event that user choose
                       const selectedIncome = incomeEvents.find(
                         (income) => income.id === selectedIncomeId
                       );
@@ -480,17 +485,17 @@ const EventSeries = () => {
                       let startValue;
 
                       if (selectedIncome) {
-                        // "startWith"인 경우 income의 시작 연도를 사용
+                        // If "startWith", use the start year of income.
                         if (newEvent.start.type === "startWith") {
                           startValue = selectedIncome.start.value;
                         }
-                        // "startAfter"인 경우 income의 시작 연도 + 기간을 사용
+                        // If "startAfter", use the start year + period of income.
                         else if (newEvent.start.type === "startAfter") {
                           startValue =
                             selectedIncome.start.value +
                             selectedIncome.duration;
                         } else {
-                          // 선택 타입이 없는 경우 기본값
+                          // Default value if no selection type is provided
                           startValue = selectedIncome.start.value;
                         }
                       }
@@ -624,11 +629,11 @@ const EventSeries = () => {
                   <input
                     type="number"
                     placeholder="e.g. 0.3"
-                    value={newEvent.userFranction}
+                    value={newEvent.userFraction}
                     onChange={(e) =>
                       setNewEvent({
                         ...newEvent,
-                        userFranction: parseFloat(e.target.value, 10),
+                        userFraction: parseFloat(e.target.value, 10),
                       })
                     }
                   />
@@ -726,18 +731,18 @@ const EventSeries = () => {
                     />
                     <button
                       onClick={() => {
-                        // 값이 모두 입력되어 있다면, assetAllocation 객체에 추가
+                        // If all values ​​are entered, add them to the assetAllocation object.
                         if (selectInvestment && allocationNum) {
                           const allocationValue = parseFloat(allocationNum);
                           setNewEvent({
                             ...newEvent,
                             assetAllocation: {
-                              // 기존 assetAllocation 값을 유지하면서 새 항목 추가
+                              // Add new item while keeping existing assetAllocation value
                               ...newEvent.assetAllocation,
                               [selectInvestment]: allocationValue,
                             },
                           });
-                          // 입력값 초기화
+                          // Initialization of input values
                           setSelectInvestment("");
                           setAllocationNum("");
                         }
@@ -746,7 +751,7 @@ const EventSeries = () => {
                       Add
                     </button>
                   </div>
-                  {/* 추가된 assetAllocation 목록 표시 */}
+                  {/* Display the list of added asset allocations */}
                   <div style={{ marginTop: "10px" }}>
                     <h5>Asset Allocations:</h5>
                     <ul>
@@ -757,7 +762,7 @@ const EventSeries = () => {
                               {asset}: {allocation}{" "}
                               <button
                                 onClick={() => {
-                                  // asset 삭제 처리: 해당 key를 제거한 새로운 객체를 생성
+                                  // Deleting an asset: Creating a new object with the corresponding key removed
                                   const { [asset]: _, ...rest } =
                                     newEvent.assetAllocation;
                                   setNewEvent({
@@ -823,19 +828,19 @@ const EventSeries = () => {
                         />
                         <button
                           onClick={() => {
-                            // 값이 모두 입력되어 있다면, assetAllocation 객체에 추가
+                            // If all values ​​are entered, add them to the assetAllocation object.
                             if (selectInvestment2 && allocationNum2) {
                               const allocationValue =
                                 parseFloat(allocationNum2);
                               setNewEvent({
                                 ...newEvent,
                                 assetAllocation2: {
-                                  // 기존 assetAllocation 값을 유지하면서 새 항목 추가
+                                  // Add new item while keeping existing assetAllocation value
                                   ...newEvent.assetAllocation2,
                                   [selectInvestment2]: allocationValue,
                                 },
                               });
-                              // 입력값 초기화
+                              // Initialization of input values
                               setSelectInvestment("");
                               setAllocationNum("");
                             }
@@ -844,7 +849,7 @@ const EventSeries = () => {
                           Add
                         </button>
                       </div>
-                      {/* 추가된 assetAllocation 목록 표시 */}
+                      {/* Display the list of added asset allocations */}
                       <div style={{ marginTop: "10px" }}>
                         <h5>Asset Allocations2:</h5>
                         <ul>
@@ -855,7 +860,7 @@ const EventSeries = () => {
                                   {asset}: {allocation}{" "}
                                   <button
                                     onClick={() => {
-                                      // asset 삭제 처리: 해당 key를 제거한 새로운 객체를 생성
+                                      // Deleting an asset: Creating a new object with the corresponding key removed
                                       const { [asset]: _, ...rest } =
                                         newEvent.assetAllocation2;
                                       setNewEvent({
@@ -952,18 +957,18 @@ const EventSeries = () => {
                     />
                     <button
                       onClick={() => {
-                        // 값이 모두 입력되어 있다면, assetAllocation 객체에 추가
+                        // If all values ​​are entered, add them to the assetAllocation object.
                         if (selectInvestment && allocationNum) {
                           const allocationValue = parseFloat(allocationNum);
                           setNewEvent({
                             ...newEvent,
                             assetAllocation: {
-                              // 기존 assetAllocation 값을 유지하면서 새 항목 추가
+                              // Add new item while keeping existing assetAllocation value
                               ...newEvent.assetAllocation,
                               [selectInvestment]: allocationValue,
                             },
                           });
-                          // 입력값 초기화
+                          // Initialization of input values
                           setSelectInvestment("");
                           setAllocationNum("");
                         }
@@ -972,7 +977,7 @@ const EventSeries = () => {
                       Add
                     </button>
                   </div>
-                  {/* 추가된 assetAllocation 목록 표시 */}
+                  {/* Display the list of added assetAllocations */}
                   <div style={{ marginTop: "10px" }}>
                     <h5>Asset Allocations:</h5>
                     <ul>
@@ -983,7 +988,7 @@ const EventSeries = () => {
                               {asset}: {allocation}{" "}
                               <button
                                 onClick={() => {
-                                  // asset 삭제 처리: 해당 key를 제거한 새로운 객체를 생성
+                                  // Deleting an asset: Creating a new object with the corresponding key removed
                                   const { [asset]: _, ...rest } =
                                     newEvent.assetAllocation;
                                   setNewEvent({
