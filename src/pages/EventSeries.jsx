@@ -103,12 +103,11 @@ const EventSeries = () => {
         console.log("Simulation returned non-JSON response:", simResponseText);
         localStorage.setItem("simulationResult", simResponseText);
       }
-
+      navigate(`${constPath.overview}`);
     } catch (error) {
       console.error("Error:", error);
       toast.error(error.message || "An error occurred");
       // Go to overview page
-      navigate(`${constPath.overview}`);
     }
   };
   // 서버에 데이터 전송 //
