@@ -129,22 +129,12 @@
     gap: 30px;
   }
   
-  .pie-group {
-    display: flex;
-    flex-direction: row;
-    gap: 30px;
-    margin-bottom: 50px;
-  }
-  
-  .pie-chart-box {
-    text-align: center;
-  }
-  
   .line-chart-box {
     background-color: white;
     padding-top: 30px;
     padding-bottom: 30px;
-    padding-left: 15px;
+    padding-left: 40px;
+    padding-right: 30px;
     border-radius: 12px;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
   }
@@ -178,4 +168,13 @@
       max-width: 400px;
     }
   }
+
+  .one-dimensional-graph {
+    margin-top: 30px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
   
