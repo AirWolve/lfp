@@ -13,7 +13,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // withCredentials: true를 설정하여 HTTP‑Only 쿠키가 함께 전송되도록 함.
+    // withCredentials: Set to true to ensure HTTP-Only cookies are sent along.
     axios
       .get(`${process.env.REACT_APP_LFP_API_URL}/api/userinfo`, {
         withCredentials: true,
