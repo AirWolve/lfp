@@ -12,21 +12,21 @@ def main():
     email = sys.argv[1]
     scenario_name = sys.argv[2]
     
-    # YAML 파일 경로 생성
+    # Create file path to YAML file
     scenario_file = f"{email}-{scenario_name}.yaml"
     scenario_path = os.path.join(os.path.dirname(__file__), 'scenario', email, scenario_file)
 
-    # 파일 존재 여부 확인
+    # Check if file exists
     if not os.path.exists(scenario_path):
         print(f"Error: Scenario file not found at {scenario_path}")
         sys.exit(1)
 
     try:
-        # YAML 파일 로드
+        # Load YAML file
         scen = Scenario.importJson(scenario_path)
         tax = TaxCalculator()
         
-        # 시뮬레이션 실행
+        # Execute simulation
         print(tax.runIncomeTax(scen))
         print("Simulation completed successfully")
     except Exception as e:
