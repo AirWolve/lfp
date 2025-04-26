@@ -118,6 +118,9 @@ class Investments:
         self.taxStatus:str = parameters["taxStatus"]  # "non-retirement", "pre-tax", or "after-tax"
         self.id:str = parameters["id"]
     
+    def updateValue(self, value:int):
+        self.value = value
+
     def toDict(self):
         """
         This function modifies Investments object into dictionray type

@@ -52,18 +52,18 @@ class RMDCalculator:
             yaml.dump(result, f, default_flow_style=False, sort_keys=False)
 
     # RMD Calculator
-    def runRMD(self, data:dict):
-        df_invs = pd.DataFrame(data.investments)
-        age = data.birthYears[0]-self.year
+    def runRMD(self, data, age):
         
-        if age < 74:
+        if age < 73:
             return 0
         else:
             for idn in data.RMDStrategy:
-                if age > 120:
-                    return df_invs[df_invs["id"]==idn]["value"].item() / self.LFTTable.get(str(120))
-                else:
-                    return df_invs[df_invs["id"]==idn]["value"].item() / self.LFTTable.get(str(age))
+                for inv in data.investments:
+                    if inv.id == idn:
+                        if age > 120:
+                            return inv.value / self.LFTTable.get(str(120))
+                        else:
+                            return inv.value / self.LFTTable.get(str(age))
 
 class TaxCalculator:
     def __init__(self):
@@ -77,46 +77,36 @@ class TaxCalculator:
             self.stateTax = yaml.load(f, Loader=yaml.FullLoader)
 
     # Tax Calculator
-    def federalTaxCalculator(self, data:dict, amount:int):
+    def federalTaxCalculator(self, data:dict, amount:int, curYearSS):
         """
         This is a function to calculate tax amount
         """
-        sc = False
+        taxable = amount - 0.15*curYearSS
+        stateTax = self.stateTaxCalculator(data, taxable, data.residenceState)
 
-        for d in data.eventSeries:
-            if d.type == "income":
-                sc = d.socialSecurity
-                break
-
-        if sc:
-            taxable = amount * 0.85 - self.federalTax["standardDeduction"][data.maritalStatus]       
-        else:
-            taxable = amount - self.federalTax["standardDeduction"][data.maritalStatus]
-        
         if taxable > 0:
             if data.maritalStatus == "couple":
                 for key, value in self.federalTax["couple"].items():
                     if key == "inf":
-                        return taxable * value
+                        return (taxable * value + stateTax)
                     elif taxable < int(key):
-                        return taxable * value
+                        return (taxable * value + stateTax)
 
-            else:
+            elif data.maritalStatus == "individual":
                 for key, value in self.federalTax["individual"].items():
                     if key == "inf":
-                        return taxable * value
+                        return (taxable * value + stateTax)
                     elif taxable < int(key):
-                        return taxable * value
+                        return (taxable * value + stateTax)
         else:
             return 0
     
-    def capitalGainTax(self, data:dict, amount:int):
+    def capitalGainTax(self, data:dict, taxable:int):
         """
         This is a function to calculate capital gains tax
 
         consider all taxable investment
         """
-        taxable = amount - self.federalTax["standardDeduction"][data.maritalStatus]
         if taxable > 0:
             if data.maritalStatus == "couple":
                 for key, value in self.capTax["couple"].items():
@@ -133,7 +123,7 @@ class TaxCalculator:
         else:
             return 0
         
-    def stateTaxCalculator(self, data:dict, amount:int, state:str):
+    def stateTaxCalculator(self, data:dict, taxable:int, state:str):
         """
         This is a function to calculate state tax amount
 
@@ -141,8 +131,6 @@ class TaxCalculator:
         ----
             state: a string value of state name such as NJ, NY, etc.
         """
-        taxable = amount - self.federalTax["standardDeduction"][data.maritalStatus]
-        
         if state not in self.stateTax.keys():
             return 0, "State Tax Not Found!"
         
@@ -176,8 +164,16 @@ class TaxCalculator:
             return withdrawal * 0.1
         else:
             return 0
-        
-    def updateTaxTable(self, taxTable:str):
+    
+    def updateInflationBracket(self, taxTable:dict):
+        """
+        This is a function to update inflation assumption applied tax bracket
+        """
+
+        with open('./2024_federal_tax.yaml', 'w') as f:
+            yaml.dump(taxTable, f, default_flow_style=False, sort_keys=False)
+
+    def updateStateTaxTable(self, taxTable:str):
         """
         This is a function to add tax table to the state tax yaml file
 
@@ -305,22 +301,22 @@ class TaxCalculator:
         with open('./ctTax.yaml', 'w') as f:
             yaml.dump(tax, f, default_flow_style=False, sort_keys=False)
 
-    def runIncomeTax(self, data:dict):
-        """
-        This is a function to run all tax calculator
+    # def runIncomeTax(self, data:dict):
+    #     """
+    #     This is a function to run all tax calculator
 
-        Args:
-        ----
-            data: a dictionary of data to calculate tax amount
-            amount: a integer value of income amount to calculate tax
-        """
-        for ev in data.eventSeries:
-            if ev.type == "income":
-                income = ev.initialAmount
-                break
+    #     Args:
+    #     ----
+    #         data: a dictionary of data to calculate tax amount
+    #         amount: a integer value of income amount to calculate tax
+    #     """
+    #     for ev in data.eventSeries:
+    #         if ev.type == "income":
+    #             income = ev.initialAmount
+    #             break
 
-        return income - self.federalTaxCalculator(data, income)\
-                - self.stateTaxCalculator(data, income, data.residenceState)
+    #     return income - self.federalTaxCalculator(data, income)\
+    #             - self.stateTaxCalculator(data, income, data.residenceState)
 
 # Inflation Assumption
 class Inflation:
@@ -335,229 +331,248 @@ class Inflation:
 
         returns list of dictionary of series inflation assumed amount values
         """
-        result = list()
-        curYear = datetime.date.today().year
-        df_es = pd.DataFrame(self.data.eventSeries)
-        start = 0
 
-        for idx, row in df_es.iterrows():
-            row = row.item()
-            values = list()
+        return self.assumption["value"]
+        # result = list()
+        # curYear = datetime.date.today().year
+        # df_es = pd.DataFrame(self.data.eventSeries)
+        # start = 0
 
-            if row.type == "rebalance" or row.type == "invest":
-                continue
-            elif row.inflationAdjusted == False:
-                continue
+        # for idx, row in df_es.iterrows():
+        #     row = row.item()
+        #     values = list()
 
-            else:
-                duration = row.duration["value"]
+        #     if row.type == "rebalance" or row.type == "invest":
+        #         continue
+        #     elif row.inflationAdjusted == False:
+        #         continue
+
+        #     else:
+        #         duration = row.duration["value"]
                 
-                if row.start["type"] == "fixed":
-                    start = row.start["value"]
+        #         if row.start["type"] == "fixed":
+        #             start = row.start["value"]
                     
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-self.assumption["value"]))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-self.assumption["value"]))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-self.assumption["value"])**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-self.assumption["value"])**len(values))
                         
-                elif row.start["type"] == "startWith":
-                    for id, da in df_es.iterrows():
-                        da = da.item()
-                        if da.name == row.start["eventSeries"]:
-                            start = da.start["value"]
-                            break
+        #         elif row.start["type"] == "startWith":
+        #             for id, da in df_es.iterrows():
+        #                 da = da.item()
+        #                 if da.name == row.start["eventSeries"]:
+        #                     start = da.start["value"]
+        #                     break
 
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-self.assumption["value"]))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-self.assumption["value"]))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-self.assumption["value"])**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-self.assumption["value"])**len(values))
                 
-                elif row.start["type"] == "startAfter":
-                    for id, da in df_es.iterrows():
-                        da = da.item()
-                        if da.name == row.start["eventSeries"]:
-                            start = da.start["value"]
-                            break
+        #         elif row.start["type"] == "startAfter":
+        #             for id, da in df_es.iterrows():
+        #                 da = da.item()
+        #                 if da.name == row.start["eventSeries"]:
+        #                     start = da.start["value"]
+        #                     break
                 
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-self.assumption["value"]))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-self.assumption["value"]))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-self.assumption["value"])**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-self.assumption["value"])**len(values))
             
-            result.append({row.name: values})
+        #     result.append({row.name: values})
 
-        return result
+        # return result
 
 
     def uniformInflation(self):
         """
         This function is for uniform inflation assumption
         """
+
+        try:
+            if self.type == "uniform":
+                low = self.assumption["lower"]
+                high = self.assumption["upper"]
+        except:
+            raise ValueError("Invalid Type of Inflation Assumption!")
         
-        result = list()
-        curYear = datetime.date.today().year
-        df_es = pd.DataFrame(self.data.eventSeries)
-        start = 0
+        return np.random.uniform(low, high)
+        
+        # result = list()
+        # curYear = datetime.date.today().year
+        # df_es = pd.DataFrame(self.data.eventSeries)
+        # start = 0
 
-        self.assumption
-        if self.type == "uniform":
-            low = self.assumption["lower"]
-            high = self.assumption["upper"]
+        # self.assumption
+        # if self.type == "uniform":
+        #     low = self.assumption["lower"]
+        #     high = self.assumption["upper"]
 
-        for idx, row in df_es.iterrows():
-            row = row.item()
-            values = list()
+        # for idx, row in df_es.iterrows():
+        #     row = row.item()
+        #     values = list()
 
-            if row.type == "rebalance" or row.type == "invest":
-                continue
-            elif row.inflationAdjusted == False:
-                continue
+        #     if row.type == "rebalance" or row.type == "invest":
+        #         continue
+        #     elif row.inflationAdjusted == False:
+        #         continue
 
-            else:
-                duration = row.duration["value"]
+        #     else:
+        #         duration = row.duration["value"]
                 
-                if row.start["type"] == "fixed":
-                    start = row.start["value"]
+        #         if row.start["type"] == "fixed":
+        #             start = row.start["value"]
                     
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-np.random.uniform(low, high)))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-np.random.uniform(low, high)))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
                         
-                elif row.start["type"] == "startWith":
-                    for id, da in df_es.iterrows():
-                        da = da.item()
-                        if da.name == row.start["eventSeries"]:
-                            start = da.start["value"]
-                            break
+        #         elif row.start["type"] == "startWith":
+        #             for id, da in df_es.iterrows():
+        #                 da = da.item()
+        #                 if da.name == row.start["eventSeries"]:
+        #                     start = da.start["value"]
+        #                     break
 
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-np.random.uniform(low, high)))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-np.random.uniform(low, high)))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
                 
-                elif row.start["type"] == "startAfter":
-                    for id, da in df_es.iterrows():
-                        da = da.item()
-                        if da.name == row.start["eventSeries"]:
-                            start = da.start["value"]
-                            break
+        #         elif row.start["type"] == "startAfter":
+        #             for id, da in df_es.iterrows():
+        #                 da = da.item()
+        #                 if da.name == row.start["eventSeries"]:
+        #                     start = da.start["value"]
+        #                     break
                 
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-np.random.uniform(low, high)))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-np.random.uniform(low, high)))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
             
-            result.append({row.name: values})
+        #     result.append({row.name: values})
 
-        return result
+        # return result
 
     def normalInflation(self):
         """
         This function is for normal inflation assumption
         """
-        result = list()
-        curYear = datetime.date.today().year
-        df_es = pd.DataFrame(self.data.eventSeries)
-        start = 0
+        try:
+            if self.type == "normal":
+                mean = self.assumption["mean"]
+                std = self.assumption["stdev"]
+        except:
+            raise ValueError("Invalid Type of Inflation Assumption!")
+        
+        return np.random.normal(mean, std)
+        # result = list()
+        # curYear = datetime.date.today().year
+        # df_es = pd.DataFrame(self.data.eventSeries)
+        # start = 0
 
-        self.assumption
-        if self.type == "normal":
-            mean = self.assumption["mean"]
-            std = self.assumption["stdev"]
+        # self.assumption
+        # if self.type == "normal":
+        #     mean = self.assumption["mean"]
+        #     std = self.assumption["stdev"]
 
-        for idx, row in df_es.iterrows():
-            row = row.item()
-            values = list()
+        # for idx, row in df_es.iterrows():
+        #     row = row.item()
+        #     values = list()
 
-            if row.type == "rebalance" or row.type == "invest":
-                continue
-            elif row.inflationAdjusted == False:
-                continue
+        #     if row.type == "rebalance" or row.type == "invest":
+        #         continue
+        #     elif row.inflationAdjusted == False:
+        #         continue
 
-            else:
-                duration = row.duration["value"]
+        #     else:
+        #         duration = row.duration["value"]
                 
-                if row.start["type"] == "fixed":
-                    start = row.start["value"]
+        #         if row.start["type"] == "fixed":
+        #             start = row.start["value"]
                     
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-np.random.normal(mean, std)))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-np.random.normal(mean, std)))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
                         
-                elif row.start["type"] == "startWith":
-                    for id, da in df_es.iterrows():
-                        da = da.item()
-                        if da.name == row.start["eventSeries"]:
-                            start = da.start["value"]
-                            break
+        #         elif row.start["type"] == "startWith":
+        #             for id, da in df_es.iterrows():
+        #                 da = da.item()
+        #                 if da.name == row.start["eventSeries"]:
+        #                     start = da.start["value"]
+        #                     break
 
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-np.random.normal(mean, std)))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-np.random.normal(mean, std)))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
                 
-                elif row.start["type"] == "startAfter":
-                    for id, da in df_es.iterrows():
-                        da = da.item()
-                        if da.name == row.start["eventSeries"]:
-                            start = da.start["value"]
-                            break
+        #         elif row.start["type"] == "startAfter":
+        #             for id, da in df_es.iterrows():
+        #                 da = da.item()
+        #                 if da.name == row.start["eventSeries"]:
+        #                     start = da.start["value"]
+        #                     break
                 
-                    if start == curYear:
-                        values.append(row.initialAmount * (1-np.random.normal(mean, std)))
-                    else:
-                        if not values:
-                            for i in range(start, curYear):
-                                values.append(None)
+        #             if start == curYear:
+        #                 values.append(row.initialAmount * (1-np.random.normal(mean, std)))
+        #             else:
+        #                 if not values:
+        #                     for i in range(start, curYear):
+        #                         values.append(None)
 
-                        for i in range(duration):
-                            values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
+        #                 for i in range(duration):
+        #                     values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
             
-            result.append({row.name: values})
+        #     result.append({row.name: values})
 
-        return result
+        # return result
 
     def runInflation(self):
         if self.type == "fixed":
@@ -568,10 +583,6 @@ class Inflation:
             return self.normalInflation()
         else:
             raise ValueError("Invalid Type of Inflation Assumption!")
-
-# Expense Withdrawal Strategy
-def expenseWithdrawal(initialAmount, annualReturn, yearRest):
-    return initialAmount*(annualReturn*(1+annualReturn)^yearRest)/((1+annualReturn)^yearRest-1)
 
 # roth conversion
 def rothConversion (startAmount, annualContribution, age, retirementAge, investmentReturn):
@@ -590,26 +601,3 @@ def rothConversion (startAmount, annualContribution, age, retirementAge, investm
         retirementBalance = total
         
     return list(retirementBalance, totalContribution)
-
-def runCalculator(file:str):
-    """
-    This is a function to run all calculator as possible as can
-
-    Args:
-    ----
-        file: This is a path for the pkl file to load and use
-    """
-
-    with open(file) as f:
-        data = json.loads(f.read())
-    return RMDCalculator.runRMD(data)
-
-
-# Investment Calculator is considered to be modified
-
-# class Investment:
-#     id = 0
-#     def __init__(self):
-#         name = ""
-#         currentValue = 0.0
-#         riskFactor = 0.0
