@@ -4,7 +4,7 @@ import numpy as np
 
 class Simulation:
     def __init__(self, path:str):
-        self.data = sc.importJson(path)
+        self.data = sc.importYAML(path)
         self.tax = ca.TaxCalculator()
         self.rmd = ca.RMDCalculator()
         self.inf = ca.Inflation(self.data)
