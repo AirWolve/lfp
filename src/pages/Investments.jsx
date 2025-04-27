@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./Investments.css";
+import "../css/Investments.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";

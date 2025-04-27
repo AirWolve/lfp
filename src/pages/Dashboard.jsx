@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./Dashboard.css";
+import "../css/Dashboard.css";
 import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";

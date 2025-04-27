@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
-import "./CashFlow.css";
+import "../css/CashFlow.css";
 import profileImg from "../assets/profile.png";
 import checkIcon from "../assets/check.svg";
 
