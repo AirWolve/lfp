@@ -6,17 +6,19 @@ import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
     const [rothOpt, setRothOpt] = React.useState(false);
-    const eventSeries = JSON.parse(localStorage.getItem("EventSeries"));
+    // const eventSeries = JSON.parse(localStorage.getItem("EventSeries"));
     // 이전에 유저가 eventSeries, Investments에서 작성했던 데이터들 불러올 것
     const [spendingStrategy, setSpendingStrategy] =useState([]);
-    const [expenseWithdrawalStrategy, setExpenseWithdrawalStrategy] = useState(() => {
-        const data = localStorage.getItem("expenseWithdrawalStrategy");
-        return data ? JSON.parse(data) : [];
-    });
-    const [RMDStrategy, setRMDStrategy] = useState(() => {
-        const data = localStorage.getItem("RMDStrategy");
-        return data ? JSON.parse(data) : [];
-    });
+    const [expenseWithdrawalStrategy, setExpenseWithdrawalStrategy] = useState([]);
+    const [RMDStrategy, setRMDStrategy] = useState([]);
+    // const [expenseWithdrawalStrategy, setExpenseWithdrawalStrategy] = useState(() => {
+    //     const data = localStorage.getItem("expenseWithdrawalStrategy");
+    //     return data ? JSON.parse(data) : [];
+    // });
+    // const [RMDStrategy, setRMDStrategy] = useState(() => {
+    //     const data = localStorage.getItem("RMDStrategy");
+    //     return data ? JSON.parse(data) : [];
+    // });
 
     const [showModal, setShowModal] = useState(false);
     const openModal = () => setShowModal(true);
