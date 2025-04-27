@@ -21,6 +21,7 @@ const SimulationInfo = () => {
     "Commodities",
     "Cryptocurrency",
   ];
+
   const investmentsType = [
     "non-retirement",
     "retirement",
@@ -122,8 +123,8 @@ const SimulationInfo = () => {
 
   const openRMDModal = () => {
     setModalRMDList(RMDStrategy);
-    setModalRMDSelect(RMDStrategy[0] || investmentsType[0] || "");
-    setShowWithdrawalModal(true);
+    setModalRMDSelect(RMDStrategy[0] || investments[0] || "");
+    setShowRMDModal(true);
   };
   const closeRMDModal = () => setShowRMDModal(false);
   const confirmRMD = () => {
@@ -159,6 +160,7 @@ const SimulationInfo = () => {
       setModalRothList([...modalRothList, modalRothSelect]);
     }
   };
+
 
   const navigate = useNavigate();
 
@@ -389,7 +391,7 @@ const SimulationInfo = () => {
                       value={modalRMDSelect}
                       onChange={(e) => setModalRMDSelect(e.target.value)}
                     >
-                      {investmentsType.map((item, idx) => (
+                      {investments.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
