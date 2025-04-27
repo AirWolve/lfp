@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./SimulationInfo.css";
+import "../css/SimulationInfo.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";

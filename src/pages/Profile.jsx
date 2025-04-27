@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { constPath } from '../config.js';
-import "./Profile.css";
+import "../css/Profile.css";
 import profileImg from "../assets/profile.png";
 import backIcon from "../assets/backArrow.svg";
 

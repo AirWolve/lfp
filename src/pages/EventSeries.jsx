@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./EventSeries.css";
+import "../css/EventSeries.css";
 import { constPath } from "../config.js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
