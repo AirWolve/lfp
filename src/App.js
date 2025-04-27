@@ -14,6 +14,7 @@ import IncomeExpense from "./pages/IncomeExpense.jsx";
 import Overview from "./pages/Overview.jsx";
 import CashFlow from "./pages/CashFlow.jsx";
 import LoadingPage from "./pages/LoadingPage.jsx";
+import SimulationInfo from "./pages/SimulationInfo.jsx";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/Overview" element={<Overview />} />
           <Route path="/CashFlow" element={<CashFlow />} />
           <Route path="/LoadingPage" element={<LoadingPage />} />
+          <Route path="/SimulationInfo" element={<SimulationInfo />} />
         </Routes>
         <ToastContainer
           position="top-right"
