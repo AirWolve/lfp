@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./SimulationInfo.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
+  const [inflationRate, setInflationRate] = useState(null);
+  const [contributionLimit, setContributionLimit] = useState(null);
   const [rothOpt, setRothOpt] = React.useState(false);
+  const [rothStart, setRothStart] = useState(null);
+  const [rothEnd, setRothEnd] = useState(null);
+  const [financialGoals, setFinancialGoals] = useState(null);
+  const [livingState, setLivingState] = useState("");
   // 이전에 유저가 eventSeries, Investments에서 작성했던 데이터들 불러올 것
   const eventSeries = ["vacation", "car", "home", "education", "wedding"];
   const investments = [
@@ -15,16 +21,18 @@ const SimulationInfo = () => {
     "Commodities",
     "Cryptocurrency",
   ];
+
   const investmentsType = [
     "non-retirement",
     "retirement",
     "taxable",
     "tax-free",
     "tax-deferred",
-  ]
+  ];
   const [spendingStrategy, setSpendingStrategy] = useState([]);
   const [withdrawalStrategy, setWithdrawalStrategy] = useState([]);
   const [RMDStrategy, setRMDStrategy] = useState([]);
+  const [rothStrategy, setRothStrategy] = useState([]);
 
   // spending modal 상태
   const [showSpendingModal, setShowSpendingModal] = useState(false);
@@ -47,24 +55,24 @@ const SimulationInfo = () => {
   );
   const [modalRMDList, setModalRMDList] = useState([]);
 
-//   useEffect(() => {
-//     setSpendingStrategy(
-//       JSON.parse(localStorage.getItem("SpendingStrategy") || "[]")
-//     );
-//     setWithdrawalStrategy(
-//       JSON.parse(localStorage.getItem("WithdrawalStrategy") || "[]")
-//     );
-//     setRMDStrategy(
-//         JSON.parse(localStorage.getItem("RMDStrategy") || "[]")
-//     );
-//   }, []);
+  // Roth Conversion Strategy modal 상태
+  const [showRothModal, setShowRothModal] = useState(false);
+  const [modalRothSelect, setModalRothSelect] = useState(
+    investments.length ? investments[0] : ""
+  );
+  const [modalRothList, setModalRothList] = useState([]);
 
-  // 전략 변경 시 저장
-  useEffect(() => {
-    localStorage.setItem("SpendingStrategy", JSON.stringify(spendingStrategy));
-    localStorage.setItem("WithdrawalStrategy", JSON.stringify(withdrawalStrategy));
-    localStorage.setItem("RMDStrategy",JSON.stringify(RMDStrategy));
-    }, [spendingStrategy, withdrawalStrategy, RMDStrategy]);
+  //   useEffect(() => {
+  //     setSpendingStrategy(
+  //       JSON.parse(localStorage.getItem("SpendingStrategy") || "[]")
+  //     );
+  //     setWithdrawalStrategy(
+  //       JSON.parse(localStorage.getItem("WithdrawalStrategy") || "[]")
+  //     );
+  //     setRMDStrategy(
+  //         JSON.parse(localStorage.getItem("RMDStrategy") || "[]")
+  //     );
+  //   }, []);
 
   // Modal 핸들러
   const openSpendingModal = () => {
@@ -115,8 +123,8 @@ const SimulationInfo = () => {
 
   const openRMDModal = () => {
     setModalRMDList(RMDStrategy);
-    setModalRMDSelect(RMDStrategy[0] || investmentsType[0] || "");
-    setShowWithdrawalModal(true);
+    setModalRMDSelect(RMDStrategy[0] || investments[0] || "");
+    setShowRMDModal(true);
   };
   const closeRMDModal = () => setShowRMDModal(false);
   const confirmRMD = () => {
@@ -128,26 +136,31 @@ const SimulationInfo = () => {
     closeRMDModal();
   };
   const addRMDItem = () => {
-    if (
-      modalRMDSelect &&
-      !modalRMDList.includes(modalRMDSelect)
-    ) {
+    if (modalRMDSelect && !modalRMDList.includes(modalRMDSelect)) {
       setModalRMDList([...modalRMDList, modalRMDSelect]);
     }
   };
-  
-  // const [showModal, setShowModal] = useState(false);
-  // const
-  // const handleConfirm = () => {
-  //     // toast.warning("Please Fill in all fields");
-  //     closeModal();
-  // }
 
-//   const handleDelete = (index) => {
-//     const updated = spendingStrategy.filter((_, i) => i !== index);
-//     setSpendingStrategy(updated);
-//     localStorage.setItem("SpendingStrategy", JSON.stringify(updated));
-//   };
+  const openRothModal = () => {
+    setModalRothList(RMDStrategy);
+    setModalRothSelect(RMDStrategy[0] || investments[0] || "");
+    setShowRothModal(true);
+  };
+  const closeRothModal = () => setShowRothModal(false);
+  const confirmRoth = () => {
+    if (modalRothList.length === 0) {
+      toast.warning("최소 하나 이상 선택하세요.");
+      return;
+    }
+    setRothStrategy(modalRothList);
+    closeRothModal();
+  };
+  const addRothItem = () => {
+    if (modalRothSelect && !modalRothList.includes(modalRothSelect)) {
+      setModalRothList([...modalRothList, modalRothSelect]);
+    }
+  };
+
 
   const navigate = useNavigate();
 
@@ -156,9 +169,23 @@ const SimulationInfo = () => {
     navigate(`${constPath.overview}`);
   };
 
-  const handleNext = (e) => {
+  const handleStartSimulation = (e) => {
     e.preventDefault();
-    navigate();
+    localStorage.setItem("RothConversionOpt", rothOpt ? "true" : "false");
+    localStorage.setItem("InflationAssumption", inflationRate);
+    localStorage.setItem("afterTaxContributionLimit", contributionLimit);
+    localStorage.setItem("RothConversionStart",rothStart);
+    localStorage.setItem("RothConversionEnd", rothEnd);
+    localStorage.setItem("RothConversionStrategy",rothStrategy);
+    localStorage.setItem("FinancialGoal", financialGoals);
+    localStorage.setItem("residenceState", livingState);
+    localStorage.setItem("SpendingStrategy", JSON.stringify(spendingStrategy));
+    localStorage.setItem("WithdrawalStrategy", JSON.stringify(withdrawalStrategy));
+    localStorage.setItem("RMDStrategy", JSON.stringify(RMDStrategy));
+    localStorage.setItem("expenseWithdrawalStrategy", JSON.stringify(withdrawalStrategy));
+    localStorage.setItem("RothConversionStrategy",JSON.stringify(rothStrategy));
+
+    navigate(`${constPath.overview}`);
   };
 
   return (
@@ -178,13 +205,25 @@ const SimulationInfo = () => {
           <section className="Inflation">
             <label>
               Inflation Rate
-              <input type="number" placeholder="e.g. 3" /> %
+              <input
+                type="number"
+                placeholder="e.g. 3"
+                value={inflationRate}
+                onChange={(e) => setInflationRate(e.target.value)}
+              />{" "}
+              %
             </label>
           </section>
           <section className="Contribution">
             <label>
               Tax-Free Retirement Account Annual Contribution Limit
-              <input type="number" placeholder="e.g. 500" /> $
+              <input
+                type="number"
+                placeholder="e.g. 500"
+                value={contributionLimit}
+                onChange={(e) => setContributionLimit(e.target.value)}
+              />{" "}
+              $
             </label>
           </section>
         </section>
@@ -263,7 +302,9 @@ const SimulationInfo = () => {
               {withdrawalStrategy.length > 0 ? (
                 <span>
                   ✓ Checked
-                  <button className="addButton" onClick={openWithdrawalModal}>Modify</button>
+                  <button className="addButton" onClick={openWithdrawalModal}>
+                    Modify
+                  </button>
                 </span>
               ) : (
                 <button className="addButton" onClick={openWithdrawalModal}>
@@ -328,7 +369,9 @@ const SimulationInfo = () => {
               {RMDStrategy.length > 0 ? (
                 <span>
                   ✓ Checked
-                  <button className="addButton" onClick={openRMDModal}>Modify</button>
+                  <button className="addButton" onClick={openRMDModal}>
+                    Modify
+                  </button>
                 </span>
               ) : (
                 <button className="addButton" onClick={openRMDModal}>
@@ -348,7 +391,7 @@ const SimulationInfo = () => {
                       value={modalRMDSelect}
                       onChange={(e) => setModalRMDSelect(e.target.value)}
                     >
-                      {investmentsType.map((item, idx) => (
+                      {investments.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
@@ -364,10 +407,7 @@ const SimulationInfo = () => {
                     ))}
                   </ul>
                   <div className="modalButtons">
-                    <button
-                      className="cancelButton"
-                      onClick={closeRMDModal}
-                    >
+                    <button className="cancelButton" onClick={closeRMDModal}>
                       Cancel
                     </button>
                     <button className="addButton" onClick={confirmRMD}>
@@ -391,11 +431,20 @@ const SimulationInfo = () => {
         </section>
         <section title="Roth Conversion Start & End" className="RothStart">
           <label>
-            {" "}
-            Roth Conversion Year: From{" "}
-            <input type="number" placeholder="e.g. 2050" />
+            Roth Conversion Year: From
+            <input
+              type="number"
+              placeholder="e.g. 2050"
+              value={rothStart}
+              onChange={(e) => setRothStart(e.target.value)}
+            />
             <span style={{ marginLeft: "20px" }}>To</span>
-            <input type="number" placeholder="e.g. 2050" />
+            <input
+              type="number"
+              placeholder="e.g. 2050"
+              value={rothEnd}
+              onChange={(e) => setRothEnd(e.target.value)}
+            />
           </label>
         </section>
         <section title="Roth Conversion Strategy" className="RothStrategy">
@@ -403,8 +452,57 @@ const SimulationInfo = () => {
                     이후, 유저가 선택하는데로 배열에 저장이 되게끔 설계 */}
           <label>
             Roth Conversion Strategy
-            <input type="text" placeholder="e.g. S&P 500" />
+            {rothStrategy.length > 0 ? (
+              <span>
+                ✓ Checked
+                <button className="addButton" onClick={openRothModal}>
+                  Modify
+                </button>
+              </span>
+            ) : (
+              <button className="addButton" onClick={openRothModal}>
+                Add
+              </button>
+            )}
           </label>
+          {showRothModal && (
+            <div className="modalOverlay" onClick={closeRothModal}>
+              <div
+                className="modalContent"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4>Select Roth Conversion Options</h4>
+                <div className="modalControls">
+                  <select
+                    value={modalRothSelect}
+                    onChange={(e) => setModalRothSelect(e.target.value)}
+                  >
+                    {investmentsType.map((item, idx) => (
+                      <option key={idx} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                  <button className="addButton" onClick={addRothItem}>
+                    Add
+                  </button>
+                </div>
+                <ul className="modalList">
+                  {modalRothList.map((name, i) => (
+                    <li key={i}>{name}</li>
+                  ))}
+                </ul>
+                <div className="modalButtons">
+                  <button className="cancelButton" onClick={closeRothModal}>
+                    Cancel
+                  </button>
+                  <button className="addButton" onClick={confirmRoth}>
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
         <section
           title="Financial Goals & Living State"
@@ -412,20 +510,30 @@ const SimulationInfo = () => {
         >
           <label>
             Financial Goals
-            <input type="number" placeholder="e.g. 10000" />
+            <input
+              type="number"
+              placeholder="e.g. 10000"
+              value={financialGoals}
+              onChange={(e) => setFinancialGoals(e.target.value)}
+            />
           </label>
           <span style={{ marginLeft: "10px", marginRight: "40px" }}>$</span>
           <label>
             Living State
-            <input type="text" placeholder="e.g. NY" />
+            <input
+              type="text"
+              placeholder="e.g. NY"
+              value={livingState}
+              onChange={(e) => setLivingState(e.target.value)}
+            />
           </label>
         </section>
         <div className="form-buttons">
           <button className="back" onClick={handleBack}>
             Back
           </button>
-          <button className="next" onClick={handleNext}>
-            Next
+          <button className="next" onClick={handleStartSimulation}>
+            Start Simulation
           </button>
         </div>
       </div>
