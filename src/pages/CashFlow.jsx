@@ -19,7 +19,7 @@ const CashFlow = () => {
 
     const handleBack = (e) => {
         e.preventDefault(false);
-        navigate(-1);
+        navigate(`${constPath.overview}`);
     }
     const handleNext = (e) => {
         e.preventDefault(false);

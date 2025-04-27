@@ -5,6 +5,15 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { RouterType } from './config.js';
 
+function disableNumberInputScroll(e) {
+  // Prevent scrolling when using number inputs
+  if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+    e.preventDefault();
+  }
+}
+
+window.addEventListener('wheel', disableNumberInputScroll, { passive: false });
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
