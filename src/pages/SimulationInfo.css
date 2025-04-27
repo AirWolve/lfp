@@ -35,3 +35,68 @@
     display: flex;
     flex-direction: row;
 }
+
+.modalButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 100px;
+}
+
+.addButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+.cancelButton {
+    background-color: white;
+    color: black;
+    border: black solid 1px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modalContent {
+    background-color: white;
+    border-radius: 10px;
+    width: 400px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.modalContent h4 {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modalContent select,
+.modalContent input[type="number"] {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
