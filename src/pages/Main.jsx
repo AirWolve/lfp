@@ -1,5 +1,5 @@
 import React from "react";
-import "./Main.css";
+import "../css/Main.css";
 import { constPath } from "../config.js";
 
 const Main = () => {
