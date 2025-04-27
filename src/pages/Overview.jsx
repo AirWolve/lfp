@@ -48,7 +48,7 @@ const Overview = () => {
 
   const handleMakePlan = (e) => {
     e.preventDefault();
-    navigate(`${constPath.cashFlow}`);
+    navigate(`${constPath.SimulationInfo}`);
   };
 
   const lineData = Array.from({ length: 10 }, (_, i) => ({
@@ -100,7 +100,7 @@ const Overview = () => {
         {/* Content */}
         <div className="main-content">
           <button className="make-plan-btn" onClick={handleMakePlan}>
-            Make Plan
+            Start Simulation
           </button>
           {/* Prompt to ChatGPT: "Can you let me know how I create charts in HTML" */}
           {/* Charts */}

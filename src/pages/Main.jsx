@@ -6,7 +6,7 @@ const Main = () => {
   const scrollToSection = (id) => {
     const section = document.getElementById(id);
     if (section) {
-      section.scrollIntoView({ behavior: "smooth" }); // 부드럽게 스크롤
+      section.scrollIntoView({ behavior: "smooth" }); // Smooooooooth Scroll
     }
   };
   return (
@@ -44,12 +44,12 @@ const Main = () => {
         </ul>
       </nav>
 
-      {/* 메인 섹션 */}
+      {/* Main Section */}
       <div id="home" className="mainHeader">
         <h1>Welcome to Our Service</h1>
       </div>
 
-      {/* About Section (수정됨) */}
+      {/* About Section (Revised) */}
       <section id="about" className="aboutSection">
         <div className="aboutWrapper">
           <div className="aboutLeft">

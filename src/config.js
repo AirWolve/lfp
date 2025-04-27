@@ -18,6 +18,7 @@ export const constPath = {
     incomeExpense: `${baseDir}IncomeExpense`,
     cashFlow: `${baseDir}CashFlow`,
     LoadingPage: `${baseDir}LoadingPage`,
+    SimulationInfo: `${baseDir}SimulationInfo`,
 };
 
 export const RouterType = buildType === 'test' ? HashRouter : BrowserRouter;
