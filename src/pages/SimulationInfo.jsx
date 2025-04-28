@@ -185,7 +185,7 @@ const SimulationInfo = () => {
       residenceState: livingState,
     };
 
-    const prevCombinedData = localStorage.getItem('combinedUserData');
+    const prevCombinedData = JSON.parse(localStorage.getItem('combinedUserData'));
 
     const combinedData = {
       prevCombinedData,
