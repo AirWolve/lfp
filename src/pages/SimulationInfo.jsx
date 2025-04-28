@@ -202,6 +202,42 @@ const SimulationInfo = () => {
 
     localStorage.setItem('combinedUserData', JSON.stringify(combinedData));
 
+    console.log("Sending data to server:", combinedData);
+    try {
+      // Send scenario data to server
+      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/save-scenario`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(combinedData),
+      });
+
+      console.log("Server response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        throw new Error(`Server response is not valid JSON: ${responseText}`);
+      }
+
+      console.log("Parsed response:", result);
+
+      if (!response.ok) {
+        throw new Error(`Failed to save scenario: ${result.error || responseText}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(error.message || "An error occurred");
+    }
+
     navigate(`${constPath.overview}`);
   };
 
