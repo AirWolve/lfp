@@ -121,7 +121,7 @@ const SimulationInfo = () => {
 
   const openWithdrawalModal = () => {
     setModalWithdrawalList(withdrawalStrategy);
-    setModalWithdrawalSelect(withdrawalStrategy[0] || investments[0] || "");
+    setModalWithdrawalSelect(withdrawalStrategy[0] || allInvestments[0] || "");
     setShowWithdrawalModal(true);
   };
   const closeWithdrawalModal = () => setShowWithdrawalModal(false);
@@ -144,7 +144,7 @@ const SimulationInfo = () => {
 
   const openRMDModal = () => {
     setModalRMDList(RMDStrategy);
-    setModalRMDSelect(RMDStrategy[0] || investments[0] || "");
+    setModalRMDSelect(RMDStrategy[0] || preTaxInvestments[0] || "");
     setShowRMDModal(true);
   };
   const closeRMDModal = () => setShowRMDModal(false);
@@ -164,7 +164,7 @@ const SimulationInfo = () => {
 
   const openRothModal = () => {
     setModalRothList(rothStrategy);
-    setModalRothSelect(rothStrategy[0] || investments[0] || "");
+    setModalRothSelect(rothStrategy[0] || preTaxInvestments[0] || "");
     setShowRothModal(true);
   };
   const closeRothModal = () => setShowRothModal(false);
@@ -354,7 +354,7 @@ const SimulationInfo = () => {
                       value={modalWithdrawalSelect}
                       onChange={(e) => setModalWithdrawalSelect(e.target.value)}
                     >
-                      {investments.map((item, idx) => (
+                      {allInvestments.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
@@ -421,7 +421,7 @@ const SimulationInfo = () => {
                       value={modalRMDSelect}
                       onChange={(e) => setModalRMDSelect(e.target.value)}
                     >
-                      {investments.map((item, idx) => (
+                      {preTaxInvestments.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
@@ -507,7 +507,7 @@ const SimulationInfo = () => {
                     value={modalRothSelect}
                     onChange={(e) => setModalRothSelect(e.target.value)}
                   >
-                    {investmentsType.map((item, idx) => (
+                    {preTaxInvestments.map((item, idx) => (
                       <option key={idx} value={item}>
                         {item}
                       </option>
