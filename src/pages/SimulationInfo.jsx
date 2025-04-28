@@ -188,7 +188,7 @@ const SimulationInfo = () => {
     const prevCombinedData = JSON.parse(localStorage.getItem('combinedUserData'));
 
     const combinedData = {
-      prevCombinedData,
+      ...prevCombinedData,
       ...simulationInfo
     }
 
