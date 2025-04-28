@@ -5,79 +5,87 @@ import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
-  const [inflationRate, setInflationRate] = useState(null);
-  const [contributionLimit, setContributionLimit] = useState(null);
-  const [rothOpt, setRothOpt] = React.useState(false);
-  const [rothStart, setRothStart] = useState(null);
-  const [rothEnd, setRothEnd] = useState(null);
-  const [financialGoals, setFinancialGoals] = useState(null);
-  const [livingState, setLivingState] = useState("");
-  // 이전에 유저가 eventSeries, Investments에서 작성했던 데이터들 불러올 것
-  const eventSeries = ["vacation", "car", "home", "education", "wedding"];
-  const investments = [
-    "S&P 500",
-    "Bonds",
-    "Real Estate",
-    "Commodities",
-    "Cryptocurrency",
-  ];
+  const rawData = localStorage.getItem('combinedUserData');
+  const data = JSON.parse(rawData);
 
-  const investmentsType = [
-    "non-retirement",
-    "retirement",
-    "taxable",
-    "tax-free",
-    "tax-deferred",
-  ];
-  const [spendingStrategy, setSpendingStrategy] = useState([]);
-  const [withdrawalStrategy, setWithdrawalStrategy] = useState([]);
-  const [RMDStrategy, setRMDStrategy] = useState([]);
-  const [rothStrategy, setRothStrategy] = useState([]);
+  const [inflationRate, setInflationRate] = useState(
+    () => data.inflationAssumption ? data.inflationAssumption.value * 100 : null
+  );
+  const [contributionLimit, setContributionLimit] = useState(
+    () => data.afterTaxContributionLimit ?? null
+  );
+  const [rothOpt, setRothOpt] = useState(
+    () => data.RothConversionOpt ?? false
+  );
+  const [rothStart, setRothStart] = useState(
+    () => data.RothConversionStart ?? null
+  );
+  const [rothEnd, setRothEnd] = useState(
+    () => data.RothConversionEnd ?? null
+  );
+  const [financialGoals, setFinancialGoals] = useState(
+    () => data.financialGoal ?? null
+  );
+  const [livingState, setLivingState] = useState(
+    () => data.residenceState ?? ""
+  );
+
+  const preTaxInvestments = data.investments
+    .filter(inv => inv.taxStatus === 'pre-tax')
+    .map(inv => inv.id);
+
+  const discreteEvents = data.eventSeries
+    .filter(event => event.discretionary === true)
+    .map(event => event.name);
+
+  const allInvestments = data.investments
+    .map(inv => inv.id);
+
+  const [spendingStrategy, setSpendingStrategy] = useState(
+    () => data.spendingStrategy ?? []
+  );
+  const [withdrawalStrategy, setWithdrawalStrategy] = useState(
+    () => data.expenseWithdrawalStrategy ?? []
+  );
+  const [RMDStrategy, setRMDStrategy] = useState(
+    () => data.RMDStrategy ?? []
+  );
+  const [rothStrategy, setRothStrategy] = useState(
+    () => data.RothConversionStrategy ?? []
+  );
 
   // spending modal 상태
   const [showSpendingModal, setShowSpendingModal] = useState(false);
   const [modalSpendingSelect, setModalSpendingSelect] = useState(
-    eventSeries.length ? eventSeries[0] : ""
+    discreteEvents.length ? discreteEvents[0] : ""
   );
   const [modalSpendingList, setModalSpendingList] = useState([]);
 
   // withdrawal modal 상태
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [modalWithdrawalSelect, setModalWithdrawalSelect] = useState(
-    investments.length ? investments[0] : ""
+    allInvestments.length ? allInvestments[0] : ""
   );
   const [modalWithdrawalList, setModalWithdrawalList] = useState([]);
 
   // RMD modal 상태
   const [showRMDModal, setShowRMDModal] = useState(false);
   const [modalRMDSelect, setModalRMDSelect] = useState(
-    investmentsType.length ? investmentsType[0] : ""
+    preTaxInvestments.length ? preTaxInvestments[0] : ""
   );
   const [modalRMDList, setModalRMDList] = useState([]);
 
   // Roth Conversion Strategy modal 상태
   const [showRothModal, setShowRothModal] = useState(false);
   const [modalRothSelect, setModalRothSelect] = useState(
-    investments.length ? investments[0] : ""
+    preTaxInvestments.length ? preTaxInvestments[0] : ""
   );
   const [modalRothList, setModalRothList] = useState([]);
-
-  //   useEffect(() => {
-  //     setSpendingStrategy(
-  //       JSON.parse(localStorage.getItem("SpendingStrategy") || "[]")
-  //     );
-  //     setWithdrawalStrategy(
-  //       JSON.parse(localStorage.getItem("WithdrawalStrategy") || "[]")
-  //     );
-  //     setRMDStrategy(
-  //         JSON.parse(localStorage.getItem("RMDStrategy") || "[]")
-  //     );
-  //   }, []);
 
   // Modal 핸들러
   const openSpendingModal = () => {
     setModalSpendingList(spendingStrategy);
-    setModalSpendingSelect(spendingStrategy[0] || eventSeries[0] || "");
+    setModalSpendingSelect(spendingStrategy[0] || discreteEvents[0] || "");
     setShowSpendingModal(true);
   };
   const closeSpendingModal = () => setShowSpendingModal(false);
@@ -100,7 +108,7 @@ const SimulationInfo = () => {
 
   const openWithdrawalModal = () => {
     setModalWithdrawalList(withdrawalStrategy);
-    setModalWithdrawalSelect(withdrawalStrategy[0] || investments[0] || "");
+    setModalWithdrawalSelect(withdrawalStrategy[0] || allInvestments[0] || "");
     setShowWithdrawalModal(true);
   };
   const closeWithdrawalModal = () => setShowWithdrawalModal(false);
@@ -123,7 +131,7 @@ const SimulationInfo = () => {
 
   const openRMDModal = () => {
     setModalRMDList(RMDStrategy);
-    setModalRMDSelect(RMDStrategy[0] || investments[0] || "");
+    setModalRMDSelect(RMDStrategy[0] || preTaxInvestments[0] || "");
     setShowRMDModal(true);
   };
   const closeRMDModal = () => setShowRMDModal(false);
@@ -142,8 +150,8 @@ const SimulationInfo = () => {
   };
 
   const openRothModal = () => {
-    setModalRothList(RMDStrategy);
-    setModalRothSelect(RMDStrategy[0] || investments[0] || "");
+    setModalRothList(rothStrategy);
+    setModalRothSelect(rothStrategy[0] || preTaxInvestments[0] || "");
     setShowRothModal(true);
   };
   const closeRothModal = () => setShowRothModal(false);
@@ -172,7 +180,7 @@ const SimulationInfo = () => {
   const handleStartSimulation = (e) => {
     e.preventDefault();
     const simulationInfo = {
-      inflationAssumption: inflationRate,
+      inflationAssumption: {type: "fixed", value: inflationRate/100},
       afterTaxContributionLimit: contributionLimit,
       spendingStrategy: spendingStrategy,
       expenseWithdrawalStrategy: withdrawalStrategy,
@@ -185,10 +193,10 @@ const SimulationInfo = () => {
       residenceState: livingState,
     };
 
-    const prevCombinedData = localStorage.getItem('combinedUserData');
+    const prevCombinedData = JSON.parse(localStorage.getItem('combinedUserData'));
 
     const combinedData = {
-      prevCombinedData,
+      ...prevCombinedData,
       ...simulationInfo
     }
 
@@ -271,7 +279,7 @@ const SimulationInfo = () => {
                       onChange={(e) => setModalSpendingSelect(e.target.value)}
                     >
                       <option value="">-- Select spend type --</option>
-                      {eventSeries.map((item, idx) => (
+                      {discreteEvents.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
@@ -333,7 +341,7 @@ const SimulationInfo = () => {
                       value={modalWithdrawalSelect}
                       onChange={(e) => setModalWithdrawalSelect(e.target.value)}
                     >
-                      {investments.map((item, idx) => (
+                      {allInvestments.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
@@ -400,7 +408,7 @@ const SimulationInfo = () => {
                       value={modalRMDSelect}
                       onChange={(e) => setModalRMDSelect(e.target.value)}
                     >
-                      {investments.map((item, idx) => (
+                      {preTaxInvestments.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
@@ -450,7 +458,7 @@ const SimulationInfo = () => {
             <span style={{ marginLeft: "20px" }}>To</span>
             <input
               type="number"
-              placeholder="e.g. 2050"
+              placeholder="e.g. 2060"
               value={rothEnd}
               onChange={(e) => setRothEnd(e.target.value)}
             />
@@ -486,7 +494,7 @@ const SimulationInfo = () => {
                     value={modalRothSelect}
                     onChange={(e) => setModalRothSelect(e.target.value)}
                   >
-                    {investmentsType.map((item, idx) => (
+                    {preTaxInvestments.map((item, idx) => (
                       <option key={idx} value={item}>
                         {item}
                       </option>
