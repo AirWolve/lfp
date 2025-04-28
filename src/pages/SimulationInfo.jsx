@@ -177,7 +177,7 @@ const SimulationInfo = () => {
     navigate(`${constPath.overview}`);
   };
 
-  const handleStartSimulation = (e) => {
+  const handleStartSimulation = async (e) => {
     e.preventDefault();
     const simulationInfo = {
       inflationAssumption: {type: "fixed", value: inflationRate/100},
@@ -205,7 +205,7 @@ const SimulationInfo = () => {
     console.log("Sending data to server:", combinedData);
     try {
       // Send scenario data to server
-      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/save-scenario`, {
+      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/sendJson`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -231,14 +231,13 @@ const SimulationInfo = () => {
       console.log("Parsed response:", result);
 
       if (!response.ok) {
-        throw new Error(`Failed to save scenario: ${result.error || responseText}`);
+        throw new Error(`Failed to send scenario: ${result.error || responseText}`);
       }
+      navigate(`${constPath.overview}`);
     } catch (error) {
       console.error("Error:", error);
       toast.error(error.message || "An error occurred");
     }
-
-    navigate(`${constPath.overview}`);
   };
 
   return (
