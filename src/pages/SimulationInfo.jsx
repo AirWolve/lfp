@@ -60,17 +60,52 @@ const SimulationInfo = () => {
   );
   const [modalRothList, setModalRothList] = useState([]);
 
-  //   useEffect(() => {
-  //     setSpendingStrategy(
-  //       JSON.parse(localStorage.getItem("SpendingStrategy") || "[]")
-  //     );
-  //     setWithdrawalStrategy(
-  //       JSON.parse(localStorage.getItem("WithdrawalStrategy") || "[]")
-  //     );
-  //     setRMDStrategy(
-  //         JSON.parse(localStorage.getItem("RMDStrategy") || "[]")
-  //     );
-  //   }, []);
+    useEffect(() => {
+      if (!data.inflationAssumption) return;
+      setInflationRate(
+        data.inflationAssumption.value || 0
+      );
+      if (!data.afterTaxContributionLimit) return;
+      setContributionLimit(
+        data.afterTaxContributionLimit || 0
+      );
+      if (!data.spendingStrategy) return;
+      setSpendingStrategy(
+        data.spendingStrategy || []
+      );
+      if (!data.withdrawalStrategy) return;
+      setWithdrawalStrategy(
+        data.withdrawalStrategy || []
+      );
+      if (!data.RMDStrategy) return;
+      setRMDStrategy(
+        data.RMDStrategy || []
+      );
+      if (!data.RothConversionOpt) return;
+      setRothOpt(
+        data.RothConversionOpt || false
+      );
+      if (!data.RothConversionStart) return;
+      setRothStart(
+        data.RothConversionStart || 0
+      );
+      if (!data.RothConversionEnd) return;
+      setRothEnd(
+        data.RothConversionEnd || 0
+      );
+      if (!data.RothConversionStrategy) return;
+      setRothStrategy(
+        data.RothConversionStrategy || []
+      );
+      if (!data.financialGoal) return;
+      setFinancialGoals(
+        data.financialGoal || 0
+      );
+      if (!data.residenceState) return;
+      setLivingState(
+        data.residenceState || ""
+      );
+    }, []);
 
   // Modal 핸들러
   const openSpendingModal = () => {
@@ -170,7 +205,7 @@ const SimulationInfo = () => {
   const handleStartSimulation = (e) => {
     e.preventDefault();
     const simulationInfo = {
-      inflationAssumption: inflationRate,
+      inflationAssumption: {type: "fixed", value: inflationRate},
       afterTaxContributionLimit: contributionLimit,
       spendingStrategy: spendingStrategy,
       expenseWithdrawalStrategy: withdrawalStrategy,
