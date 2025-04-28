@@ -225,6 +225,30 @@ app.post("/api/save-scenario", async (req, res) => {
   }
 });
 
+app.post("/api/sendJson", async (req, res) => {
+  try {
+    const scenarioData = req.body;
+
+    if (!scenarioData.name) {
+      return res.status(400).json({ error: "Scenario name is required" });
+    }
+
+    // Save scenario as YAML
+    const yamlStr = YAML.stringify(scenarioData);
+
+    res.json({
+      message: "Scenario saved successfully",
+      toYaml: yamlStr,
+      fromJson: scenarioData,
+      scenarioName: scenarioData.name
+    });
+
+  } catch (error) {
+    console.error("Error sending scenario:", error);
+    res.status(500).json({ error: "Failed to send scenario", details: error.message });
+  }
+});
+
 // Run Python simulation
 app.get("/api/run-simulation", async (req, res) => {
   const { email, scenarioName } = req.query;
