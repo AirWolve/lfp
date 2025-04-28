@@ -83,7 +83,7 @@ const SimulationInfo = () => {
   const closeSpendingModal = () => setShowSpendingModal(false);
   const confirmSpending = () => {
     if (modalSpendingList.length === 0) {
-      toast.warning("최소 하나 이상 선택하세요.");
+      toast.warning("Select at least one element");
       return;
     }
     setSpendingStrategy(modalSpendingList);
@@ -106,7 +106,7 @@ const SimulationInfo = () => {
   const closeWithdrawalModal = () => setShowWithdrawalModal(false);
   const confirmWithdrawal = () => {
     if (modalWithdrawalList.length === 0) {
-      toast.warning("최소 하나 이상 선택하세요.");
+      toast.warning("Select at least one element");
       return;
     }
     setWithdrawalStrategy(modalWithdrawalList);
@@ -129,7 +129,7 @@ const SimulationInfo = () => {
   const closeRMDModal = () => setShowRMDModal(false);
   const confirmRMD = () => {
     if (modalRMDList.length === 0) {
-      toast.warning("최소 하나 이상 선택하세요.");
+      toast.warning("Select at least one element");
       return;
     }
     setRMDStrategy(modalRMDList);
@@ -149,7 +149,7 @@ const SimulationInfo = () => {
   const closeRothModal = () => setShowRothModal(false);
   const confirmRoth = () => {
     if (modalRothList.length === 0) {
-      toast.warning("최소 하나 이상 선택하세요.");
+      toast.warning("Select at least one element");
       return;
     }
     setRothStrategy(modalRothList);
@@ -171,19 +171,30 @@ const SimulationInfo = () => {
 
   const handleStartSimulation = (e) => {
     e.preventDefault();
-    localStorage.setItem("RothConversionOpt", rothOpt ? "true" : "false");
-    localStorage.setItem("InflationAssumption", inflationRate);
-    localStorage.setItem("afterTaxContributionLimit", contributionLimit);
-    localStorage.setItem("RothConversionStart",rothStart);
-    localStorage.setItem("RothConversionEnd", rothEnd);
-    localStorage.setItem("RothConversionStrategy",rothStrategy);
-    localStorage.setItem("FinancialGoal", financialGoals);
-    localStorage.setItem("residenceState", livingState);
-    localStorage.setItem("SpendingStrategy", JSON.stringify(spendingStrategy));
-    localStorage.setItem("WithdrawalStrategy", JSON.stringify(withdrawalStrategy));
-    localStorage.setItem("RMDStrategy", JSON.stringify(RMDStrategy));
-    localStorage.setItem("expenseWithdrawalStrategy", JSON.stringify(withdrawalStrategy));
-    localStorage.setItem("RothConversionStrategy",JSON.stringify(rothStrategy));
+    const simulationInfo = {
+      inflationAssumption: inflationRate,
+      afterTaxContributionLimit: contributionLimit,
+      spendingStrategy: spendingStrategy,
+      expenseWithdrawalStrategy: withdrawalStrategy,
+      RMDStrategy: RMDStrategy,
+      RothConversionOpt: rothOpt,
+      RothConversionStart: rothStart,
+      RothConversionEnd: rothEnd,
+      RothConversionStrategy: rothStrategy,
+      financialGoal: financialGoals,
+      residenceState: livingState,
+    };
+
+    localStorage.setItem(
+      "SimulationInfo",
+      JSON.stringify(simulationInfo)
+    )
+
+    const combinedData = localStorage.getItem('combinedUserData');
+    combinedData = {
+      combinedData,
+      ...simulationInfo
+    }
 
     navigate(`${constPath.overview}`);
   };
