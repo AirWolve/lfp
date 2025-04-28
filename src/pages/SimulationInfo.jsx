@@ -190,7 +190,7 @@ const SimulationInfo = () => {
       JSON.stringify(simulationInfo)
     )
 
-    const combinedData = localStorage.getItem('combinedUserData');
+    let combinedData = localStorage.getItem('combinedUserData');
     combinedData = {
       combinedData,
       ...simulationInfo
