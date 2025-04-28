@@ -185,16 +185,14 @@ const SimulationInfo = () => {
       residenceState: livingState,
     };
 
-    localStorage.setItem(
-      "SimulationInfo",
-      JSON.stringify(simulationInfo)
-    )
+    const prevCombinedData = localStorage.getItem('combinedUserData');
 
-    let combinedData = localStorage.getItem('combinedUserData');
-    combinedData = {
-      combinedData,
+    const combinedData = {
+      prevCombinedData,
       ...simulationInfo
     }
+
+    localStorage.setItem('combinedUserData', JSON.stringify(combinedData));
 
     navigate(`${constPath.overview}`);
   };
