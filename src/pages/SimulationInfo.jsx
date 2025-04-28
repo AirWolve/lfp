@@ -9,7 +9,7 @@ const SimulationInfo = () => {
   const data = JSON.parse(rawData);
 
   const [inflationRate, setInflationRate] = useState(
-    () => data.inflationAssumption.value * 100 ?? null
+    () => data.inflationAssumption ? data.inflationAssumption.value * 100 : null
   );
   const [contributionLimit, setContributionLimit] = useState(
     () => data.afterTaxContributionLimit ?? null
