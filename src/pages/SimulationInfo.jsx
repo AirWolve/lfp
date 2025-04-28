@@ -5,16 +5,30 @@ import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
-  const [inflationRate, setInflationRate] = useState(null);
-  const [contributionLimit, setContributionLimit] = useState(null);
-  const [rothOpt, setRothOpt] = React.useState(false);
-  const [rothStart, setRothStart] = useState(null);
-  const [rothEnd, setRothEnd] = useState(null);
-  const [financialGoals, setFinancialGoals] = useState(null);
-  const [livingState, setLivingState] = useState("");
-
   const rawData = localStorage.getItem('combinedUserData');
   const data = JSON.parse(rawData);
+
+  const [inflationRate, setInflationRate] = useState(
+    () => data.inflationAssumption ?? null
+  );
+  const [contributionLimit, setContributionLimit] = useState(
+    () => data.afterTaxContributionLimit ?? null
+  );
+  const [rothOpt, setRothOpt] = useState(
+    () => data.RothConversionOpt ?? false
+  );
+  const [rothStart, setRothStart] = useState(
+    () => data.RothConversionStart ?? null
+  );
+  const [rothEnd, setRothEnd] = useState(
+    () => data.RothConversionEnd ?? null
+  );
+  const [financialGoals, setFinancialGoals] = useState(
+    () => data.financialGoal ?? null
+  );
+  const [livingState, setLivingState] = useState(
+    () => data.residenceState ?? ""
+  );
 
   const preTaxInvestments = data.investments
     .filter(inv => inv.taxStatus === 'pre-tax')
@@ -27,10 +41,18 @@ const SimulationInfo = () => {
   const allInvestments = data.investments
     .map(inv => inv.id);
 
-  const [spendingStrategy, setSpendingStrategy] = useState([]);
-  const [withdrawalStrategy, setWithdrawalStrategy] = useState([]);
-  const [RMDStrategy, setRMDStrategy] = useState([]);
-  const [rothStrategy, setRothStrategy] = useState([]);
+  const [spendingStrategy, setSpendingStrategy] = useState(
+    () => data.spendingStrategy ?? []
+  );
+  const [withdrawalStrategy, setWithdrawalStrategy] = useState(
+    () => data.expenseWithdrawalStrategy ?? []
+  );
+  const [RMDStrategy, setRMDStrategy] = useState(
+    () => data.RMDStrategy ?? []
+  );
+  const [rothStrategy, setRothStrategy] = useState(
+    () => data.RothConversionStrategy ?? []
+  );
 
   // spending modal 상태
   const [showSpendingModal, setShowSpendingModal] = useState(false);
@@ -59,18 +81,6 @@ const SimulationInfo = () => {
     preTaxInvestments.length ? preTaxInvestments[0] : ""
   );
   const [modalRothList, setModalRothList] = useState([]);
-
-  //   useEffect(() => {
-  //     setSpendingStrategy(
-  //       JSON.parse(localStorage.getItem("SpendingStrategy") || "[]")
-  //     );
-  //     setWithdrawalStrategy(
-  //       JSON.parse(localStorage.getItem("WithdrawalStrategy") || "[]")
-  //     );
-  //     setRMDStrategy(
-  //         JSON.parse(localStorage.getItem("RMDStrategy") || "[]")
-  //     );
-  //   }, []);
 
   // Modal 핸들러
   const openSpendingModal = () => {
@@ -170,7 +180,7 @@ const SimulationInfo = () => {
   const handleStartSimulation = (e) => {
     e.preventDefault();
     const simulationInfo = {
-      inflationAssumption: inflationRate,
+      inflationAssumption: {type: "fixed", value: inflationRate},
       afterTaxContributionLimit: contributionLimit,
       spendingStrategy: spendingStrategy,
       expenseWithdrawalStrategy: withdrawalStrategy,
