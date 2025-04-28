@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../css/SimulationInfo.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
@@ -12,23 +12,44 @@ const SimulationInfo = () => {
   const [rothEnd, setRothEnd] = useState(null);
   const [financialGoals, setFinancialGoals] = useState(null);
   const [livingState, setLivingState] = useState("");
-  // 이전에 유저가 eventSeries, Investments에서 작성했던 데이터들 불러올 것
-  const eventSeries = ["vacation", "car", "home", "education", "wedding"];
-  const investments = [
-    "S&P 500",
-    "Bonds",
-    "Real Estate",
-    "Commodities",
-    "Cryptocurrency",
-  ];
+  const [allInvestments, setAllInvestments] = useState([]);
+  const [preTaxInvestments, setPreTaxInvestments] = useState([]);
+  const [discreteEvents, setDiscreteEvents] = useState([]);
 
-  const investmentsType = [
-    "non-retirement",
-    "retirement",
-    "taxable",
-    "tax-free",
-    "tax-deferred",
-  ];
+  const rawData = localStorage.getItem('combinedUserData');
+
+  useEffect(() => {
+    if (!rawData) return;
+
+    const data = JSON.parse(rawData);
+    const ids = data.investments
+      .filter(inv => inv.taxStatus === 'pre-tax')
+      .map(inv => inv.id);
+
+    setPreTaxInvestments(ids);
+  }, []);
+
+  useEffect(() => {
+    if (!rawData) return;
+
+    const data = JSON.parse(rawData);
+    const names = data.eventSeries
+      .filter(event => event.discretionary === true)
+      .map(event => event.name);
+
+    setDiscreteEvents(names);
+  }, []);
+
+  useEffect(() => {
+    if (!rawData) return;
+
+    const data = JSON.parse(rawData);
+    const ids = data.investments
+      .map(inv => inv.id);
+
+    setAllInvestments(ids);
+  }, []);
+
   const [spendingStrategy, setSpendingStrategy] = useState([]);
   const [withdrawalStrategy, setWithdrawalStrategy] = useState([]);
   const [RMDStrategy, setRMDStrategy] = useState([]);
@@ -37,28 +58,28 @@ const SimulationInfo = () => {
   // spending modal 상태
   const [showSpendingModal, setShowSpendingModal] = useState(false);
   const [modalSpendingSelect, setModalSpendingSelect] = useState(
-    eventSeries.length ? eventSeries[0] : ""
+    discreteEvents.length ? discreteEvents[0] : ""
   );
   const [modalSpendingList, setModalSpendingList] = useState([]);
 
   // withdrawal modal 상태
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [modalWithdrawalSelect, setModalWithdrawalSelect] = useState(
-    investments.length ? investments[0] : ""
+    allInvestments.length ? allInvestments[0] : ""
   );
   const [modalWithdrawalList, setModalWithdrawalList] = useState([]);
 
   // RMD modal 상태
   const [showRMDModal, setShowRMDModal] = useState(false);
   const [modalRMDSelect, setModalRMDSelect] = useState(
-    investmentsType.length ? investmentsType[0] : ""
+    preTaxInvestments.length ? preTaxInvestments[0] : ""
   );
   const [modalRMDList, setModalRMDList] = useState([]);
 
   // Roth Conversion Strategy modal 상태
   const [showRothModal, setShowRothModal] = useState(false);
   const [modalRothSelect, setModalRothSelect] = useState(
-    investments.length ? investments[0] : ""
+    preTaxInvestments.length ? preTaxInvestments[0] : ""
   );
   const [modalRothList, setModalRothList] = useState([]);
 
@@ -271,7 +292,7 @@ const SimulationInfo = () => {
                       onChange={(e) => setModalSpendingSelect(e.target.value)}
                     >
                       <option value="">-- Select spend type --</option>
-                      {eventSeries.map((item, idx) => (
+                      {discreteEvents.map((item, idx) => (
                         <option key={idx} value={item}>
                           {item}
                         </option>
@@ -450,7 +471,7 @@ const SimulationInfo = () => {
             <span style={{ marginLeft: "20px" }}>To</span>
             <input
               type="number"
-              placeholder="e.g. 2050"
+              placeholder="e.g. 2060"
               value={rothEnd}
               onChange={(e) => setRothEnd(e.target.value)}
             />
