@@ -9,7 +9,7 @@ const SimulationInfo = () => {
   const data = JSON.parse(rawData);
 
   const [inflationRate, setInflationRate] = useState(
-    () => data.inflationAssumption ?? null
+    () => data.inflationAssumption.value * 100 ?? null
   );
   const [contributionLimit, setContributionLimit] = useState(
     () => data.afterTaxContributionLimit ?? null
@@ -180,7 +180,7 @@ const SimulationInfo = () => {
   const handleStartSimulation = (e) => {
     e.preventDefault();
     const simulationInfo = {
-      inflationAssumption: {type: "fixed", value: inflationRate},
+      inflationAssumption: {type: "fixed", value: inflationRate/100},
       afterTaxContributionLimit: contributionLimit,
       spendingStrategy: spendingStrategy,
       expenseWithdrawalStrategy: withdrawalStrategy,
