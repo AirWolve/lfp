@@ -98,7 +98,7 @@ const SimulationInfo = () => {
   // Modal 핸들러
   const openSpendingModal = () => {
     setModalSpendingList(spendingStrategy);
-    setModalSpendingSelect(spendingStrategy[0] || eventSeries[0] || "");
+    setModalSpendingSelect(spendingStrategy[0] || discreteEvents[0] || "");
     setShowSpendingModal(true);
   };
   const closeSpendingModal = () => setShowSpendingModal(false);
