@@ -12,43 +12,20 @@ const SimulationInfo = () => {
   const [rothEnd, setRothEnd] = useState(null);
   const [financialGoals, setFinancialGoals] = useState(null);
   const [livingState, setLivingState] = useState("");
-  const [allInvestments, setAllInvestments] = useState([]);
-  const [preTaxInvestments, setPreTaxInvestments] = useState([]);
-  const [discreteEvents, setDiscreteEvents] = useState([]);
 
   const rawData = localStorage.getItem('combinedUserData');
+  const data = JSON.parse(rawData);
 
-  useEffect(() => {
-    if (!rawData) return;
+  const preTaxInvestments = data.investments
+    .filter(inv => inv.taxStatus === 'pre-tax')
+    .map(inv => inv.id);
 
-    const data = JSON.parse(rawData);
-    const ids = data.investments
-      .filter(inv => inv.taxStatus === 'pre-tax')
-      .map(inv => inv.id);
+  const discreteEvents = data.eventSeries
+    .filter(event => event.discretionary === true)
+    .map(event => event.name);
 
-    setPreTaxInvestments(ids);
-  }, []);
-
-  useEffect(() => {
-    if (!rawData) return;
-
-    const data = JSON.parse(rawData);
-    const names = data.eventSeries
-      .filter(event => event.discretionary === true)
-      .map(event => event.name);
-
-    setDiscreteEvents(names);
-  }, []);
-
-  useEffect(() => {
-    if (!rawData) return;
-
-    const data = JSON.parse(rawData);
-    const ids = data.investments
-      .map(inv => inv.id);
-
-    setAllInvestments(ids);
-  }, []);
+  const allInvestments = data.investments
+    .map(inv => inv.id);
 
   const [spendingStrategy, setSpendingStrategy] = useState([]);
   const [withdrawalStrategy, setWithdrawalStrategy] = useState([]);
