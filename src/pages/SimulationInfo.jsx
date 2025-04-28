@@ -142,8 +142,8 @@ const SimulationInfo = () => {
   };
 
   const openRothModal = () => {
-    setModalRothList(RMDStrategy);
-    setModalRothSelect(RMDStrategy[0] || investments[0] || "");
+    setModalRothList(rothStrategy);
+    setModalRothSelect(rothStrategy[0] || investments[0] || "");
     setShowRothModal(true);
   };
   const closeRothModal = () => setShowRothModal(false);
