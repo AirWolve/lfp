@@ -39,7 +39,7 @@ const EventSeries = () => {
     };
 
     // Saved integrated data into new key 'combinedUserData'
-    localStorage.setItem("combinedUserData", JSON.stringify(combinedData));
+    localStorage.setItem("BasicSettings", JSON.stringify(combinedData));
     
     // Debug line
     navigate(`${constPath.overview}`);
