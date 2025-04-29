@@ -5,7 +5,7 @@ import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
-  const rawData = localStorage.getItem('combinedUserData');
+  const rawData = localStorage.getItem('ScenarioData');
   const data = JSON.parse(rawData);
 
   const [inflationRate, setInflationRate] = useState(
@@ -193,14 +193,14 @@ const SimulationInfo = () => {
       residenceState: livingState,
     };
 
-    const prevCombinedData = JSON.parse(localStorage.getItem('combinedUserData'));
+    const basicSettingData = JSON.parse(localStorage.getItem('BasicSettings'));
 
     const combinedData = {
-      ...prevCombinedData,
+      ...basicSettingData,
       ...simulationInfo
     }
 
-    localStorage.setItem('combinedUserData', JSON.stringify(combinedData));
+    localStorage.setItem('ScenarioData', JSON.stringify(combinedData));
 
     console.log("Sending data to server:", combinedData);
     try {
