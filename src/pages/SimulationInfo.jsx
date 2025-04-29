@@ -5,7 +5,7 @@ import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
-  const rawData = localStroage.getItem("BasicSettings");
+  const rawData = localStorage.getItem("BasicSettings");
   const data = JSON.parse(rawData);
   // Set Default Values
   const defaultScenarioData = {
