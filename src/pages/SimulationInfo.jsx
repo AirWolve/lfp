@@ -233,13 +233,13 @@ const SimulationInfo = () => {
     console.log("Sending data to server:", combinedData);
     try {
       // Send scenario data to server
-      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/sendJson`, {
+      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/run-simulation`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(combinedData),
+        body: JSON.stringify({ yamlText: combinedData }),
       });
 
       console.log("Server response status:", response.status);
@@ -259,7 +259,7 @@ const SimulationInfo = () => {
       console.log("Parsed response:", result);
 
       if (!response.ok) {
-        throw new Error(`Failed to send scenario: ${result.error || responseText}`);
+        throw new Error(`Failed to run simulation: ${result.error || responseText}`);
       }
       navigate(`${constPath.overview}`);
     } catch (error) {
