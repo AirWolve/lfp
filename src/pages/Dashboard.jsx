@@ -40,9 +40,11 @@ const Dashboard = () => {
           {user?.name}
         </h2>
         <div className="button-grid">
-          <button className="plan-button">
-            <a href={`${constPath.basicSetting}`}>Create New Plan</a>
-          </button>
+          
+            <a href={`${constPath.basicSetting}`}>
+              <button className="plan-button">Create New Plan</button>
+            </a>
+          
           <button className="plan-button">Import Plan</button>
           <button className="plan-button">Export Plan</button>
           <button className="plan-button">Existing Plans</button>

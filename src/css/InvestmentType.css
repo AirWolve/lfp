@@ -123,3 +123,9 @@
     align-items: center;
     float: right;
   }
+
+  .investmentPart input[type=number]::-webkit-outer-spin-button,
+  .investmentPart input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }

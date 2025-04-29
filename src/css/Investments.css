@@ -99,3 +99,9 @@
     display: flex;
     gap: 350px
   }
+
+.investment-wrapper input[type=number]::-webkit-outer-spin-button,
+.investment-wrapper input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}

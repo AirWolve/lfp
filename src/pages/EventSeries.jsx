@@ -72,19 +72,19 @@ const EventSeries = () => {
     name: "",
     start: {
       type: "fixed",
-      value: 0,
+      value: null,
       eventSeries: "",
-      lower: 0,
-      upper: 0,
+      lower: null,
+      upper: null,
     },
-    duration: { type: "fixed", value: 0 },
+    duration: { type: "fixed", value: null },
     type: "",
     initialAmount: null,
     changeAmtOrPct: "",
     changeDistribution: {
       type: "",
-      lower: 0,
-      upper: 0,
+      lower: null,
+      upper: null,
       mean: 0.0,
       stdev: 0.0,
     },
@@ -186,8 +186,8 @@ const EventSeries = () => {
 
         {/* modal popup */}
         {showModal && (
-          <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-overlay" onMouseDown={closeModal}>
+            <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
               <h4>Add Event Series</h4>
 
               {/* 1) Event Name */}
