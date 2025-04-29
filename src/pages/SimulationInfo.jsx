@@ -23,7 +23,7 @@ const SimulationInfo = () => {
   };
 
   // Use default values when retrieving data from localStorage
-  const [scenarioData, setScenarioData] = useState(() => {
+  const [scenarioData] = useState(() => {
     const savedData = localStorage.getItem("scenarioData");
     if (savedData) {
       try {
