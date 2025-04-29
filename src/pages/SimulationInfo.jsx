@@ -5,29 +5,57 @@ import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
-  const rawData = localStorage.getItem('ScenarioData');
+  const rawData = localStorage.getItem("BasicSettings");
   const data = JSON.parse(rawData);
+  // Set Default Values
+  const defaultScenarioData = {
+    inflationAssumption: {type: "fixed", value: null},
+    afterTaxContributionLimit: null,
+    spendingStrategy: [],
+    expenseWithdrawalStrategy: [],
+    RMDStrategy: [],
+    RothConversionOpt: false,
+    RothConversionStart: null,
+    RothConversionEnd: null,
+    RothConversionStrategy: [],
+    financialGoal: null,
+    residenceState: ""
+  };
+
+  // Use default values when retrieving data from localStorage
+  const [scenarioData] = useState(() => {
+    const savedData = localStorage.getItem("ScenarioData");
+    if (savedData) {
+      try {
+        return JSON.parse(savedData);
+      } catch (e) {
+        console.error("Error parsing scenarioData:", e);
+        return defaultScenarioData;
+      }
+    }
+    return defaultScenarioData;
+  });
 
   const [inflationRate, setInflationRate] = useState(
-    () => data.inflationAssumption ? data.inflationAssumption.value * 100 : null
+    () => scenarioData.inflationAssumption.value ? scenarioData.inflationAssumption.value * 100 : null
   );
   const [contributionLimit, setContributionLimit] = useState(
-    () => data.afterTaxContributionLimit ?? null
+    () => scenarioData.afterTaxContributionLimit ?? null
   );
   const [rothOpt, setRothOpt] = useState(
-    () => data.RothConversionOpt ?? false
+    () => scenarioData.RothConversionOpt ?? false
   );
   const [rothStart, setRothStart] = useState(
-    () => data.RothConversionStart ?? null
+    () => scenarioData.RothConversionStart ?? null
   );
   const [rothEnd, setRothEnd] = useState(
-    () => data.RothConversionEnd ?? null
+    () => scenarioData.RothConversionEnd ?? null
   );
   const [financialGoals, setFinancialGoals] = useState(
-    () => data.financialGoal ?? null
+    () => scenarioData.financialGoal ?? null
   );
   const [livingState, setLivingState] = useState(
-    () => data.residenceState ?? ""
+    () => scenarioData.residenceState ?? ""
   );
 
   const preTaxInvestments = data.investments
@@ -42,16 +70,16 @@ const SimulationInfo = () => {
     .map(inv => inv.id);
 
   const [spendingStrategy, setSpendingStrategy] = useState(
-    () => data.spendingStrategy ?? []
+    () => scenarioData.spendingStrategy ?? []
   );
   const [withdrawalStrategy, setWithdrawalStrategy] = useState(
-    () => data.expenseWithdrawalStrategy ?? []
+    () => scenarioData.expenseWithdrawalStrategy ?? []
   );
   const [RMDStrategy, setRMDStrategy] = useState(
-    () => data.RMDStrategy ?? []
+    () => scenarioData.RMDStrategy ?? []
   );
   const [rothStrategy, setRothStrategy] = useState(
-    () => data.RothConversionStrategy ?? []
+    () => scenarioData.RothConversionStrategy ?? []
   );
 
   // spending modal 상태
