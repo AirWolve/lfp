@@ -21,7 +21,7 @@ const Investments = () => {
   }
 
   const handleDelete = (index) => {
-    const updated = investmentTypes.filter((_, i) => i !== index);
+    const updated = investments.filter((_, i) => i !== index);
     setInvestments(updated);
     localStorage.setItem("Investments", JSON.stringify(updated));
   };
@@ -53,8 +53,7 @@ const Investments = () => {
 
     localStorage.setItem("Investments", JSON.stringify(updatedList));
 
-    setInvestments([...investments, newInvestment]);
-    setNewInvestment({ investmentsForm });
+    setNewInvestment({ ...investmentsForm });
     closeModal();
   };
 
