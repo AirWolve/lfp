@@ -16,8 +16,9 @@ const Dashboard = () => {
         withCredentials: true,
       })
       .then((response) => {
-        let userData = JSON.stringify(response.data);
-        sessionStorage.setItem("userData", [userData.firstName, userData.picture]);
+        const userData = response.data
+        sessionStorage.setItem("userName", userData.given_name);
+        sessionStorage.setItem("userImg", userData.picture);
         setUser(response.data);
       })
       .catch((error) => {
