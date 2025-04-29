@@ -250,99 +250,50 @@ app.post("/api/sendJson", async (req, res) => {
 });
 
 // Run Python simulation
-app.get("/api/run-simulation", async (req, res) => {
-  const { email, scenarioName } = req.query;
-  console.log("Bypass-API");
-  // if (!email || !scenarioName) {
-  //   return res.status(400).json({ error: "Email and scenario name are required" });
-  // }
+app.post("/api/run-simulation", async (req, res) => {
+  try {
+    const { yamlText } = req.body;
+    if (!yamlText) {
+      return res.status(400).json({ error: "YAML text is required" });
+    }
 
-  // try {
-  //   // Check the path of Python script to call
-  //   const pythonScriptPath = path.join(__dirname, 'python', 'demo_main.py');
-  //   // Comment Debug log line
-  //   // console.log('Python script path:', pythonScriptPath);
+    // Python 스크립트 경로
+    const pythonScriptPath = path.join(__dirname, 'python', 'demo_main.py');
+    if (!fs.existsSync(pythonScriptPath)) {
+      return res.status(500).json({ error: `Python script not found at: ${pythonScriptPath}` });
+    }
 
-  //   if (!fs.existsSync(pythonScriptPath)) {
-  //     throw new Error(`Python script not found at: ${pythonScriptPath}`);
-  //   }
+    // Python 프로세스 실행 (stdin으로 yamlText 전달)
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      cwd: path.join(__dirname, 'python')
+    });
 
-  //   // Check the path of Scenario File
-  //   const scenarioPath = path.join(__dirname, 'python', 'scenario', email, `${email}-${scenarioName}.yaml`);
-  //   // Comment Debug log line
-  //   // console.log('Looking for scenario file at:', scenarioPath);
+    let pythonOutput = '';
+    let pythonError = '';
 
-  //   if (!fs.existsSync(scenarioPath)) {
-  //     throw new Error(`Scenario file not found at: ${scenarioPath}`);
-  //   }
+    pythonProcess.stdout.on('data', (data) => {
+      pythonOutput += data.toString();
+    });
 
-  //   console.log('Starting Python simulation...');
+    pythonProcess.stderr.on('data', (data) => {
+      pythonError += data.toString();
+    });
 
-  //   // Execute Python Process with child process
-  //   const pythonProcess = spawn('python', [pythonScriptPath, email, scenarioName], {
-  //     cwd: path.join(__dirname, 'python')
-  //   });
+    pythonProcess.on('close', (code) => {
+      if (code === 0) {
+        res.json({ result: pythonOutput });
+      } else {
+        res.status(500).json({ error: pythonError || 'Python process failed' });
+      }
+    });
 
-  //   let pythonOutput = '';
-  //   let pythonError = '';
-
-  //   // Collect the output of python execution
-  //   pythonProcess.stdout.on('data', (data) => {
-  //     const output = data.toString();
-  //     // Comment Debug log line
-  //     // console.log('Python stdout:', output);
-  //     pythonOutput += output;
-  //   });
-
-  //   pythonProcess.stderr.on('data', (data) => {
-  //     const error = data.toString();
-  //     // Comment Debug log line
-  //     // console.error('Python stderr:', error);
-  //     pythonError += error;
-  //   });
-
-  //   // Wait until python script finished to execute
-  //   await new Promise((resolve, reject) => {
-  //     pythonProcess.on('close', (code) => {
-  //       // Comment Debug log line
-  //       // console.log('Python process exited with code:', code);
-  //       if (code === 0) {
-  //         resolve();
-  //       } else {
-  //         reject(new Error(`Python process exited with code ${code}\nError: ${pythonError}`));
-  //       }
-  //     });
-
-  //     pythonProcess.on('error', (err) => {
-  //       // Comment Debug log line
-  //       // console.error('Failed to start Python process:', err);
-  //       reject(new Error(`Failed to start Python process: ${err.message}`));
-  //     });
-  //   });
-
-  //   // If python occur error, it will print the log on api server
-  //   if (pythonError) {
-  //     // Comment Debug log line
-  //     // console.error('Python script error:', pythonError);
-  //     return res.status(500).json({
-  //       error: 'Python script execution failed',
-  //       details: pythonError,
-  //       output: pythonOutput
-  //     });
-  //   }
-
-  //   console.log('Simulation completed successfully');
-  //   res.json({
-  //     message: "Simulation completed successfully",
-  //     output: pythonOutput
-  //   });
-  // } catch (error) {
-  //   console.error("Error running simulation:", error);
-  //   res.status(500).json({
-  //     error: "Failed to run simulation",
-  //     details: error.message
-  //   });
-  // }
+    // stdin으로 YAML 텍스트 전달
+    pythonProcess.stdin.write(yamlText);
+    pythonProcess.stdin.end();
+  } catch (error) {
+    console.error("Error running simulation:", error);
+    res.status(500).json({ error: "Failed to run simulation", details: error.message });
+  }
 });
 
 // Open API server with port 5000 and trying to connect database
