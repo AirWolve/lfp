@@ -113,3 +113,9 @@
     display: flex;
     gap: 350px;
   }
+
+  .eventSeries-container input[type=number]::-webkit-outer-spin-button,
+  .eventSeries-container input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+  }

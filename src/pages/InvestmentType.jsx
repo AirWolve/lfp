@@ -117,9 +117,9 @@ const InvestmentType = () => {
         
         {/* Prompt to ChatGPT: "How can I make the modal popup in this page?" */}
         {showModal && (
-          <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-overlay" onMouseDown={closeModal}>
 
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
               <h4>Add New Investment Type</h4>
               <label>Investment Type Name: </label>
 

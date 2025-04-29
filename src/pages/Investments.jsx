@@ -104,8 +104,8 @@ const Investments = () => {
         ))}
 
         {showModal && (
-          <div className="modal-overlay" onClick={closeModal}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-overlay" onMouseDown={closeModal}>
+            <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
               <h4>Add Investment</h4>
 
               <select
