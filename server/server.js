@@ -54,7 +54,7 @@ app.get("/auth/oauth/google", (req, res) => {
   homeUrl =
     `${baseUrl}` == `${process.env.LFP_HOME_DIR}/`
       ? `${baseUrl}Dashboard`
-      : `${baseUrl}/AW-test/#/Dashboard`;
+      : `${baseUrl}/hotfix-AW75-1/#/Dashboard`;
   res.redirect(authUrl);
 });
 
