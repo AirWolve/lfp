@@ -17,8 +17,8 @@ const Dashboard = () => {
       })
       .then((response) => {
         const userData = response.data
-        console.log(userData);
-        sessionStorage.setItem("userData", [userData.given_name, userData.picture]);
+        sessionStorage.setItem("userName", userData.given_name);
+        sessionStorage.setItem("userImg", userData.picture);
         setUser(response.data);
       })
       .catch((error) => {

@@ -15,7 +15,7 @@ const MenuLayout = ({ children }) => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   };
 
-  const userImg = sessionStorage.getItem("userData")[1];
+  const userImg = sessionStorage.getItem("userImg");
 
   return (
     <div className="dashboard-container">
