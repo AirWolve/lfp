@@ -3,8 +3,21 @@ import Scenario as sc
 import numpy as np
 
 class Simulation:
-    def __init__(self, path:str):
-        self.data = sc.importYAML(path)
+    # def __init__(self, path:str):
+    #     self.data = sc.importYAML(path)
+    #     self.tax = ca.TaxCalculator()
+    #     self.rmd = ca.RMDCalculator()
+    #     self.inf = ca.Inflation(self.data)
+    #     self.initialInvestmentValue = {inv.id:inv.value for inv in self.data.investments}
+    #     self.purchaseDict = {inv.id: 0 for inv in self.data.investments}
+    #     for ev in self.data.eventSeries:
+    #         if ev.type == "income":
+    #             self.year = ev.start["value"]
+    #             self.duration = self.year + ev.duration["value"]
+    #             break
+    
+    def __init__(self, dataStr:str):
+        self.data = sc.importYAMLtext(dataStr)
         self.tax = ca.TaxCalculator()
         self.rmd = ca.RMDCalculator()
         self.inf = ca.Inflation(self.data)
@@ -15,7 +28,7 @@ class Simulation:
                 self.year = ev.start["value"]
                 self.duration = self.year + ev.duration["value"]
                 break
-    
+
     # start 1
     def texInflation(self, year:int):
         """
