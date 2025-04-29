@@ -1,6 +1,43 @@
 import React from "react";
 
+export const initialIncomeEvent = {
+  name: "",
+  type: "income",
+  start: {
+    type: "fixed",
+    value: null,
+  },
+  duration: {
+    type: "fixed",
+    value: null,
+  },
+  initialAmount: null,
+  changeAmtOrPct: "",
+  changeDistribution: {
+    type: "",
+  },
+  inflationAdjusted: false,
+  userFraction: null,
+  socialSecurity: false,
+};
+
 const IncomeEventForm = ({ newEvent, setNewEvent }) => {
+  const updateChangeDistribution = (type, updates = {}) => {
+    // 새로운 distribution 객체를 생성할 때 type만 포함하고
+    // 추가 업데이트가 있는 경우에만 해당 필드를 추가
+    const newDistribution = { type };
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== null) {
+        newDistribution[key] = value;
+      }
+    });
+
+    setNewEvent({
+      ...newEvent,
+      changeDistribution: newDistribution,
+    });
+  };
+
   return (
     <>
       <label>start Year</label>
@@ -53,77 +90,103 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           setNewEvent((prev) => ({
             ...prev,
             changeAmtOrPct: selectedValue,
+            changeDistribution: { type: "" },
           }));
         }}
       >
-        <option value="">-- Select Notation Type --</option>
-        <option value="amount">Notation for Amount</option>
-        <option value="percent">Notation for Percent</option>
+        <option value="">-- Select Change Type --</option>
+        <option value="amount">Amount</option>
+        <option value="percent">Percent</option>
       </select>
-      {/* If user select Amount */}
-      <input
-        style={{ width: "150px" }}
-        type="number"
-        placeholder="e.g. 1234"
-        value={
-          newEvent.changeAmtOrPct === "amount"
-            ? newEvent.changeDistribution.lower || null
-            : newEvent.changeDistribution.mean || null
-        }
+
+      <label>Distribution Type</label>
+      <select
+        value={newEvent.changeDistribution.type}
         onChange={(e) => {
-          const value = parseFloat(e.target.value, 10);
-          if (newEvent.changeAmtOrPct === "amount") {
-            setNewEvent({
-              ...newEvent,
-              changeDistribution: {
-                ...newEvent.changeDistribution,
-                lower: value,
-                type: "uniform",
-              },
-            });
-          } else {
-            setNewEvent({
-              ...newEvent,
-              changeDistribution: {
-                ...newEvent.changeDistribution,
-                mean: value,
-                type: "normal",
-              },
-            });
-          }
+          const selectedType = e.target.value;
+          updateChangeDistribution(selectedType);
         }}
-      />
-      ~
-      <input
-        style={{ width: "150px" }}
-        type="number"
-        placeholder="e.g. 5678"
-        value={
-          newEvent.changeAmtOrPct === "amount"
-            ? newEvent.changeDistribution.upper || ""
-            : newEvent.changeDistribution.stdev || ""
-        }
-        onChange={(e) => {
-          const value = parseFloat(e.target.value, 10);
-          if (newEvent.changeAmtOrPct === "amount") {
-            setNewEvent({
-              ...newEvent,
-              changeDistribution: {
-                ...newEvent.changeDistribution,
-                upper: value,
-              },
-            });
-          } else {
-            setNewEvent({
-              ...newEvent,
-              changeDistribution: {
-                ...newEvent.changeDistribution,
-                stdev: value,
-              },
-            });
-          }
-        }}
-      />
+      >
+        <option value="">-- Select Distribution Type --</option>
+        <option value="fixed">Fixed Value</option>
+        <option value="normal">Normal Distribution</option>
+        <option value="uniform">Uniform Distribution</option>
+      </select>
+
+      {newEvent.changeDistribution.type === "fixed" && (
+        <div>
+          <label>Fixed {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
+            value={newEvent.changeDistribution.value || ""}
+            onChange={(e) =>
+              updateChangeDistribution("fixed", {
+                value: parseFloat(e.target.value) || null,
+              })
+            }
+          />
+        </div>
+      )}
+
+      {newEvent.changeDistribution.type === "normal" && (
+        <div>
+          <label>Mean {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
+            value={newEvent.changeDistribution.mean || ""}
+            onChange={(e) =>
+              updateChangeDistribution("normal", {
+                mean: parseFloat(e.target.value) || null,
+                stdev: newEvent.changeDistribution.stdev,
+              })
+            }
+          />
+          <label>Standard Deviation {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 0.5" : "e.g. 200"}
+            value={newEvent.changeDistribution.stdev || ""}
+            onChange={(e) =>
+              updateChangeDistribution("normal", {
+                mean: newEvent.changeDistribution.mean,
+                stdev: parseFloat(e.target.value) || null,
+              })
+            }
+          />
+        </div>
+      )}
+
+      {newEvent.changeDistribution.type === "uniform" && (
+        <div>
+          <label>Lower Bound {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 1.5" : "e.g. 500"}
+            value={newEvent.changeDistribution.lower || ""}
+            onChange={(e) =>
+              updateChangeDistribution("uniform", {
+                lower: parseFloat(e.target.value) || null,
+                upper: newEvent.changeDistribution.upper,
+              })
+            }
+          />
+          <label>Upper Bound {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 3.5" : "e.g. 2000"}
+            value={newEvent.changeDistribution.upper || ""}
+            onChange={(e) =>
+              updateChangeDistribution("uniform", {
+                lower: newEvent.changeDistribution.lower,
+                upper: parseFloat(e.target.value) || null,
+              })
+            }
+          />
+        </div>
+      )}
+
       <label>Is it inflation adjusted?</label>
       <input
         type="checkbox"
