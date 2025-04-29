@@ -5,29 +5,57 @@ import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 
 const SimulationInfo = () => {
-  const rawData = localStorage.getItem('combinedUserData');
+  const rawData = localStorage.getItem("BasicSettings");
   const data = JSON.parse(rawData);
+  // Set Default Values
+  const defaultScenarioData = {
+    inflationAssumption: {type: "fixed", value: null},
+    afterTaxContributionLimit: null,
+    spendingStrategy: [],
+    expenseWithdrawalStrategy: [],
+    RMDStrategy: [],
+    RothConversionOpt: false,
+    RothConversionStart: null,
+    RothConversionEnd: null,
+    RothConversionStrategy: [],
+    financialGoal: null,
+    residenceState: ""
+  };
+
+  // Use default values when retrieving data from localStorage
+  const [scenarioData] = useState(() => {
+    const savedData = localStorage.getItem("ScenarioData");
+    if (savedData) {
+      try {
+        return JSON.parse(savedData);
+      } catch (e) {
+        console.error("Error parsing scenarioData:", e);
+        return defaultScenarioData;
+      }
+    }
+    return defaultScenarioData;
+  });
 
   const [inflationRate, setInflationRate] = useState(
-    () => data.inflationAssumption ? data.inflationAssumption.value * 100 : null
+    () => scenarioData.inflationAssumption.value ? scenarioData.inflationAssumption.value * 100 : null
   );
   const [contributionLimit, setContributionLimit] = useState(
-    () => data.afterTaxContributionLimit ?? null
+    () => scenarioData.afterTaxContributionLimit ?? null
   );
   const [rothOpt, setRothOpt] = useState(
-    () => data.RothConversionOpt ?? false
+    () => scenarioData.RothConversionOpt ?? false
   );
   const [rothStart, setRothStart] = useState(
-    () => data.RothConversionStart ?? null
+    () => scenarioData.RothConversionStart ?? null
   );
   const [rothEnd, setRothEnd] = useState(
-    () => data.RothConversionEnd ?? null
+    () => scenarioData.RothConversionEnd ?? null
   );
   const [financialGoals, setFinancialGoals] = useState(
-    () => data.financialGoal ?? null
+    () => scenarioData.financialGoal ?? null
   );
   const [livingState, setLivingState] = useState(
-    () => data.residenceState ?? ""
+    () => scenarioData.residenceState ?? ""
   );
 
   const preTaxInvestments = data.investments
@@ -42,16 +70,16 @@ const SimulationInfo = () => {
     .map(inv => inv.id);
 
   const [spendingStrategy, setSpendingStrategy] = useState(
-    () => data.spendingStrategy ?? []
+    () => scenarioData.spendingStrategy ?? []
   );
   const [withdrawalStrategy, setWithdrawalStrategy] = useState(
-    () => data.expenseWithdrawalStrategy ?? []
+    () => scenarioData.expenseWithdrawalStrategy ?? []
   );
   const [RMDStrategy, setRMDStrategy] = useState(
-    () => data.RMDStrategy ?? []
+    () => scenarioData.RMDStrategy ?? []
   );
   const [rothStrategy, setRothStrategy] = useState(
-    () => data.RothConversionStrategy ?? []
+    () => scenarioData.RothConversionStrategy ?? []
   );
 
   // spending modal 상태
@@ -177,7 +205,7 @@ const SimulationInfo = () => {
     navigate(`${constPath.overview}`);
   };
 
-  const handleStartSimulation = (e) => {
+  const handleStartSimulation = async (e) => {
     e.preventDefault();
     const simulationInfo = {
       inflationAssumption: {type: "fixed", value: inflationRate/100},
@@ -193,16 +221,51 @@ const SimulationInfo = () => {
       residenceState: livingState,
     };
 
-    const prevCombinedData = JSON.parse(localStorage.getItem('combinedUserData'));
+    const basicSettingData = JSON.parse(localStorage.getItem('BasicSettings'));
 
     const combinedData = {
-      ...prevCombinedData,
+      ...basicSettingData,
       ...simulationInfo
     }
 
-    localStorage.setItem('combinedUserData', JSON.stringify(combinedData));
+    localStorage.setItem('ScenarioData', JSON.stringify(combinedData));
 
-    navigate(`${constPath.overview}`);
+    console.log("Sending data to server:", combinedData);
+    try {
+      // Send scenario data to server
+      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/sendJson`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(combinedData),
+      });
+
+      console.log("Server response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", parseError);
+        throw new Error(`Server response is not valid JSON: ${responseText}`);
+      }
+
+      console.log("Parsed response:", result);
+
+      if (!response.ok) {
+        throw new Error(`Failed to send scenario: ${result.error || responseText}`);
+      }
+      navigate(`${constPath.overview}`);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(error.message || "An error occurred");
+    }
   };
 
   return (
