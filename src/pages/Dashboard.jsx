@@ -16,6 +16,8 @@ const Dashboard = () => {
         withCredentials: true,
       })
       .then((response) => {
+        let userData = JSON.stringify(response.data);
+        sessionStorage.setItem("userData", [userData.firstName, userData.picture]);
         setUser(response.data);
       })
       .catch((error) => {
@@ -29,12 +31,12 @@ const Dashboard = () => {
   }
 
   return (
-    <MenuLayout user={user}>
+    <MenuLayout>
       <div className="content">
         <h2>
           Good to see you again!
           <br />
-          {user.name}
+          {user?.name}
         </h2>
         <div className="button-grid">
           <button className="plan-button">

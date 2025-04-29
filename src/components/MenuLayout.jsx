@@ -3,7 +3,7 @@ import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";
 
-const MenuLayout = ({ children, user }) => {
+const MenuLayout = ({ children }) => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -14,6 +14,8 @@ const MenuLayout = ({ children, user }) => {
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
   };
+
+  const userImg = sessionStorage.getItem("userData")[1];
 
   return (
     <div className="dashboard-container">
@@ -40,7 +42,7 @@ const MenuLayout = ({ children, user }) => {
           </button>
           <div className="profile-section">
             <img
-              src={user?.picture || profileImg}
+              src={userImg || profileImg}
               alt="profile"
               className="profile-img"
               onClick={toggleProfileMenu}
