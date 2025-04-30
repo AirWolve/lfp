@@ -1,7 +1,7 @@
 // src/components/FileExport.jsx
 import React from "react";
 import "./FileImport.css"; // FileImportExport와 동일한 스타일을 쓸 수 있습니다
-import downloadIcon from '../assets/download.svg';
+import downloadIcon from '../assets/upload.svg';
 
 const FileExport = ({ exportData, fileName = "exported_data.json" }) => {
   const handleExport = () => {
