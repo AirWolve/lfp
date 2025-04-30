@@ -128,36 +128,36 @@ const EventSeries = () => {
       if (!start || !start.type) return 'N/A';
       switch (start.type) {
         case 'fixed':
-          return start.value ? `Y${start.value}` : 'N/A';
+          return start.value ? `Start: ${start.value} Years` : 'Start: N/A';
         case 'normal':
           if (start.mean && start.stdev)
-            return `N(${start.mean}, ${start.stdev})`;
+            return `Start: N(${start.mean}, ${start.stdev})`;
           if (start.mean)
-            return `N(${start.mean}, -)`;
-          return 'N/A';
+            return `Start: N(${start.mean}, -)`;
+          return 'Start: N/A';
         case 'uniform':
           if (start.lower && start.upper)
-            return `U(${start.lower}, ${start.upper})`;
+            return `Start: U(${start.lower}, ${start.upper})`;
           if (start.lower)
-            return `U(${start.lower}, -)`;
+            return `Start: U(${start.lower}, -)`;
           if (start.upper)
-            return `U(-, ${start.upper})`;
-          return 'N/A';
+            return `Start: U(-, ${start.upper})`;
+          return 'Start: N/A';
         case 'startWith':
           return start.eventSeries ? `Start With: ${start.eventSeries}` : 'Start With: N/A';
         case 'startAfter':
           return start.eventSeries ? `Start After: ${start.eventSeries}` : 'Start After: N/A';
         default:
-          return 'N/A';
+          return 'Start: N/A';
       }
     };
     const formatDuration = (duration) => {
-      return duration?.value ? `${duration.value}Y` : 'N/A';
+      return duration?.value ? `${duration.value} Years` : 'N/A';
     };
 
     const mainTags = [];
     if (event.initialAmount) mainTags.push(`Amount: ${formatAmount(event.initialAmount)}`);
-    if (event.start) mainTags.push(`Start: ${formatYear(event.start)}`);
+    if (event.start) mainTags.push(`${formatYear(event.start)}`);
     if (event.duration) mainTags.push(`Duration: ${formatDuration(event.duration)}`);
 
     const optionTags = [];
