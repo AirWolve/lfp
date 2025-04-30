@@ -119,7 +119,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           <input
             type="number"
             placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
-            value={newEvent.changeDistribution.value || ""}
+            value={newEvent.changeDistribution.value ?? ""}
             onChange={(e) =>
               updateChangeDistribution("fixed", {
                 value: parseFloat(e.target.value) || null,
@@ -135,10 +135,10 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           <input
             type="number"
             placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
-            value={newEvent.changeDistribution.mean || ""}
+            value={newEvent.changeDistribution.mean ?? ""}
             onChange={(e) =>
               updateChangeDistribution("normal", {
-                mean: parseFloat(e.target.value) || null,
+                mean: e.target.value === "" ? null : parseFloat(e.target.value),
                 stdev: newEvent.changeDistribution.stdev,
               })
             }
@@ -148,11 +148,11 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           <input
             type="number"
             placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 0.5" : "e.g. 200"}
-            value={newEvent.changeDistribution.stdev || ""}
+            value={newEvent.changeDistribution.stdev ?? ""}
             onChange={(e) =>
               updateChangeDistribution("normal", {
                 mean: newEvent.changeDistribution.mean,
-                stdev: parseFloat(e.target.value) || null,
+                stdev: e.target.value === "" ? null : parseFloat(e.target.value),
               })
             }
             style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
@@ -166,7 +166,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           <input
             type="number"
             placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 1.5" : "e.g. 500"}
-            value={newEvent.changeDistribution.lower || ""}
+            value={newEvent.changeDistribution.lower ?? ""}
             onChange={(e) =>
               updateChangeDistribution("uniform", {
                 lower: parseFloat(e.target.value) || null,
@@ -178,7 +178,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           <input
             type="number"
             placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 3.5" : "e.g. 2000"}
-            value={newEvent.changeDistribution.upper || ""}
+            value={newEvent.changeDistribution.upper ?? ""}
             onChange={(e) =>
               updateChangeDistribution("uniform", {
                 lower: newEvent.changeDistribution.lower,
