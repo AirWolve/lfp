@@ -4,10 +4,14 @@ import "../css/Dashboard.css";
 import { constPath } from "../config.js";
 import { useNavigate } from "react-router";
 import MenuLayout from "../components/MenuLayout.jsx";
+import FileImport from "../components/FileImport.jsx";
+import FileExport from "../components/FileExport.jsx";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("import");
 
   useEffect(() => {
     // withCredentials: Set to true to ensure HTTP-Only cookies are sent along.
@@ -16,7 +20,7 @@ const Dashboard = () => {
         withCredentials: true,
       })
       .then((response) => {
-        const userData = response.data
+        const userData = response.data;
         sessionStorage.setItem("userName", userData.given_name);
         sessionStorage.setItem("userImg", userData.picture);
         setUser(response.data);
@@ -27,9 +31,9 @@ const Dashboard = () => {
       });
   }, [navigate]);
 
-  if (!user) {
-    return <div>Loading...</div>;
-  }
+  // if (!user) {
+  //   return <div>Loading...</div>;
+  // }
 
   return (
     <MenuLayout>
@@ -40,12 +44,67 @@ const Dashboard = () => {
           {user?.name}
         </h2>
         <div className="button-grid">
-          <button className="plan-button">
-            <a href={`${constPath.basicSetting}`}>Create New Plan</a>
+          <a href={`${constPath.basicSetting}`}>
+            <button className="plan-button">Create New Plan</button>
+          </a>
+          <button
+            className="plan-button"
+            onClick={() => {
+              setActiveTab("import");
+              setShowModal(true);
+            }}
+          >
+            Import/Export Plan
           </button>
-          <button className="plan-button">Import Plan</button>
-          <button className="plan-button">Export Plan</button>
           <button className="plan-button">Existing Plans</button>
+          {showModal && (
+            <div
+              className="modalPopup"
+              onMouseDown={() => setShowModal(false)}
+            >
+              <div
+                className="modalContent"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <div className="tabHeader">
+                  <button
+                    className={activeTab === "import" ? "active" : ""}
+                    onClick={() => {
+                      setActiveTab("import");
+                    }}
+                  >
+                    Import
+                  </button>
+                  <button
+                    className={activeTab === "export" ? "active" : ""}
+                    onClick={() => {
+                      setActiveTab("export");
+                    }}
+                  >
+                    Export
+                  </button>
+                  <button
+                    className="closeButton"
+                    onClick={() => setShowModal(false)}
+                    aria-label="Close modal"
+                  >
+                    X
+                  </button>
+                </div>
+                <div className="tabContent">
+                  {activeTab === "import" ? (
+                    <FileImport />
+                  ) : (
+                    <FileExport exportData={{
+                      message: "Exported data from the app",
+                      timestamp: new Date().toISOString(),
+                      item: [1, 2, 3]
+                    }} fileName="my_plan.json" />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </MenuLayout>
