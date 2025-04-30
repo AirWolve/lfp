@@ -124,8 +124,32 @@ const EventSeries = () => {
     const formatAmount = (amount) => {
       return amount ? `$${Number(amount).toLocaleString()}` : 'N/A';
     };
-    const formatYear = (year) => {
-      return year?.value ? `Y${year.value}` : 'N/A';
+    const formatYear = (start) => {
+      if (!start || !start.type) return 'N/A';
+      switch (start.type) {
+        case 'fixed':
+          return start.value ? `Y${start.value}` : 'N/A';
+        case 'normal':
+          if (start.mean && start.stdev)
+            return `N(${start.mean}, ${start.stdev})`;
+          if (start.mean)
+            return `N(${start.mean}, -)`;
+          return 'N/A';
+        case 'uniform':
+          if (start.lower && start.upper)
+            return `U(${start.lower}, ${start.upper})`;
+          if (start.lower)
+            return `U(${start.lower}, -)`;
+          if (start.upper)
+            return `U(-, ${start.upper})`;
+          return 'N/A';
+        case 'startWith':
+          return start.eventSeries ? `Start With: ${start.eventSeries}` : 'Start With: N/A';
+        case 'startAfter':
+          return start.eventSeries ? `Start After: ${start.eventSeries}` : 'Start After: N/A';
+        default:
+          return 'N/A';
+      }
     };
     const formatDuration = (duration) => {
       return duration?.value ? `${duration.value}Y` : 'N/A';
