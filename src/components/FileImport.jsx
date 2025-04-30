@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import './FileImport.css';
 import deleteIcon from '../assets/delete.svg';
-import uploadIcon from '../assets/upload.svg';
+import { ReactComponent as UploadIcon } from '../assets/upload.svg';
 
 const FileImport = () => {
     const importRef = useRef();
@@ -19,6 +19,9 @@ const FileImport = () => {
 
     const removeFile = () => {
         setSelectedFile(null);
+        if (importRef.current) {
+            importRef.current.value = "";
+        }
     }
 
     return (
@@ -26,7 +29,7 @@ const FileImport = () => {
             <input type="file" ref={importRef} onChange={handleOnChange} style={{ display: "none" }} />
             <div className="upload-area" onClick={onChooseFile}>
                 <div className="upload-icon">
-                    <img alt="upload" src={uploadIcon} style={{ width: "32px", height: "32px" }} />
+                    <UploadIcon style={{ width: 32, height: 32, fill: "#7c3aed" }} />
                 </div>
                 <div className="upload-label">Upload File</div>
             </div>
