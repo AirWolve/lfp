@@ -7,13 +7,13 @@ const InvestmentTypeForm = ({
   handleConfirm,
   closeModal,
 }) => {
-  // returnDistribution 상태 업데이트 함수
+  // Update returnDistribution state by type
   const updateReturnDistribution = (type, updates = {}) => {
     const newDist = { type };
     Object.entries(updates).forEach(([k, v]) => { if (v !== null) newDist[k] = v; });
     setInvestmentType({ ...investmentType, returnDistribution: newDist });
   };
-  // incomeDistribution 상태 업데이트 함수
+  // Update incomeDistribution state by type
   const updateIncomeDistribution = (type, updates = {}) => {
     const newDist = { type };
     Object.entries(updates).forEach(([k, v]) => { if (v !== null) newDist[k] = v; });
@@ -28,6 +28,7 @@ const InvestmentTypeForm = ({
           <label>Investment Type Name</label>
           <input
             type="text"
+            placeholder="Enter investment type name"
             value={investmentType.name}
             onChange={e => setInvestmentType({ ...investmentType, name: e.target.value })}
             className={formStyles.formInput}
@@ -37,6 +38,7 @@ const InvestmentTypeForm = ({
           <label>Description</label>
           <input
             type="text"
+            placeholder="Enter description"
             value={investmentType.description}
             onChange={e => setInvestmentType({ ...investmentType, description: e.target.value })}
             className={formStyles.formInput}
@@ -72,12 +74,13 @@ const InvestmentTypeForm = ({
             </select>
           </div>
         </div>
-        {/* 분포 타입별 입력 필드 */}
+        {/* Distribution type specific fields */}
         {investmentType.returnDistribution.type === "fixed" && (
           <div className={formStyles.formGroup}>
             <label>Fixed Value</label>
             <input
               type="number"
+              placeholder="Enter fixed value"
               value={investmentType.returnDistribution.value ?? ""}
               onChange={e => updateReturnDistribution("fixed", { value: parseFloat(e.target.value) })}
               className={formStyles.formInput}
@@ -90,6 +93,7 @@ const InvestmentTypeForm = ({
               <label>Mean</label>
               <input
                 type="number"
+                placeholder="Enter mean value"
                 value={investmentType.returnDistribution.mean ?? ""}
                 onChange={e => updateReturnDistribution("normal", { mean: parseFloat(e.target.value), stdev: investmentType.returnDistribution.stdev })}
                 className={formStyles.formInput}
@@ -99,6 +103,7 @@ const InvestmentTypeForm = ({
               <label>Standard Deviation</label>
               <input
                 type="number"
+                placeholder="Enter standard deviation"
                 value={investmentType.returnDistribution.stdev ?? ""}
                 onChange={e => updateReturnDistribution("normal", { mean: investmentType.returnDistribution.mean, stdev: parseFloat(e.target.value) })}
                 className={formStyles.formInput}
@@ -112,6 +117,7 @@ const InvestmentTypeForm = ({
               <label>Lower Bound</label>
               <input
                 type="number"
+                placeholder="Enter lower bound"
                 value={investmentType.returnDistribution.lower ?? ""}
                 onChange={e => updateReturnDistribution("uniform", { lower: parseFloat(e.target.value), upper: investmentType.returnDistribution.upper })}
                 className={formStyles.formInput}
@@ -121,6 +127,7 @@ const InvestmentTypeForm = ({
               <label>Upper Bound</label>
               <input
                 type="number"
+                placeholder="Enter upper bound"
                 value={investmentType.returnDistribution.upper ?? ""}
                 onChange={e => updateReturnDistribution("uniform", { lower: investmentType.returnDistribution.lower, upper: parseFloat(e.target.value) })}
                 className={formStyles.formInput}
@@ -136,6 +143,7 @@ const InvestmentTypeForm = ({
           <label>Expense Ratio</label>
           <input
             type="number"
+            placeholder="Enter expense ratio"
             value={investmentType.expenseRatio ?? ""}
             onChange={e => setInvestmentType({ ...investmentType, expenseRatio: parseFloat(e.target.value) })}
             className={formStyles.formInput}
@@ -171,12 +179,13 @@ const InvestmentTypeForm = ({
             </select>
           </div>
         </div>
-        {/* 분포 타입별 입력 필드 */}
+        {/* Distribution type specific fields */}
         {investmentType.incomeDistribution.type === "fixed" && (
           <div className={formStyles.formGroup}>
             <label>Fixed Value</label>
             <input
               type="number"
+              placeholder="Enter fixed value"
               value={investmentType.incomeDistribution.value ?? ""}
               onChange={e => updateIncomeDistribution("fixed", { value: parseFloat(e.target.value) })}
               className={formStyles.formInput}
@@ -189,6 +198,7 @@ const InvestmentTypeForm = ({
               <label>Mean</label>
               <input
                 type="number"
+                placeholder="Enter mean value"
                 value={investmentType.incomeDistribution.mean ?? ""}
                 onChange={e => updateIncomeDistribution("normal", { mean: parseFloat(e.target.value), stdev: investmentType.incomeDistribution.stdev })}
                 className={formStyles.formInput}
@@ -198,6 +208,7 @@ const InvestmentTypeForm = ({
               <label>Standard Deviation</label>
               <input
                 type="number"
+                placeholder="Enter standard deviation"
                 value={investmentType.incomeDistribution.stdev ?? ""}
                 onChange={e => updateIncomeDistribution("normal", { mean: investmentType.incomeDistribution.mean, stdev: parseFloat(e.target.value) })}
                 className={formStyles.formInput}
@@ -211,6 +222,7 @@ const InvestmentTypeForm = ({
               <label>Lower Bound</label>
               <input
                 type="number"
+                placeholder="Enter lower bound"
                 value={investmentType.incomeDistribution.lower ?? ""}
                 onChange={e => updateIncomeDistribution("uniform", { lower: parseFloat(e.target.value), upper: investmentType.incomeDistribution.upper })}
                 className={formStyles.formInput}
@@ -220,6 +232,7 @@ const InvestmentTypeForm = ({
               <label>Upper Bound</label>
               <input
                 type="number"
+                placeholder="Enter upper bound"
                 value={investmentType.incomeDistribution.upper ?? ""}
                 onChange={e => updateIncomeDistribution("uniform", { lower: investmentType.incomeDistribution.lower, upper: parseFloat(e.target.value) })}
                 className={formStyles.formInput}
