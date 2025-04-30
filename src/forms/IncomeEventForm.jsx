@@ -1,5 +1,4 @@
 import React from "react";
-import "../css/FormStyles.css";
 
 export const initialIncomeEvent = {
   name: "",
@@ -23,19 +22,9 @@ export const initialIncomeEvent = {
 };
 
 const IncomeEventForm = ({ newEvent, setNewEvent }) => {
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setNewEvent(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
   const updateChangeDistribution = (type, updates = {}) => {
-    // When the type is fixed, the distribution is a fixed value  
-    // When the type is normal, the distribution is a normal distribution
-    // When the type is uniform, the distribution is a uniform distribution
-    // Add additional updates only if they exist
+    // 새로운 distribution 객체를 생성할 때 type만 포함하고
+    // 추가 업데이트가 있는 경우에만 해당 필드를 추가
     const newDistribution = { type };
     Object.entries(updates).forEach(([key, value]) => {
       if (value !== null) {
@@ -50,133 +39,195 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
   };
 
   return (
-    <div className="form-container">
-      {/* Basic Information Section */}
-      <div className="form-section">
-        <h3 className="section-title">Basic Information</h3>
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={newEvent.name}
-            onChange={handleInputChange}
-            className="form-input"
-            placeholder="Enter income event name"
-          />
-        </div>
+    <>
+      <label>start Year</label>
+      <input
+        type="number"
+        placeholder="e.g. 2025"
+        value={newEvent.start.value}
+        onChange={(e) =>
+          setNewEvent({
+            ...newEvent,
+            start: {
+              ...newEvent.start,
+              value: parseInt(e.target.value, 10) || 0,
+            },
+          })
+        }
+      />
+      <label>Duration for years</label>
+      <input
+        type="number"
+        placeholder="e.g. 20"
+        value={newEvent.duration.value}
+        onChange={(e) =>
+          setNewEvent({
+            ...newEvent,
+            duration: {
+              ...newEvent.duration,
+              value: parseInt(e.target.value, 10) || 0,
+            },
+          })
+        }
+      />
+      <label>Amount</label>
+      <input
+        type="number"
+        placeholder="e.g. 1234"
+        value={newEvent.initialAmount}
+        onChange={(e) =>
+          setNewEvent({
+            ...newEvent,
+            initialAmount: parseFloat(e.target.value, 10),
+          })
+        }
+      />
+      <label>Amount change trend</label>
+      <select
+        value={newEvent.changeAmtOrPct}
+        onChange={(e) => {
+          const selectedValue = e.target.value;
+          setNewEvent((prev) => ({
+            ...prev,
+            changeAmtOrPct: selectedValue,
+            changeDistribution: { type: "" },
+          }));
+        }}
+      >
+        <option value="">-- Select Change Type --</option>
+        <option value="amount">Amount</option>
+        <option value="percent">Percent</option>
+      </select>
 
-        <div className="form-group">
-          <label htmlFor="start">Start Year</label>
-          <input
-            type="number"
-            id="start"
-            name="start"
-            value={newEvent.start}
-            onChange={handleInputChange}
-            className="form-input"
-            placeholder="Enter start year"
-          />
-        </div>
+      <label>Distribution Type</label>
+      <select
+        value={newEvent.changeDistribution.type}
+        onChange={(e) => {
+          const selectedType = e.target.value;
+          updateChangeDistribution(selectedType);
+        }}
+      >
+        <option value="">-- Select Distribution Type --</option>
+        <option value="fixed">Fixed Value</option>
+        <option value="normal">Normal Distribution</option>
+        <option value="uniform">Uniform Distribution</option>
+      </select>
 
-        <div className="form-group">
-          <label htmlFor="duration">Duration (years)</label>
-          <input
-            type="number"
-            id="duration"
-            name="duration"
-            value={newEvent.duration}
-            onChange={handleInputChange}
-            className="form-input"
-            placeholder="Enter duration"
-          />
-        </div>
-      </div>
-
-      {/* Amount Section */}
-      <div className="form-section">
-        <h3 className="section-title">Amount Details</h3>
-        <div className="form-group">
-          <label htmlFor="amount">Amount</label>
-          <input
-            type="number"
-            id="amount"
-            name="amount"
-            value={newEvent.amount}
-            onChange={handleInputChange}
-            className="form-input"
-            placeholder="Enter amount"
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="changeTrend">Amount Change Trend</label>
-          <select
-            id="changeTrend"
-            name="changeTrend"
-            value={newEvent.changeDistribution.type}
-            onChange={(e) => updateChangeDistribution(e.target.value)}
-            className="form-select"
-          >
-            <option value="fixed">Fixed</option>
-            <option value="increase">Increase</option>
-            <option value="decrease">Decrease</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Additional Options Section */}
-      <div className="form-section">
-        <h3 className="section-title">Additional Options</h3>
-        <div className="toggle-group">
-          <label>
-            <span>Inflation Adjusted</span>
-            <div className="toggle-switch">
-              <input
-                type="checkbox"
-                name="inflationAdjusted"
-                checked={newEvent.inflationAdjusted}
-                onChange={handleInputChange}
-              />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-        </div>
-
-        <div className="toggle-group">
-          <label>
-            <span>Include Social Security</span>
-            <div className="toggle-switch">
-              <input
-                type="checkbox"
-                name="socialSecurity"
-                checked={newEvent.socialSecurity}
-                onChange={handleInputChange}
-              />
-              <span className="toggle-slider"></span>
-            </div>
-          </label>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="shareRatio">Share Ratio</label>
+      {newEvent.changeDistribution.type === "fixed" && (
+        <div>
+          <label>Fixed {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
           <input
             type="number"
-            id="shareRatio"
-            name="shareRatio"
-            value={newEvent.shareRatio}
-            onChange={handleInputChange}
-            className="form-input"
-            placeholder="Enter share ratio"
-            min="0"
-            max="1"
-            step="0.1"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
+            value={newEvent.changeDistribution.value || ""}
+            onChange={(e) =>
+              updateChangeDistribution("fixed", {
+                value: parseFloat(e.target.value) || null,
+              })
+            }
           />
-          <span className="input-hint">Enter a value between 0 and 1</span>
         </div>
-      </div>
-    </div>
+      )}
+
+      {newEvent.changeDistribution.type === "normal" && (
+        <div>
+          <label>Mean {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
+            value={newEvent.changeDistribution.mean || ""}
+            onChange={(e) =>
+              updateChangeDistribution("normal", {
+                mean: parseFloat(e.target.value) || null,
+                stdev: newEvent.changeDistribution.stdev,
+              })
+            }
+          />
+          <label>Standard Deviation {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 0.5" : "e.g. 200"}
+            value={newEvent.changeDistribution.stdev || ""}
+            onChange={(e) =>
+              updateChangeDistribution("normal", {
+                mean: newEvent.changeDistribution.mean,
+                stdev: parseFloat(e.target.value) || null,
+              })
+            }
+          />
+        </div>
+      )}
+
+      {newEvent.changeDistribution.type === "uniform" && (
+        <div>
+          <label>Lower Bound {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 1.5" : "e.g. 500"}
+            value={newEvent.changeDistribution.lower || ""}
+            onChange={(e) =>
+              updateChangeDistribution("uniform", {
+                lower: parseFloat(e.target.value) || null,
+                upper: newEvent.changeDistribution.upper,
+              })
+            }
+          />
+          <label>Upper Bound {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+          <input
+            type="number"
+            placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 3.5" : "e.g. 2000"}
+            value={newEvent.changeDistribution.upper || ""}
+            onChange={(e) =>
+              updateChangeDistribution("uniform", {
+                lower: newEvent.changeDistribution.lower,
+                upper: parseFloat(e.target.value) || null,
+              })
+            }
+          />
+        </div>
+      )}
+
+      <label>Is it inflation adjusted?</label>
+      <input
+        type="checkbox"
+        checked={newEvent.inflationAdjusted}
+        onChange={(e) =>
+          setNewEvent({
+            ...newEvent,
+            inflationAdjusted: e.target.checked,
+          })
+        }
+      />
+      <br />
+      <label>
+        What is your share ratio?
+        <span style={{ fontSize: "11px" }}>
+          (If you do not have a spouse, please indicate 1.0)
+        </span>
+      </label>
+      <input
+        type="number"
+        placeholder="e.g. 0.3"
+        value={newEvent.userFraction}
+        onChange={(e) =>
+          setNewEvent({
+            ...newEvent,
+            userFraction: parseFloat(e.target.value, 10),
+          })
+        }
+      />
+      <label>Is it social Security?</label>
+      <input
+        type="checkbox"
+        checked={newEvent.socialSecurity}
+        onChange={(e) =>
+          setNewEvent({
+            ...newEvent,
+            socialSecurity: e.target.checked,
+          })
+        }
+      />
+    </>
   );
 };
 
