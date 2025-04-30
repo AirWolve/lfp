@@ -253,7 +253,19 @@ app.post("/api/sendJson", async (req, res) => {
 app.post("/api/run-simulation", async (req, res) => {
   try {
     console.log(req.body);
-    const { yamlText } = YAML.stringify(req.body);
+    let yamlText = req.body.yamlText;
+    // If yamlText is an object, convert to YAML string
+    if (typeof yamlText !== 'string') {
+      yamlText = YAML.stringify(yamlText);
+    } else {
+      // If string, check if it's JSON and convert to YAML
+      try {
+        const parsed = JSON.parse(yamlText);
+        yamlText = YAML.stringify(parsed);
+      } catch (e) {
+        // Not JSON, assume already YAML
+      }
+    }
     console.log(yamlText);
     if (!yamlText) {
       return res.status(400).json({ error: "YAML text is required" });
