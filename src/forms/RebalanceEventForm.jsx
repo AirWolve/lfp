@@ -8,15 +8,10 @@ export const initialRebalanceEvent = {
     type: "fixed",
     value: null,
   },
-  end: {
-    type: "fixed",
-    value: null,
-  },
   duration: {
     type: "fixed",
     value: null,
   },
-  assetAllocations: [],
 };
 
 const RebalanceEventForm = ({
@@ -126,7 +121,7 @@ const RebalanceEventForm = ({
                   setAllocationNum("");
                 }
               }}
-              className={formStyles.formButton}
+              className={`${formStyles.formButton} ${formStyles.allocationAddBtn}`}
             >
               Add
             </button>
@@ -135,12 +130,13 @@ const RebalanceEventForm = ({
 
         <div className={formStyles.formGroup}>
           <h5>Asset Allocations:</h5>
-          <ul className={formStyles.allocationList}>
+          <div className={formStyles.allocationGrid}>
             {newEvent.assetAllocation &&
               Object.entries(newEvent.assetAllocation).map(
                 ([asset, allocation]) => (
-                  <li key={asset}>
-                    {asset}: {allocation}{" "}
+                  <div key={asset} className={formStyles.allocationRow}>
+                    <span className={formStyles.allocationCell}>{asset}</span>
+                    <span className={formStyles.allocationCell}>{allocation}</span>
                     <button
                       onClick={() => {
                         const { [asset]: _, ...rest } = newEvent.assetAllocation;
@@ -149,14 +145,14 @@ const RebalanceEventForm = ({
                           assetAllocation: rest,
                         });
                       }}
-                      className={formStyles.formButton}
+                      className={formStyles.allocationRemoveBtn}
                     >
                       Remove
                     </button>
-                  </li>
+                  </div>
                 )
               )}
-          </ul>
+          </div>
         </div>
       </div>
     </div>
