@@ -691,7 +691,75 @@ class Simulation:
                         elif inv.value < target_value:
                             # Buy shortfall
                             inv.value += target_value - inv.value
+                elif ev.type == "rebalance" and ev.rebalance.start["type"] == "startWith":
+                    targetYear = 0
+                    for evs in self.data.eventSeries:
+                        if evs.name == ev.start["eventSeries"]:
+                            targetYear = ev.start["value"]
+                    
+                    if targetYear == year:
+                        target_allocation = ev.assetAllocation
+                        total_value = sum(inv.value for inv in self.data.investments)
+                        for inv in self.data.investments:
+                            target_value = total_value * target_allocation.get(inv.id, 0)
+                            if inv.value > target_value:
+                                # Sell excess
+                                capitalGain += self.sellInvestment(inv, {}, full=False, f=(inv.value - target_value) / inv.value)
+                                inv.value = target_value
+                            elif inv.value < target_value:
+                                # Buy shortfall
+                                inv.value += target_value - inv.value
+                
+                elif ev.type == "rebalance" and ev.rebalance.start["type"] == "startAfter":
+                    targetYear = 0
+                    for evs in self.data.eventSeries:
+                        if evs.name == ev.start["eventSeries"]:
+                            targetYear = ev.start["value"] + 1
+                    
+                    if targetYear == year:
+                        target_allocation = ev.assetAllocation
+                        total_value = sum(inv.value for inv in self.data.investments)
+                        for inv in self.data.investments:
+                            target_value = total_value * target_allocation.get(inv.id, 0)
+                            if inv.value > target_value:
+                                # Sell excess
+                                capitalGain += self.sellInvestment(inv, {}, full=False, f=(inv.value - target_value) / inv.value)
+                                inv.value = target_value
+                            elif inv.value < target_value:
+                                # Buy shortfall
+                                inv.value += target_value - inv.value
+                
+                elif ev.type == "rebalance" and ev.rebalance.start["type"] == "nomral":
+                    targetYear = np.random.normal(ev.start["mean"], ev.start["stdev"])
+                    ev.start = {"type": "fixed", "value":targetYear}                    
+                    if targetYear == year:
+                        target_allocation = ev.assetAllocation
+                        total_value = sum(inv.value for inv in self.data.investments)
+                        for inv in self.data.investments:
+                            target_value = total_value * target_allocation.get(inv.id, 0)
+                            if inv.value > target_value:
+                                # Sell excess
+                                capitalGain += self.sellInvestment(inv, {}, full=False, f=(inv.value - target_value) / inv.value)
+                                inv.value = target_value
+                            elif inv.value < target_value:
+                                # Buy shortfall
+                                inv.value += target_value - inv.value
 
+                elif ev.type == "rebalance" and ev.rebalance.start["type"] == "uniform":
+                    targetYear = np.random.uniform(ev.start["lower"], ev.start["upper"])
+                    ev.start = {"type": "fixed", "value":targetYear}                    
+                    if targetYear == year:
+                        target_allocation = ev.assetAllocation
+                        total_value = sum(inv.value for inv in self.data.investments)
+                        for inv in self.data.investments:
+                            target_value = total_value * target_allocation.get(inv.id, 0)
+                            if inv.value > target_value:
+                                # Sell excess
+                                capitalGain += self.sellInvestment(inv, {}, full=False, f=(inv.value - target_value) / inv.value)
+                                inv.value = target_value
+                            elif inv.value < target_value:
+                                # Buy shortfall
+                                inv.value += target_value - inv.value
             # Append the updated Scenario object for the current year
             updated_scenarios.append(self.data.toDict())
 
