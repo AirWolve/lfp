@@ -118,6 +118,7 @@
   .button-grid {
     display: flex;
     flex-direction: row;
+    gap: 30px;
   }
   
   .plan-button {
