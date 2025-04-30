@@ -373,9 +373,9 @@ class Simulation:
                             inv.value = 0
         return capitalgain, curYearIncome, curYearEarlyWithdrawals
 
-    def payTax(self, capitalgain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals):
+    def payTax(self, capitalgain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email=None):
         # self.tax.federalTax is already infaltion adjusted
-        incomeTax = self.tax.federalTaxCalculator(self.data, curYearIncome, curYearSS)
+        incomeTax = self.tax.federalTaxCalculator(self.data, curYearIncome, curYearSS, email)
         cgTax = self.tax.capitalGainTax(self.data, curYearGains)
         ewTax = self.tax.earlyWithdrawal(self.data, curYearEarlyWithdrawals)
 
@@ -455,7 +455,7 @@ class Simulation:
                 inv.value += purchase_amount
                 self.purchaseDict[inv.id] += purchase_amount  # Update purchaseDict
 
-    def simulation(self):
+    def simulation(self, email, emailNeed = False):
         """
         This function simulates the entire scenario year by year and returns a list of updated Scenario objects.
         """
@@ -488,14 +488,20 @@ class Simulation:
                 curYearIncome = self.RCOptimizer(self.tax.federalTax, curYearIncome, curYearSS)
 
             # Pay non-discretionary expenses and taxes
-            self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals)
+            if emailNeed == True:
+                self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
+            else:
+                self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
 
             # Pay discretionary expenses
             for expense in self.data.spendingStrategy:
                 for ev in self.data.eventSeries:
                     if ev.type == "expense":
                         amount = self.expenseSimul(ev, ev.initialAmount, year)
-                        self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals)
+                        if emailNeed == True:
+                            (capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
+                        else:
+                            self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals)
 
             # Run investment events
             self.buyInvestment(year)
