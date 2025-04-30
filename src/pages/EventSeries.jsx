@@ -126,11 +126,11 @@ const EventSeries = () => {
     };
 
     const formatYear = (year) => {
-      return year?.value ? `Year ${year.value}` : 'N/A';
+      return year?.value ? `Y${year.value}` : 'N/A';
     };
 
     const formatDuration = (duration) => {
-      return duration?.value ? `${duration.value} years` : 'N/A';
+      return duration?.value ? `${duration.value}Y` : 'N/A';
     };
 
     switch (event.type) {
@@ -140,13 +140,15 @@ const EventSeries = () => {
             <div className="event-header">
               <span className="event-badge income">Income</span>
               <strong>{event.name}</strong>
+              <div className="event-tags">
+                {event.inflationAdjusted && <span className="event-tag">Inflation</span>}
+                {event.socialSecurity && <span className="event-tag">Social Security</span>}
+              </div>
             </div>
             <div className="event-details">
-              <div>Initial Amount: {formatAmount(event.initialAmount)}</div>
+              <div>Amount: {formatAmount(event.initialAmount)}</div>
               <div>Start: {formatYear(event.start)}</div>
               <div>Duration: {formatDuration(event.duration)}</div>
-              {event.inflationAdjusted && <div className="event-tag">Inflation Adjusted</div>}
-              {event.socialSecurity && <div className="event-tag">Social Security</div>}
             </div>
           </div>
         );
@@ -157,13 +159,15 @@ const EventSeries = () => {
             <div className="event-header">
               <span className="event-badge expense">Expense</span>
               <strong>{event.name}</strong>
+              <div className="event-tags">
+                {event.inflationAdjusted && <span className="event-tag">Inflation</span>}
+                {event.discretionary && <span className="event-tag">Discretionary</span>}
+              </div>
             </div>
             <div className="event-details">
-              <div>Initial Amount: {formatAmount(event.initialAmount)}</div>
+              <div>Amount: {formatAmount(event.initialAmount)}</div>
               <div>Start: {formatYear(event.start)}</div>
               <div>Duration: {formatDuration(event.duration)}</div>
-              {event.inflationAdjusted && <div className="event-tag">Inflation Adjusted</div>}
-              {event.discretionary && <div className="event-tag">Discretionary</div>}
             </div>
           </div>
         );
@@ -174,12 +178,14 @@ const EventSeries = () => {
             <div className="event-header">
               <span className="event-badge invest">Investment</span>
               <strong>{event.name}</strong>
+              <div className="event-tags">
+                {event.glidePath && <span className="event-tag">Glide Path</span>}
+              </div>
             </div>
             <div className="event-details">
               <div>Start: {formatYear(event.start)}</div>
               <div>Duration: {formatDuration(event.duration)}</div>
-              {event.glidePath && <div className="event-tag">Glide Path Enabled</div>}
-              <div>Max Cash: ${event.maxCash}</div>
+              <div>Cash: ${event.maxCash}</div>
             </div>
           </div>
         );
