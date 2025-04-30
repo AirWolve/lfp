@@ -223,6 +223,7 @@ const SimulationInfo = () => {
     };
 
     const basicSettingData = JSON.parse(localStorage.getItem("BasicSettings"));
+    const emailAddr = sessionStorage.getItem("userEmail");
 
     const combinedData = {
       ...basicSettingData,
@@ -242,7 +243,7 @@ const SimulationInfo = () => {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ yamlText: combinedData }),
+          body: JSON.stringify({ yamlText: combinedData, userEmail: emailAddr }),
         }
       );
 
