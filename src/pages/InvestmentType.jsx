@@ -94,27 +94,45 @@ const InvestmentType = () => {
           add
         </button>
 
-        {/* Modal popup part */}
-        {/* To show the investment Types, I use map(to show each object that store data) */}
-        {investmentTypes.map((inv, idx) => (
-          <div key={idx} className="event-summary">
-            <div className="event-header">
-              <strong>{inv.name}</strong>
-              <img
-                src={trashIcon}
-                alt="delete"
-                className="trashIcon"
-                style={{ marginLeft: 'auto', cursor: 'pointer' }}
+        {/* 카드형 리스트로 리팩토링 */}
+        <div className="events-list">
+          {investmentTypes.map((inv, idx) => (
+            <div key={idx} className="event-item">
+              <div className="event-summary">
+                <div className="event-header">
+                  <span className="event-badge invest">Investment</span>
+                  <strong>{inv.name}</strong>
+                </div>
+                <div className="event-tags-main">
+                  {inv.description && (
+                    <span className="event-tag">{inv.description}</span>
+                  )}
+                  {inv.returnDistribution && inv.returnDistribution.type && (
+                    <span className="event-tag">
+                      Return: {inv.returnDistribution.type === 'fixed' ? inv.returnDistribution.value : inv.returnDistribution.type === 'normal' ? `N(${inv.returnDistribution.mean ?? '-'}, ${inv.returnDistribution.stdev ?? '-'})` : inv.returnDistribution.type === 'uniform' ? `U(${inv.returnDistribution.lower ?? '-'}, ${inv.returnDistribution.upper ?? '-'})` : ''}
+                    </span>
+                  )}
+                  {inv.incomeDistribution && inv.incomeDistribution.type && (
+                    <span className="event-tag">
+                      Income: {inv.incomeDistribution.type === 'fixed' ? inv.incomeDistribution.value : inv.incomeDistribution.type === 'normal' ? `N(${inv.incomeDistribution.mean ?? '-'}, ${inv.incomeDistribution.stdev ?? '-'})` : inv.incomeDistribution.type === 'uniform' ? `U(${inv.incomeDistribution.lower ?? '-'}, ${inv.incomeDistribution.upper ?? '-'})` : ''}
+                    </span>
+                  )}
+                  {inv.expenseRatio !== null && (
+                    <span className="event-tag">Expense Ratio: {inv.expenseRatio}</span>
+                  )}
+                  <span className="event-tag">Taxability: {inv.taxability ? "Taxable" : "Tax-exempt"}</span>
+                </div>
+              </div>
+              <button 
+                className="delete-btn" 
                 onClick={() => handleDelete(idx)}
-              />
+                title="Delete investment type"
+              >
+                <img src={trashIcon} alt="delete" className="trash-icon" />
+              </button>
             </div>
-            <div className="event-tags-main">
-              <span className="event-tag">{inv.description}</span>
-              <span className="event-tag">Value: {inv.returnDistribution.value}</span>
-              <span className="event-tag">Taxability: {inv.taxability ? "Taxable" : "Tax-exempt"}</span>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
         
         {/* Prompt to ChatGPT: "How can I make the modal popup in this page?" */}
         {showModal && (

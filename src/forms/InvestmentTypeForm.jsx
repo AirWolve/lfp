@@ -244,11 +244,11 @@ const InvestmentTypeForm = ({
         </div>
       </div>
 
-      {/* 버튼 */}
-      <div className={formStyles.formButtonRow}>
-        <button onClick={handleConfirm} className={formStyles.formButton}>Confirm</button>
-        <button onClick={closeModal} className={formStyles.formButton}>Close</button>
-      </div>
+      {/* 버튼 구조를 InvestmentForm.jsx와 동일하게 변경 */}
+      <button onClick={handleConfirm}>Confirm</button>
+      <button className="close-btn" onClick={closeModal}>
+        Close
+      </button>
     </div>
   );
 };

@@ -89,24 +89,29 @@ const Investments = () => {
           add
         </button>
 
-        {investments.map((inv, idx) => (
-          <div key={idx} className="event-summary">
-            <div className="event-header">
-              <strong>{inv.investmentType}</strong>
-              <img
-                src={trashIcon}
-                alt="delete"
-                className="trashIcon"
-                style={{ marginLeft: 'auto', cursor: 'pointer' }}
+        <div className="events-list">
+          {investments.map((inv, idx) => (
+            <div key={idx} className="event-item">
+              <div className="event-summary">
+                <div className="event-header">
+                  <span className="event-badge invest">Investment</span>
+                  <strong>{inv.investmentType}</strong>
+                </div>
+                <div className="event-tags-main">
+                  <span className="event-tag">Amount: ${inv.value}</span>
+                  <span className="event-tag">Tax: {inv.taxStatus}</span>
+                </div>
+              </div>
+              <button 
+                className="delete-btn" 
                 onClick={() => handleDelete(idx)}
-              />
+                title="Delete investment"
+              >
+                <img src={trashIcon} alt="delete" className="trash-icon" />
+              </button>
             </div>
-            <div className="event-tags-main">
-              <span className="event-tag">Amount: ${inv.value}</span>
-              <span className="event-tag">Tax: {inv.taxStatus}</span>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         {showModal && (
           <div className="modal-overlay" onMouseDown={closeModal}>
