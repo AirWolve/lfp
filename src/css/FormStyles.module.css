@@ -235,4 +235,36 @@
 .formCloseButton {
   background: #777;
   margin-bottom: 0;
+}
+
+/* Life Expectancy Boxes */
+.lifeExpectancyContainer {
+  display: flex;
+  gap: 20px;
+}
+
+.lifeExpectancyBox {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  border: 1.5px solid #e0e4e8;
+  overflow: hidden;
+}
+
+.boxTitle {
+  background: #3f545c;
+  color: white;
+  padding: 12px 16px;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.boxContent {
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .lifeExpectancyContainer {
+    flex-direction: column;
+  }
 } 

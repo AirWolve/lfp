@@ -188,42 +188,52 @@ const BasicSettingForm = ({ settings, setSettings }) => {
 
       {/* Life Expectancy */}
       <div className={formStyles.formSection}>
-        <div className={formStyles.formRow}>
+        <div className={formStyles.lifeExpectancyContainer}>
           {/* User Life Expectancy */}
-          <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
-            <label>User Life Expectancy Type</label>
-            <select
-              value={settings.userLifeExpectancy.type}
-              onChange={e => {
-                const selectedType = e.target.value;
-                updateLifeExpectancy('user', selectedType);
-              }}
-              className={formStyles.formSelect}
-            >
-              <option value="fixed">Fixed</option>
-              <option value="normal">Normal</option>
-              <option value="uniform">Uniform</option>
-            </select>
-            {renderLifeExpectancyInputs('user', settings.userLifeExpectancy)}
+          <div className={formStyles.lifeExpectancyBox}>
+            <div className={formStyles.boxTitle}>User Life Expectancy</div>
+            <div className={formStyles.boxContent}>
+              <div className={formStyles.formGroup}>
+                <label>Distribution Type</label>
+                <select
+                  value={settings.userLifeExpectancy.type}
+                  onChange={e => {
+                    const selectedType = e.target.value;
+                    updateLifeExpectancy('user', selectedType);
+                  }}
+                  className={formStyles.formSelect}
+                >
+                  <option value="fixed">Fixed</option>
+                  <option value="normal">Normal</option>
+                  <option value="uniform">Uniform</option>
+                </select>
+              </div>
+              {renderLifeExpectancyInputs('user', settings.userLifeExpectancy)}
+            </div>
           </div>
 
           {/* Spouse Life Expectancy */}
           {settings.isCouple && (
-            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
-              <label>Spouse Life Expectancy Type</label>
-              <select
-                value={settings.spouseLifeExpectancy.type}
-                onChange={e => {
-                  const selectedType = e.target.value;
-                  updateLifeExpectancy('spouse', selectedType);
-                }}
-                className={formStyles.formSelect}
-              >
-                <option value="fixed">Fixed</option>
-                <option value="normal">Normal</option>
-                <option value="uniform">Uniform</option>
-              </select>
-              {renderLifeExpectancyInputs('spouse', settings.spouseLifeExpectancy)}
+            <div className={formStyles.lifeExpectancyBox}>
+              <div className={formStyles.boxTitle}>Spouse Life Expectancy</div>
+              <div className={formStyles.boxContent}>
+                <div className={formStyles.formGroup}>
+                  <label>Distribution Type</label>
+                  <select
+                    value={settings.spouseLifeExpectancy.type}
+                    onChange={e => {
+                      const selectedType = e.target.value;
+                      updateLifeExpectancy('spouse', selectedType);
+                    }}
+                    className={formStyles.formSelect}
+                  >
+                    <option value="fixed">Fixed</option>
+                    <option value="normal">Normal</option>
+                    <option value="uniform">Uniform</option>
+                  </select>
+                </div>
+                {renderLifeExpectancyInputs('spouse', settings.spouseLifeExpectancy)}
+              </div>
             </div>
           )}
         </div>
