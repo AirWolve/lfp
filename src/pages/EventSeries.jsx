@@ -4,10 +4,10 @@ import { constPath } from "../config.js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import trashIcon from "../assets/trash.svg";
-import IncomeEventForm from "../forms/IncomeEventForm";
-import ExpenseEventForm from "../forms/ExpenseEventForm";
-import InvestEventForm from "../forms/InvestEventForm";
-import RebalanceEventForm from "../forms/RebalanceEventForm";
+import IncomeEventForm, { initialIncomeEvent } from "../forms/IncomeEventForm";
+import ExpenseEventForm, { initialExpenseEvent } from "../forms/ExpenseEventForm";
+import InvestEventForm, { initialInvestEvent } from "../forms/InvestEventForm";
+import RebalanceEventForm, { initialRebalanceEvent } from "../forms/RebalanceEventForm";
 
 const EventSeries = () => {
   const [events, setEvents] = useState([]);
@@ -62,37 +62,26 @@ const EventSeries = () => {
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
 
-  const initialEvent = {
-    name: "",
-    start: {
-      type: "fixed",
-      value: null,
-      eventSeries: "",
-      lower: null,
-      upper: null,
-    },
-    duration: { type: "fixed", value: null },
-    type: "",
-    initialAmount: null,
-    changeAmtOrPct: "",
-    changeDistribution: {
-      type: "",
-      lower: null,
-      upper: null,
-      mean: 0.0,
-      stdev: 0.0,
-    },
-    inflationAdjusted: false,
-    userFraction: null,
-    socialSecurity: false,
-    assetAllocation: {},
-    glidePath: false,
-    assetAllocation2: {},
-    maxCash: null,
-    discretionary: false,
+  const getInitialEventByType = (type) => {
+    switch (type) {
+      case "income":
+        return { ...initialIncomeEvent };
+      case "expense":
+        return { ...initialExpenseEvent };
+      case "invest":
+        return { ...initialInvestEvent };
+      case "rebalance":
+        return { ...initialRebalanceEvent };
+      default:
+        return { name: "", type: "" };
+    }
   };
 
-  const [newEvent, setNewEvent] = useState(initialEvent);
+  const [newEvent, setNewEvent] = useState({ name: "", type: "" });
+
+  const handleEventTypeChange = (type) => {
+    setNewEvent(getInitialEventByType(type));
+  };
 
   const handleConfirm = () => {
     if (!newEvent.name) {
@@ -109,7 +98,7 @@ const EventSeries = () => {
     setEvents(updatedList);
     localStorage.setItem("EventSeries", JSON.stringify(updatedList));
     setEvents([...events, newEvent]);
-    setNewEvent(initialEvent);
+    setNewEvent({ name: "", type: "" });
     closeModal();
   };
 
@@ -186,9 +175,7 @@ const EventSeries = () => {
               <label>What is the type of?</label>
               <select
                 value={newEvent.type}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, type: e.target.value })
-                }
+                onChange={(e) => handleEventTypeChange(e.target.value)}
               >
                 <option value="">-- Select Type --</option>
                 {eventTypes.map((type, idx) => (

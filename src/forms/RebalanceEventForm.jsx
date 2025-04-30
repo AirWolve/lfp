@@ -1,4 +1,23 @@
 import React from "react";
+import '../css/FormStyles.css';
+
+export const initialRebalanceEvent = {
+  name: "",
+  type: "rebalance",
+  start: {
+    type: "fixed",
+    value: null,
+  },
+  end: {
+    type: "fixed",
+    value: null,
+  },
+  duration: {
+    type: "fixed",
+    value: null,
+  },
+  assetAllocations: [],
+};
 
 const RebalanceEventForm = ({
   newEvent,

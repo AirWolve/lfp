@@ -1,4 +1,28 @@
 import React from "react";
+import './FormStyles.css';
+
+export const initialInvestEvent = {
+  name: "",
+  type: "invest",
+  start: {
+    type: "fixed",
+    value: null,
+  },
+  end: {
+    type: "fixed",
+    value: null,
+  },
+  duration: {
+    type: "fixed",
+    value: null,
+  },
+  assetAllocations: [],
+  glidePath: {
+    enabled: false,
+    endAllocations: [],
+  },
+  maxCash: 1000,
+};
 
 const InvestEventForm = ({
   newEvent,
