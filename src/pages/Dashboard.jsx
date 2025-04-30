@@ -44,7 +44,7 @@ const Dashboard = () => {
           {user?.name}
         </h2>
         <div className="button-grid">
-          <button onClick={() => navigate(`${constPath.basicSetting}`)} className="plan-button">Create New Plan</button>
+          <button onClick={() => `${constPath.basicSetting}`} className="plan-button">Create New Plan</button>
           <button
             className="plan-button"
             onClick={() => {
@@ -91,6 +91,7 @@ const Dashboard = () => {
                 <div className="tabContent">
                   {activeTab === "import" ? (
                     <FileImport />
+
                   ) : (
                     <FileExport exportData={{
                       message: "Exported data from the app",
