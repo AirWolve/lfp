@@ -120,6 +120,89 @@ const EventSeries = () => {
     }
   }, []);
 
+  const renderEventSummary = (event) => {
+    const formatAmount = (amount) => {
+      return amount ? `$${Number(amount).toLocaleString()}` : 'N/A';
+    };
+
+    const formatYear = (year) => {
+      return year?.value ? `Year ${year.value}` : 'N/A';
+    };
+
+    const formatDuration = (duration) => {
+      return duration?.value ? `${duration.value} years` : 'N/A';
+    };
+
+    switch (event.type) {
+      case 'income':
+        return (
+          <div className="event-summary">
+            <div className="event-header">
+              <span className="event-badge income">Income</span>
+              <strong>{event.name}</strong>
+            </div>
+            <div className="event-details">
+              <div>Initial Amount: {formatAmount(event.initialAmount)}</div>
+              <div>Start: {formatYear(event.start)}</div>
+              <div>Duration: {formatDuration(event.duration)}</div>
+              {event.inflationAdjusted && <div className="event-tag">Inflation Adjusted</div>}
+              {event.socialSecurity && <div className="event-tag">Social Security</div>}
+            </div>
+          </div>
+        );
+
+      case 'expense':
+        return (
+          <div className="event-summary">
+            <div className="event-header">
+              <span className="event-badge expense">Expense</span>
+              <strong>{event.name}</strong>
+            </div>
+            <div className="event-details">
+              <div>Initial Amount: {formatAmount(event.initialAmount)}</div>
+              <div>Start: {formatYear(event.start)}</div>
+              <div>Duration: {formatDuration(event.duration)}</div>
+              {event.inflationAdjusted && <div className="event-tag">Inflation Adjusted</div>}
+              {event.discretionary && <div className="event-tag">Discretionary</div>}
+            </div>
+          </div>
+        );
+
+      case 'invest':
+        return (
+          <div className="event-summary">
+            <div className="event-header">
+              <span className="event-badge invest">Investment</span>
+              <strong>{event.name}</strong>
+            </div>
+            <div className="event-details">
+              <div>Start: {formatYear(event.start)}</div>
+              <div>Duration: {formatDuration(event.duration)}</div>
+              {event.glidePath && <div className="event-tag">Glide Path Enabled</div>}
+              <div>Max Cash: ${event.maxCash}</div>
+            </div>
+          </div>
+        );
+
+      case 'rebalance':
+        return (
+          <div className="event-summary">
+            <div className="event-header">
+              <span className="event-badge rebalance">Rebalance</span>
+              <strong>{event.name}</strong>
+            </div>
+            <div className="event-details">
+              <div>Start: {formatYear(event.start)}</div>
+              <div>Duration: {formatDuration(event.duration)}</div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="eventSeries-container">
       <h2 style={{ textAlign: "center", color: "white" }}>
@@ -134,43 +217,24 @@ const EventSeries = () => {
           Please enter your income information first.
         </p>
         <button className="add-btn" onClick={openModal}>
-          add event
+          Add Event
         </button>
 
-        {events.map((event, idx) => (
-          <div key={idx} className="event-item">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div>
-                <strong>{event.name}</strong>
-              </div>
-              <img
-                src={trashIcon}
-                alt="delete"
-                className="trash-icon"
-                onClick={() => handleDelete(idx)}
-              />
+        <div className="events-list">
+          {events.map((event, idx) => (
+            <div key={idx} className="event-item">
+              {renderEventSummary(event)}
+              <button className="delete-btn" onClick={() => handleDelete(idx)}>
+                <img src={trashIcon} alt="delete" className="trash-icon" />
+              </button>
             </div>
-            {event.type && (
-              <div>
-                <div>Type: {event.type} </div>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
 
         {showModal && (
           <div className="modal-overlay" onMouseDown={closeModal}>
             <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
               <h4>Add Event Series</h4>
-
-              <label>Event Name</label>
-              <input
-                type="text"
-                value={newEvent.name}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, name: e.target.value })
-                }
-              />
 
               <label>What is the type of?</label>
               <select
