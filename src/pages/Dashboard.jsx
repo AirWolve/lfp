@@ -10,8 +10,11 @@ import FileExport from "../components/FileExport.jsx";
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
-  const [showImportModal, setShowImportModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState("import" | "export");
+
+  const openModal = () => setShowModal(true);
+  const closeModal = () => setShowModal(false);
 
   useEffect(() => {
     // withCredentials: Set to true to ensure HTTP-Only cookies are sent along.
@@ -51,15 +54,15 @@ const Dashboard = () => {
             className="plan-button"
             onClick={() => {
               setActiveTab("import");
-              setShowImportModal(true);
+              openModal();
             }}
           >
             Import/Export Plan
           </button>
-          {showImportModal && (
+          {showModal && (
             <div
               className="modalPopup"
-              onMouseDown={() => setShowImportModal(false)}
+              onMouseDown={(closeModal)}
             >
               <div
                 className="modalContent"
@@ -84,14 +87,14 @@ const Dashboard = () => {
                   </button>
                   <button
                     className="closeButton"
-                    onClick={() => setShowImportModal(false)}
+                    onClick={(closeModal)}
                   >
                     
                     X
                   </button>
                   <div className="tabContent">
                     {activeTab === "import" ? (
-                      <FileImport onClose={() => setShowImportModal(false)} />
+                      <FileImport onClose={(closeModal)} />
                     ) : (
                       <FileExport exportData={{
                         message: "Exported data from the app",
