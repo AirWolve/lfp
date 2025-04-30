@@ -77,12 +77,12 @@ class TaxCalculator:
             self.stateTax = yaml.load(f, Loader=yaml.FullLoader)
 
     # Tax Calculator
-    def federalTaxCalculator(self, data:dict, amount:int, curYearSS):
+    def federalTaxCalculator(self, data:dict, amount:int, curYearSS, email=None):
         """
         This is a function to calculate tax amount
         """
         taxable = amount - 0.15*curYearSS
-        stateTax = self.stateTaxCalculator(data, taxable, data.residenceState)
+        stateTax = self.stateTaxCalculator(data, taxable, data.residenceState, email)
 
         if taxable > 0:
             if data.maritalStatus == "couple":
@@ -123,7 +123,7 @@ class TaxCalculator:
         else:
             return 0
         
-    def stateTaxCalculator(self, data:dict, taxable:int, state:str):
+    def stateTaxCalculator(self, data:dict, taxable:int, state:str, email):
         """
         This is a function to calculate state tax amount
 
@@ -134,21 +134,38 @@ class TaxCalculator:
         if state not in self.stateTax.keys():
             return 0, "State Tax Not Found!"
         
-        if taxable > 0:
-            if data.maritalStatus == "couple":
-                for key, value in self.stateTax[state][0]["couple"].items():
-                    if key == "inf":
-                        return taxable * value
-                    elif taxable < int(key):
-                        return taxable * value
+        if email != None:
+            if taxable > 0:
+                if data.maritalStatus == "couple":
+                    for key, value in self.stateTax[email][state][0]["couple"].items():
+                        if key == "inf":
+                            return taxable * value
+                        elif taxable < int(key):
+                            return taxable * value
+                else:
+                    for key, value in self.stateTax[email][state][0]["individual"].items():
+                        if key == "inf":
+                            return taxable * value
+                        elif taxable < int(key):
+                            return taxable * value
             else:
-                for key, value in self.stateTax[state][0]["individual"].items():
-                    if key == "inf":
-                        return taxable * value
-                    elif taxable < int(key):
-                        return taxable * value
+                return 0
         else:
-            return 0
+            if taxable > 0:
+                if data.maritalStatus == "couple":
+                    for key, value in self.stateTax[state][0]["couple"].items():
+                        if key == "inf":
+                            return taxable * value
+                        elif taxable < int(key):
+                            return taxable * value
+                else:
+                    for key, value in self.stateTax[state][0]["individual"].items():
+                        if key == "inf":
+                            return taxable * value
+                        elif taxable < int(key):
+                            return taxable * value
+            else:
+                return 0
         
     def earlyWithdrawal(self, data:dict, withdrawal:int):
         """
@@ -173,7 +190,7 @@ class TaxCalculator:
         with open('./2024_federal_tax.yaml', 'w') as f:
             yaml.dump(taxTable, f, default_flow_style=False, sort_keys=False)
 
-    def updateStateTaxTable(self, taxTable:str):
+    def updateStateTaxTable(self, taxTable:str, email:str):
         """
         This is a function to add tax table to the state tax yaml file
 
@@ -184,9 +201,13 @@ class TaxCalculator:
         """
         with open(taxTable) as f:
             taxTable = yaml.load(f, Loader=yaml.FullLoader)
+        appending = {email: taxTable}
         with open('./stateTax.yaml') as f:
             state = yaml.load(f, Loader=yaml.FullLoader)
-        state.update(taxTable)
+        state.update(appending)
+
+        with open('./stateTax.yaml', 'w') as f:
+            yaml.dump(state, f, default_flow_style=False, sort_keys=False) 
 
     def readYaml(file:str):
         """
@@ -300,23 +321,6 @@ class TaxCalculator:
             tax["individual"] = result_in
         with open('./ctTax.yaml', 'w') as f:
             yaml.dump(tax, f, default_flow_style=False, sort_keys=False)
-
-    # def runIncomeTax(self, data:dict):
-    #     """
-    #     This is a function to run all tax calculator
-
-    #     Args:
-    #     ----
-    #         data: a dictionary of data to calculate tax amount
-    #         amount: a integer value of income amount to calculate tax
-    #     """
-    #     for ev in data.eventSeries:
-    #         if ev.type == "income":
-    #             income = ev.initialAmount
-    #             break
-
-    #     return income - self.federalTaxCalculator(data, income)\
-    #             - self.stateTaxCalculator(data, income, data.residenceState)
 
 # Inflation Assumption
 class Inflation:

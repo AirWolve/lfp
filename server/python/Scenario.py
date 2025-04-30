@@ -360,3 +360,16 @@ def exportYAML(data:Scenario):
 
     with open('./export_user.yaml', 'w') as f:
         yaml.dump(data.toDict(), f, default_flow_style=False, sort_keys=False)
+
+def importYAMLtext(yaml_text: str):
+    """
+    문자열 형태의 YAML 데이터를 받아 Scenario 객체로 변환하는 함수
+
+    Args:
+    ----
+        yaml_text: YAML 형식의 문자열 데이터
+    Returns:
+        Scenario 객체
+    """
+    yaml_data = yaml.load(yaml_text, Loader=yaml.FullLoader)
+    return Scenario(yaml_data)
