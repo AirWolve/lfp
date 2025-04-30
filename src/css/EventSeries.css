@@ -100,11 +100,16 @@
     margin-left: 82px;
   }
   
-  .event-tags {
+  .event-tags-main, .event-tags-option {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-left: 68px;
+    gap: 6px 0;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+  
+  .event-tags-option {
+    margin-top: 2px;
   }
   
   .event-tag {
@@ -112,7 +117,7 @@
     color: #666;
     padding: 2px 8px;
     border-radius: 12px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     white-space: nowrap;
   }
   

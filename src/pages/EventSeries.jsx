@@ -124,45 +124,35 @@ const EventSeries = () => {
     const formatAmount = (amount) => {
       return amount ? `$${Number(amount).toLocaleString()}` : 'N/A';
     };
-
     const formatYear = (year) => {
       return year?.value ? `Y${year.value}` : 'N/A';
     };
-
     const formatDuration = (duration) => {
       return duration?.value ? `${duration.value}Y` : 'N/A';
     };
 
-    const renderTags = (event) => {
-      const tags = [];
-      
-      // 공통 태그
-      if (event.initialAmount) tags.push(`Amount: ${formatAmount(event.initialAmount)}`);
-      if (event.start) tags.push(`Start: ${formatYear(event.start)}`);
-      if (event.duration) tags.push(`Duration: ${formatDuration(event.duration)}`);
-      
-      // 타입별 특수 태그
-      switch (event.type) {
-        case 'income':
-          if (event.inflationAdjusted) tags.push('Inflation');
-          if (event.socialSecurity) tags.push('Social Security');
-          break;
-        case 'expense':
-          if (event.inflationAdjusted) tags.push('Inflation');
-          if (event.discretionary) tags.push('Discretionary');
-          break;
-        case 'invest':
-          if (event.glidePath) tags.push('Glide Path');
-          if (event.maxCash) tags.push(`Cash: $${event.maxCash}`);
-          break;
-        default:
-          break;
-      }
-      
-      return tags.map((tag, index) => (
-        <span key={index} className="event-tag">{tag}</span>
-      ));
-    };
+    const mainTags = [];
+    if (event.initialAmount) mainTags.push(`Amount: ${formatAmount(event.initialAmount)}`);
+    if (event.start) mainTags.push(`Start: ${formatYear(event.start)}`);
+    if (event.duration) mainTags.push(`Duration: ${formatDuration(event.duration)}`);
+
+    const optionTags = [];
+    switch (event.type) {
+      case 'income':
+        if (event.inflationAdjusted) optionTags.push('Inflation');
+        if (event.socialSecurity) optionTags.push('Social Security');
+        break;
+      case 'expense':
+        if (event.inflationAdjusted) optionTags.push('Inflation');
+        if (event.discretionary) optionTags.push('Discretionary');
+        break;
+      case 'invest':
+        if (event.glidePath) optionTags.push('Glide Path');
+        if (event.maxCash) optionTags.push('Cash');
+        break;
+      default:
+        break;
+    }
 
     const badgeTypes = {
       income: 'Income',
@@ -174,14 +164,21 @@ const EventSeries = () => {
     return (
       <div className="event-summary">
         <div className="event-header">
-          <span className={`event-badge ${event.type}`}>
-            {badgeTypes[event.type]}
-          </span>
+          <span className={`event-badge ${event.type}`}>{badgeTypes[event.type]}</span>
           <strong>{event.name}</strong>
         </div>
-        <div className="event-tags">
-          {renderTags(event)}
+        <div className="event-tags-main">
+          {mainTags.map((tag, idx) => (
+            <span key={tag} className="event-tag">{tag}</span>
+          ))}
         </div>
+        {optionTags.length > 0 && (
+          <div className="event-tags-option">
+            {optionTags.map((tag, idx) => (
+              <span key={tag} className="event-tag">{tag}</span>
+            ))}
+          </div>
+        )}
       </div>
     );
   };
