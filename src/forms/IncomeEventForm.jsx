@@ -1,5 +1,5 @@
 import React from "react";
-import "./FormStyles.css";
+import "../css/FormStyles.css";
 
 export const initialIncomeEvent = {
   name: "",
