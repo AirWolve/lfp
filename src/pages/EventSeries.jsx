@@ -133,80 +133,57 @@ const EventSeries = () => {
       return duration?.value ? `${duration.value}Y` : 'N/A';
     };
 
-    switch (event.type) {
-      case 'income':
-        return (
-          <div className="event-summary">
-            <div className="event-header">
-              <span className="event-badge income">Income</span>
-              <strong>{event.name}</strong>
-              <div className="event-tags">
-                {event.inflationAdjusted && <span className="event-tag">Inflation</span>}
-                {event.socialSecurity && <span className="event-tag">Social Security</span>}
-              </div>
-            </div>
-            <div className="event-details">
-              <div>Amount: {formatAmount(event.initialAmount)}</div>
-              <div>Start: {formatYear(event.start)}</div>
-              <div>Duration: {formatDuration(event.duration)}</div>
-            </div>
-          </div>
-        );
+    const renderTags = (event) => {
+      const tags = [];
+      
+      // 공통 태그
+      if (event.initialAmount) tags.push(`Amount: ${formatAmount(event.initialAmount)}`);
+      if (event.start) tags.push(`Start: ${formatYear(event.start)}`);
+      if (event.duration) tags.push(`Duration: ${formatDuration(event.duration)}`);
+      
+      // 타입별 특수 태그
+      switch (event.type) {
+        case 'income':
+          if (event.inflationAdjusted) tags.push('Inflation');
+          if (event.socialSecurity) tags.push('Social Security');
+          break;
+        case 'expense':
+          if (event.inflationAdjusted) tags.push('Inflation');
+          if (event.discretionary) tags.push('Discretionary');
+          break;
+        case 'invest':
+          if (event.glidePath) tags.push('Glide Path');
+          if (event.maxCash) tags.push(`Cash: $${event.maxCash}`);
+          break;
+        default:
+          break;
+      }
+      
+      return tags.map((tag, index) => (
+        <span key={index} className="event-tag">{tag}</span>
+      ));
+    };
 
-      case 'expense':
-        return (
-          <div className="event-summary">
-            <div className="event-header">
-              <span className="event-badge expense">Expense</span>
-              <strong>{event.name}</strong>
-              <div className="event-tags">
-                {event.inflationAdjusted && <span className="event-tag">Inflation</span>}
-                {event.discretionary && <span className="event-tag">Discretionary</span>}
-              </div>
-            </div>
-            <div className="event-details">
-              <div>Amount: {formatAmount(event.initialAmount)}</div>
-              <div>Start: {formatYear(event.start)}</div>
-              <div>Duration: {formatDuration(event.duration)}</div>
-            </div>
-          </div>
-        );
+    const badgeTypes = {
+      income: 'Income',
+      expense: 'Expense',
+      invest: 'Investment',
+      rebalance: 'Rebalance'
+    };
 
-      case 'invest':
-        return (
-          <div className="event-summary">
-            <div className="event-header">
-              <span className="event-badge invest">Investment</span>
-              <strong>{event.name}</strong>
-              <div className="event-tags">
-                {event.glidePath && <span className="event-tag">Glide Path</span>}
-              </div>
-            </div>
-            <div className="event-details">
-              <div>Start: {formatYear(event.start)}</div>
-              <div>Duration: {formatDuration(event.duration)}</div>
-              <div>Cash: ${event.maxCash}</div>
-            </div>
-          </div>
-        );
-
-      case 'rebalance':
-        return (
-          <div className="event-summary">
-            <div className="event-header">
-              <span className="event-badge rebalance">Rebalance</span>
-              <strong>{event.name}</strong>
-            </div>
-            <div className="event-details">
-              <div>Start: {formatYear(event.start)}</div>
-              <div>Duration: {formatDuration(event.duration)}</div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+    return (
+      <div className="event-summary">
+        <div className="event-header">
+          <span className={`event-badge ${event.type}`}>
+            {badgeTypes[event.type]}
+          </span>
+          <strong>{event.name}</strong>
+        </div>
+        <div className="event-tags">
+          {renderTags(event)}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -230,7 +207,11 @@ const EventSeries = () => {
           {events.map((event, idx) => (
             <div key={idx} className="event-item">
               {renderEventSummary(event)}
-              <button className="delete-btn" onClick={() => handleDelete(idx)}>
+              <button 
+                className="delete-btn" 
+                onClick={() => handleDelete(idx)}
+                title="Delete event"
+              >
                 <img src={trashIcon} alt="delete" className="trash-icon" />
               </button>
             </div>
