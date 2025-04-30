@@ -25,14 +25,14 @@ const FileImport = () => {
         <div className="ImportContainer">
             <input type="file" ref={importFef} onChange={handleOnChange} style={{ display: "none" }} />
             <button className="fileButton" onClick={onChooseFile}>
-                <span class="material-symbols-rounded"><img alt="upload" src={uploadIcon}/></span> Upload File
+                <img alt="upload" src={uploadIcon} style={{ width: "1em", height: "1em", verticalAlign: "middle"}}/> Upload File
             </button>
 
             {selectedFile && <div className="selectFile">
                 <p>{selectedFile.name}</p>
 
                 <button onClick={removeFile}>
-                    <span class="material-symbols-rounded"><img alt="delete" src={deleteIcon}/></span>
+                    <img alt="delete" src={deleteIcon} style={{ width: "1em", height: "1em", verticalAlign: "middle"}}/>
                 </button>
             </div>}
         </div>
