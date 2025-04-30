@@ -1,5 +1,7 @@
 import React, { useRef, useState } from "react";
-import './FileImport.css'
+import './FileImport.css';
+import deleteIcon from '../assets/delete.svg';
+import uploadIcon from '../assets/upload.svg';
 
 const FileImport = () => {
     const importFef = useRef();
@@ -23,14 +25,14 @@ const FileImport = () => {
         <div className="ImportContainer">
             <input type="file" ref={importFef} onChange={handleOnChange} style={{ display: "none" }} />
             <button className="fileButton" onClick={onChooseFile}>
-                <span class="material-symbols-rounded">upload</span> Upload File
+                <span class="material-symbols-rounded"><img src={uploadIcon}/></span> Upload File
             </button>
 
             {selectedFile && <div className="selectFile">
                 <p>{selectedFile.name}</p>
 
                 <button onClick={removeFile}>
-                    <span class="material-symbols-rounded" onChange>delete</span>
+                    <span class="material-symbols-rounded"><img src={deleteIcon}/></span>
                 </button>
             </div>}
         </div>
