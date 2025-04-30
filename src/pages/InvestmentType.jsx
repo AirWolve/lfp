@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 import trashIcon from "../assets/trash.svg";
+import InvestmentTypeForm from "../forms/InvestmentTypeForm";
 
 const InvestmentType = () => {
   //For storing investment Types
@@ -22,10 +23,10 @@ const InvestmentType = () => {
     name: "",
     description: "",
     returnAmtOrPct: "percent",
-    returnDistribution: { type: "fixed", value: 0 },
+    returnDistribution: { type: "fixed", value: null },
     expenseRatio: null,
     incomeAmtOrPct: "percent",
-    incomeDistribution: { type: "fixed", value: 0 },
+    incomeDistribution: { type: "fixed", value: null },
     taxability: true,
   };
 
@@ -96,136 +97,35 @@ const InvestmentType = () => {
         {/* Modal popup part */}
         {/* To show the investment Types, I use map(to show each object that store data) */}
         {investmentTypes.map((inv, idx) => (
-          <div key={idx} className="investment-item">
-            <img
-              src={trashIcon}
-              alt="delete"
-              className="trashIcon"
-              onClick={() => handleDelete(idx)}
-            />
-
-            {/* For the list up on the front */}
-            <ul style={{ fontSize: "15px" }}>
-              <strong style={{ textAlign: "left" }}>{inv.name}</strong>:{" "}
-              {inv.description}
-              <li>Value: {inv.returnDistribution.value}</li>
-              <li>Taxability: {inv.taxability ? "Taxable" : "Tax-exempt"}</li>
-            </ul>
-
+          <div key={idx} className="event-summary">
+            <div className="event-header">
+              <strong>{inv.name}</strong>
+              <img
+                src={trashIcon}
+                alt="delete"
+                className="trashIcon"
+                style={{ marginLeft: 'auto', cursor: 'pointer' }}
+                onClick={() => handleDelete(idx)}
+              />
+            </div>
+            <div className="event-tags-main">
+              <span className="event-tag">{inv.description}</span>
+              <span className="event-tag">Value: {inv.returnDistribution.value}</span>
+              <span className="event-tag">Taxability: {inv.taxability ? "Taxable" : "Tax-exempt"}</span>
+            </div>
           </div>
         ))}
         
         {/* Prompt to ChatGPT: "How can I make the modal popup in this page?" */}
         {showModal && (
           <div className="modal-overlay" onMouseDown={closeModal}>
-
             <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
-              <h4>Add New Investment Type</h4>
-              <label>Investment Type Name: </label>
-
-              {/* type is text for input string. value is storing to investmentType.name */}
-              <input
-                type="text"
-                value={investmentType.name}
-                onChange={(e) =>
-                  setInvestmentType({ ...investmentType, name: e.target.value })
-                }
+              <InvestmentTypeForm
+                investmentType={investmentType}
+                setInvestmentType={setInvestmentType}
+                handleConfirm={handleConfirm}
+                closeModal={closeModal}
               />
-
-              <label>Decription: </label>
-              <input
-                type="text"
-                value={investmentType.description}
-                onChange={(e) =>
-                  setInvestmentType({
-                    ...investmentType,
-                    description: e.target.value,
-                  })
-                }
-              />
-              
-              <label>Select notation type: </label>
-              <select
-                onChange={(e) =>
-                  setInvestmentType({
-                    ...investmentType,
-                    returnAmtOrPct: e.target.value,
-                  })
-                }
-              >
-                {/* Choosing type percentage or amount */}
-                <option value="percent">Percent</option>
-                <option value="amount">Amount</option>
-              </select>
-
-              <input
-                type="number"
-                onChange={(e) =>
-                  setInvestmentType({
-                    ...investmentType,
-                    returnDistribution: {
-                      type: "fixed",
-                      value: parseFloat(e.target.value),
-                    },
-                  })
-                }
-              />
-              
-              <label>Expense Ratio: </label>
-              <input
-                type="number"
-                placeholder="Expense Ratio"
-                value={investmentType.expenseRatio}
-                onChange={(e) =>
-                  setInvestmentType({
-                    ...investmentType,
-                    expenseRatio: parseFloat(e.target.value),
-                  })
-                }
-              />
-              
-              <label>Select notation type: </label>
-              <select
-                onChange={(e) =>
-                  setInvestmentType({
-                    ...investmentType,
-                    incomeAmtOrPct: e.target.value,
-                  })
-                }
-              >
-                <option value="percent">Percent</option>
-                <option value="amount">Amount</option>
-              </select>
-
-              <input
-                type="number"
-                onChange={(e) =>
-                  setInvestmentType({
-                    ...investmentType,
-                    incomeDistribution: {
-                      type: "fixed",
-                      value: parseFloat(e.target.value),
-                    },
-                  })
-                }
-              />
-
-              <select
-                onChange={(e) =>
-                  setInvestmentType({
-                    ...investmentType,
-                    taxability: e.target.value === "true",
-                  })
-                }
-              >
-                <option value="true">Taxable</option>
-                <option value="false">Tax-exempt</option>
-              </select>
-
-              <button onClick={handleConfirm}>Confirm</button>
-              <button className="close-btn" onClick={closeModal}>
-                Close
-              </button>
             </div>
           </div>
         )}

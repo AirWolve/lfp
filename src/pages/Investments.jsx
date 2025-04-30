@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";
 import trashIcon from "../assets/trash.svg";
+import InvestmentForm from "../forms/InvestmentForm";
 
 const Investments = () => {
   const [investments, setInvestments] = useState([]);
@@ -89,69 +90,34 @@ const Investments = () => {
         </button>
 
         {investments.map((inv, idx) => (
-          <div key={idx} className="investment-item">
-            <strong>{inv.investmentType}</strong>: ${inv.value}
-            <img
-              src={trashIcon}
-              alt="delete"
-              className="trashIcon"
-              onClick={() => handleDelete(idx)}
-            />
-            <ul>
-              <li>Tax: {inv.taxStatus}</li>
-            </ul>
+          <div key={idx} className="event-summary">
+            <div className="event-header">
+              <strong>{inv.investmentType}</strong>
+              <img
+                src={trashIcon}
+                alt="delete"
+                className="trashIcon"
+                style={{ marginLeft: 'auto', cursor: 'pointer' }}
+                onClick={() => handleDelete(idx)}
+              />
+            </div>
+            <div className="event-tags-main">
+              <span className="event-tag">Amount: ${inv.value}</span>
+              <span className="event-tag">Tax: {inv.taxStatus}</span>
+            </div>
           </div>
         ))}
 
         {showModal && (
           <div className="modal-overlay" onMouseDown={closeModal}>
             <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
-              <h4>Add Investment</h4>
-
-              <select
-                value={newInvestment.investmentType}
-                onChange={(e) =>
-                  setNewInvestment({ ...newInvestment, investmentType: e.target.value })
-                }
-              >
-                <option value="">-- Select Investment Type --</option>
-                {investmentTypes.map((typeObj, idx) => (
-                  <option key={idx} value={typeObj.name}>
-                    {typeObj.name}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                type="number"
-                placeholder="Investment Amount"
-                value={newInvestment.value}
-                onChange={(e) =>
-                  setNewInvestment({
-                    ...newInvestment,
-                    value: parseFloat(e.target.value),
-                  })
-                }
+              <InvestmentForm
+                newInvestment={newInvestment}
+                setNewInvestment={setNewInvestment}
+                investmentTypes={investmentTypes}
+                handleConfirm={handleConfirm}
+                closeModal={closeModal}
               />
-
-              <select
-                value={newInvestment.taxStatus}
-                onChange={(e) =>
-                  setNewInvestment({
-                    ...newInvestment,
-                    taxStatus: e.target.value,
-                  })
-                }
-              >
-                <option value="non-retirement">Non-retirement</option>
-                <option value="pre-tax">Pre-tax</option>
-                <option value="after-tax">After-tax</option>
-              </select>
-
-              <button onClick={handleConfirm}>Confirm</button>
-              <button className="close-btn" onClick={closeModal}>
-                Close
-              </button>
             </div>
           </div>
         )}
