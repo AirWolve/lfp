@@ -26,13 +26,124 @@
   }
   
   .event-item {
-    width: 100%;
-    background-color: #f3f7fc;
+    background: #ffffff;
     border-radius: 8px;
-    padding: 10px 15px;
-    margin-top: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    font-size: 14px;
+    padding: 12px 16px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 8px;
+  }
+  
+  .event-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .event-summary {
+    padding-right: 24px;
+  }
+  
+  .event-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .event-header strong {
+    font-size: 0.95rem;
+    color: #333;
+    margin-right: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .event-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    min-width: 60px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  
+  .event-badge.income {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+  
+  .event-badge.expense {
+    background-color: #fbe9e7;
+    color: #d84315;
+  }
+  
+  .event-badge.invest {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .event-badge.rebalance {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+  }
+  
+  .event-details {
+    display: flex;
+    gap: 24px;
+    color: #666;
+    font-size: 0.85rem;
+    margin-left: 82px;
+  }
+  
+  .event-tags-main, .event-tags-option {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 0;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+  
+  .event-tags-option {
+    margin-top: 2px;
+  }
+  
+  .event-tag {
+    background: #f5f5f5;
+    color: #666;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  
+  .delete-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .delete-btn:hover {
+    opacity: 1;
+  }
+  
+  .trash-icon {
+    width: 14px;
+    height: 14px;
   }
   
   .modal-overlay {
@@ -50,7 +161,7 @@
   
   .modal-content {
     background-color: white;
-    width: 450px;
+    width: 650px;
     padding: 25px;
     border-radius: 12px;
     display: flex;
@@ -75,7 +186,6 @@
     font-size: 14px;
     width: 100%;
     box-sizing: border-box;
-
   }
   
   .modal-content label {
@@ -87,7 +197,6 @@
   
   .modal-content button {
     padding: 8px;
-    margin-top: 5px;
     border-radius: 5px;
     border: none;
     cursor: pointer;
@@ -119,3 +228,11 @@
       -webkit-appearance: none;
       margin: 0;
   }
+
+.events-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 80%;
+}

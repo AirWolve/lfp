@@ -4,6 +4,10 @@ import { constPath } from "../config.js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import trashIcon from "../assets/trash.svg";
+import IncomeEventForm, { initialIncomeEvent } from "../forms/IncomeEventForm";
+import ExpenseEventForm, { initialExpenseEvent } from "../forms/ExpenseEventForm";
+import InvestEventForm, { initialInvestEvent } from "../forms/InvestEventForm";
+import RebalanceEventForm, { initialRebalanceEvent } from "../forms/RebalanceEventForm";
 
 const EventSeries = () => {
   const [events, setEvents] = useState([]);
@@ -17,8 +21,6 @@ const EventSeries = () => {
 
   const handleNext = async (e) => {
     e.preventDefault();
-    //----Integrating all data---//
-    // Gahtering data from localStorage
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
     const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
@@ -29,8 +31,6 @@ const EventSeries = () => {
       return;
     }
 
-    // Merge all data into one object (flattened basicInfo)
-    // flatten basicInfo to make sure it looks similar to the sample scenario.yaml
     const combinedData = {
       ...basicInfo,
       investmentTypes,
@@ -38,14 +38,10 @@ const EventSeries = () => {
       eventSeries
     };
 
-    // Saved integrated data into new key 'combinedUserData'
     localStorage.setItem("BasicSettings", JSON.stringify(combinedData));
-    
-    // Debug line
     navigate(`${constPath.overview}`);
   };
-  // Send to server this data //
-  //--------------------------------------------------------------------------------------------------
+
   const eventTypes = ["income", "expense", "invest", "rebalance"];
 
   // storing data for allocation1
@@ -56,7 +52,6 @@ const EventSeries = () => {
   const [selectInvestment2, setSelectInvestment2] = useState();
   const [allocationNum2, setAllocationNum2] = useState();
 
-  // Import the investment data from local storage, parse it into JSON, and create an array consisting of the id of each investment.
   const investmentsData = JSON.parse(
     localStorage.getItem("Investments") || "[]"
   );
@@ -67,62 +62,43 @@ const EventSeries = () => {
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
 
-  // initial event status
-  const initialEvent = {
-    name: "",
-    start: {
-      type: "fixed",
-      value: null,
-      eventSeries: "",
-      lower: null,
-      upper: null,
-    },
-    duration: { type: "fixed", value: null },
-    type: "",
-    initialAmount: null,
-    changeAmtOrPct: "",
-    changeDistribution: {
-      type: "",
-      lower: null,
-      upper: null,
-      mean: 0.0,
-      stdev: 0.0,
-    },
-    inflationAdjusted: false,
-    userFraction: null,
-    socialSecurity: false,
-    assetAllocation: {},
-    glidePath: false,
-    assetAllocation2: {},
-    maxCash: null,
-    discretionary: false,
+  const getInitialEventByType = (type) => {
+    switch (type) {
+      case "income":
+        return { ...initialIncomeEvent };
+      case "expense":
+        return { ...initialExpenseEvent };
+      case "invest":
+        return { ...initialInvestEvent };
+      case "rebalance":
+        return { ...initialRebalanceEvent };
+      default:
+        return { name: "", type: "" };
+    }
   };
 
-  //Temporarily save information saved within the modal --> Save when confirmed
-  const [newEvent, setNewEvent] = useState(initialEvent);
+  const [newEvent, setNewEvent] = useState({ name: "", type: "" });
 
-  // add the list when click confirm
+  const handleEventTypeChange = (type) => {
+    setNewEvent(getInitialEventByType(type));
+  };
+
   const handleConfirm = () => {
     if (!newEvent.name) {
       toast.warning("Please Fill in all fields");
       return;
     }
 
-    // max cash to 1000
     if (newEvent.maxCash > 1000) {
       toast.warning("Cash cannot exceed 1000.");
       return;
     }
 
-    //It is necessary for the information entered by the user to be stacked (needs to be continuously updated)
     const updatedList = [...events, newEvent];
     setEvents(updatedList);
-
-    //Save to local storage in Key: EventSeries, value:[] format
     localStorage.setItem("EventSeries", JSON.stringify(updatedList));
-
     setEvents([...events, newEvent]);
-    setNewEvent(initialEvent);
+    setNewEvent({ name: "", type: "" });
     closeModal();
   };
 
@@ -132,7 +108,6 @@ const EventSeries = () => {
     localStorage.setItem("EventSeries", JSON.stringify(updated));
   };
 
-  //loading event series which is saved in local storage
   useEffect(() => {
     const savedList = localStorage.getItem("EventSeries");
     if (savedList) {
@@ -144,6 +119,93 @@ const EventSeries = () => {
       setEvents(JSON.parse(savedEventSeries));
     }
   }, []);
+
+  const renderEventSummary = (event) => {
+    const formatAmount = (amount) => {
+      return amount ? `$${Number(amount).toLocaleString()}` : 'N/A';
+    };
+    const formatYear = (start) => {
+      if (!start || !start.type) return 'N/A';
+      switch (start.type) {
+        case 'fixed':
+          return start.value ? `Start: ${start.value} Years` : 'Start: N/A';
+        case 'normal':
+          if (start.mean && start.stdev)
+            return `Start: N(${start.mean}, ${start.stdev})`;
+          if (start.mean)
+            return `Start: N(${start.mean}, -)`;
+          return 'Start: N/A';
+        case 'uniform':
+          if (start.lower && start.upper)
+            return `Start: U(${start.lower}, ${start.upper})`;
+          if (start.lower)
+            return `Start: U(${start.lower}, -)`;
+          if (start.upper)
+            return `Start: U(-, ${start.upper})`;
+          return 'Start: N/A';
+        case 'startWith':
+          return start.eventSeries ? `Start With: ${start.eventSeries}` : 'Start With: N/A';
+        case 'startAfter':
+          return start.eventSeries ? `Start After: ${start.eventSeries}` : 'Start After: N/A';
+        default:
+          return 'Start: N/A';
+      }
+    };
+    const formatDuration = (duration) => {
+      return duration?.value ? `${duration.value} Years` : 'N/A';
+    };
+
+    const mainTags = [];
+    if (event.initialAmount) mainTags.push(`Amount: ${formatAmount(event.initialAmount)}`);
+    if (event.start) mainTags.push(`${formatYear(event.start)}`);
+    if (event.duration) mainTags.push(`Duration: ${formatDuration(event.duration)}`);
+
+    const optionTags = [];
+    switch (event.type) {
+      case 'income':
+        if (event.inflationAdjusted) optionTags.push('Inflation');
+        if (event.socialSecurity) optionTags.push('Social Security');
+        break;
+      case 'expense':
+        if (event.inflationAdjusted) optionTags.push('Inflation');
+        if (event.discretionary) optionTags.push('Discretionary');
+        break;
+      case 'invest':
+        if (event.glidePath) optionTags.push('Glide Path');
+        if (event.maxCash) optionTags.push('Cash');
+        break;
+      default:
+        break;
+    }
+
+    const badgeTypes = {
+      income: 'Income',
+      expense: 'Expense',
+      invest: 'Investment',
+      rebalance: 'Rebalance'
+    };
+
+    return (
+      <div className="event-summary">
+        <div className="event-header">
+          <span className={`event-badge ${event.type}`}>{badgeTypes[event.type]}</span>
+          <strong>{event.name}</strong>
+        </div>
+        <div className="event-tags-main">
+          {mainTags.map((tag, idx) => (
+            <span key={tag} className="event-tag">{tag}</span>
+          ))}
+        </div>
+        {optionTags.length > 0 && (
+          <div className="event-tags-option">
+            {optionTags.map((tag, idx) => (
+              <span key={tag} className="event-tag">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="eventSeries-container">
@@ -159,54 +221,33 @@ const EventSeries = () => {
           Please enter your income information first.
         </p>
         <button className="add-btn" onClick={openModal}>
-          add event
+          Add Event
         </button>
 
-        {events.map((event, idx) => (
-          <div key={idx} className="event-item">
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <div>
-                <strong>{event.name}</strong>
-              </div>
-              <img
-                src={trashIcon}
-                alt="delete"
-                className="trash-icon"
+        <div className="events-list">
+          {events.map((event, idx) => (
+            <div key={idx} className="event-item">
+              {renderEventSummary(event)}
+              <button 
+                className="delete-btn" 
                 onClick={() => handleDelete(idx)}
-              />
+                title="Delete event"
+              >
+                <img src={trashIcon} alt="delete" className="trash-icon" />
+              </button>
             </div>
-            {/* Prompt to ChatGPT: "How can I export the input format depending on the type? For example, if user choose Income, it export start Year, Duration, Amount. However, if user choose invest, then it should export start year, duration, assestAllocation, gildepath, and cash" */}
-            {event.type && (
-              <div>
-                <div>Type: {event.type} </div>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
 
-        {/* modal popup */}
         {showModal && (
           <div className="modal-overlay" onMouseDown={closeModal}>
             <div className="modal-content" onMouseDown={(e) => e.stopPropagation()}>
               <h4>Add Event Series</h4>
 
-              {/* 1) Event Name */}
-              <label>Event Name</label>
-              <input
-                type="text"
-                value={newEvent.name}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, name: e.target.value })
-                }
-              />
-
-              {/* 2) Event Type */}
               <label>What is the type of?</label>
               <select
                 value={newEvent.type}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, type: e.target.value })
-                }
+                onChange={(e) => handleEventTypeChange(e.target.value)}
               >
                 <option value="">-- Select Type --</option>
                 {eventTypes.map((type, idx) => (
@@ -216,729 +257,47 @@ const EventSeries = () => {
                 ))}
               </select>
 
-              {/* income -> Start Year, Duration, Amount */}
               {newEvent.type === "income" && (
-                <>
-                  <label>start Year</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 2025"
-                    value={newEvent.start.value}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        start: {
-                          ...newEvent.start,
-                          value: parseInt(e.target.value, 10) || 0,
-                        },
-                      })
-                    }
-                  />
-                  <label>Duration for years</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 20"
-                    value={newEvent.duration.value}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        duration: {
-                          ...newEvent.duration,
-                          value: parseInt(e.target.value, 10) || 0,
-                        },
-                      })
-                    }
-                  />
-                  <label>Amount</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 1234"
-                    value={newEvent.initialAmount}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        initialAmount: parseFloat(e.target.value, 10),
-                      })
-                    }
-                  />
-                  <label>Amount change trend</label>
-                  <select
-                    value={newEvent.changeAmtOrPct}
-                    onChange={(e) => {
-                      const selectedValue = e.target.value;
-                      setNewEvent((prev) => ({
-                        ...prev,
-                        changeAmtOrPct: selectedValue,
-                      }));
-                    }}
-                  >
-                    <option value="">-- Select Notation Type --</option>
-                    <option value="amount">Notation for Amount</option>
-                    <option value="percent">Notation for Percent</option>
-                  </select>
-                  {/* If user select Amount */}
-                  <input
-                    style={{ width: "150px" }}
-                    type="number"
-                    placeholder="e.g. 1234"
-                    value={
-                      newEvent.changeAmtOrPct === "amount"
-                        ? newEvent.changeDistribution.lower || null
-                        : newEvent.changeDistribution.mean || null
-                    }
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value, 10);
-                      if (newEvent.changeAmtOrPct === "amount") {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            lower: value,
-                            type: "uniform",
-                          },
-                        });
-                      } else {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            mean: value,
-                            type: "normal",
-                          },
-                        });
-                      }
-                    }}
-                  />
-                  ~
-                  <input
-                    style={{ width: "150px" }}
-                    type="number"
-                    placeholder="e.g. 5678"
-                    value={
-                      newEvent.changeAmtOrPct === "amount"
-                        ? newEvent.changeDistribution.upper || ""
-                        : newEvent.changeDistribution.stdev || ""
-                    }
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value, 10);
-                      if (newEvent.changeAmtOrPct === "amount") {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            upper: value,
-                          },
-                        });
-                      } else {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            stdev: value,
-                          },
-                        });
-                      }
-                    }}
-                  />
-                  <label>Is it inflation adjusted?</label>
-                  <input
-                    type="checkbox"
-                    checked={newEvent.inflationAdjusted}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        inflationAdjusted: e.target.checked,
-                      })
-                    }
-                  />
-                  <br />
-                  <label>
-                    What is your share ratio?
-                    <span style={{ fontSize: "11px" }}>
-                      (If you do not have a spouse, please indicate 1.0)
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 0.3"
-                    value={newEvent.userFraction}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        userFraction: parseFloat(e.target.value, 10),
-                      })
-                    }
-                  />
-                  <label>Is it social Security?</label>
-                  <input
-                    type="checkbox"
-                    checked={newEvent.socialSecurity}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        socialSecurity: e.target.checked,
-                      })
-                    }
-                  />
-                </>
+                <IncomeEventForm
+                  newEvent={newEvent}
+                  setNewEvent={setNewEvent}
+                />
               )}
 
-              {/* Expense Part */}
               {newEvent.type === "expense" && (
-                <>
-                  <label>Start Year with:</label>
-                  <select
-                    value={newEvent.start.type || ""}
-                    onChange={(e) => {
-                      const selectedType = e.target.value;
-                      setNewEvent({
-                        ...newEvent,
-                        start: {
-                          ...newEvent.start,
-                          type: selectedType,
-                        },
-                      });
-                    }}
-                  >
-                    <option value="">-- Set Start Year --</option>
-                    <option value="startWith">
-                      Start Year (Same year with income)
-                    </option>
-                    <option value="startAfter">Start Year after income</option>
-                  </select>
-                  <label>Income Event</label>
-                  <select
-                    value={newEvent.start.eventSeries || ""}
-                    onChange={(e) => {
-                      const selectedIncomeId = e.target.value;
-                      // find the income event that user choose
-                      const selectedIncome = incomeEvents.find(
-                        (income) => income.id === selectedIncomeId
-                      );
-
-                      let startValue;
-
-                      if (selectedIncome) {
-                        // If "startWith", use the start year of income.
-                        if (newEvent.start.type === "startWith") {
-                          startValue = selectedIncome.start.value;
-                        }
-                        // If "startAfter", use the start year + period of income.
-                        else if (newEvent.start.type === "startAfter") {
-                          startValue =
-                            selectedIncome.start.value +
-                            selectedIncome.duration;
-                        } else {
-                          // Default value if no selection type is provided
-                          startValue = selectedIncome.start.value;
-                        }
-                      }
-
-                      setNewEvent({
-                        ...newEvent,
-                        start: {
-                          ...newEvent.start,
-                          eventSeries: selectedIncomeId,
-                          value: startValue,
-                        },
-                      });
-                    }}
-                  >
-                    <option value="">-- Select Income Event --</option>
-                    {incomeEvents.map((income) => (
-                      <option key={income.id} value={income.id}>
-                        {income.name}
-                      </option>
-                    ))}
-                  </select>
-                  
-                  <label>Amount</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 1234"
-                    value={newEvent.initialAmount}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        initialAmount: parseFloat(e.target.value, 10),
-                      })
-                    }
-                  />
-                  <label>Amount change trend</label>
-                  <select
-                    value={newEvent.changeAmtOrPct}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        changeAmtOrPct: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="">-- Select Notation Type --</option>
-                    <option value="amount">Notation for Amount</option>
-                    <option value="percent">Notation for Percent</option>
-                  </select>
-                  {/* If user select Amount */}
-                  <input
-                    style={{ width: "150px" }}
-                    type="number"
-                    placeholder="e.g. 1234"
-                    value={
-                      newEvent.changeAmtOrPct === "amount"
-                        ? newEvent.changeDistribution.lower || null
-                        : newEvent.changeDistribution.mean || null
-                    }
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value, 10);
-                      if (newEvent.changeAmtOrPct === "amount") {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            lower: value,
-                            type: "uniform",
-                          },
-                        });
-                      } else {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            mean: value,
-                            type: "normal",
-                          },
-                        });
-                      }
-                    }}
-                  />
-                  ~
-                  <input
-                    style={{ width: "150px" }}
-                    type="number"
-                    placeholder="e.g. 5678"
-                    value={
-                      newEvent.changeAmtOrPct === "amount"
-                        ? newEvent.changeDistribution.upper || ""
-                        : newEvent.changeDistribution.stdev || ""
-                    }
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value, 10);
-                      if (newEvent.changeAmtOrPct === "amount") {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            upper: value,
-                          },
-                        });
-                      } else {
-                        setNewEvent({
-                          ...newEvent,
-                          changeDistribution: {
-                            ...newEvent.changeDistribution,
-                            stdev: value,
-                          },
-                        });
-                      }
-                    }}
-                  />
-                  <label>Is it inflation adjusted?</label>
-                  <input
-                    type="checkbox"
-                    checked={newEvent.inflationAdjusted}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        inflationAdjusted: e.target.checked,
-                      })
-                    }
-                  />
-                  <br />
-                  <label>
-                    What is your share ratio?
-                    <span style={{ fontSize: "11px" }}>
-                      (If you do not have a spouse, please indicate 1.0)
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 0.3"
-                    value={newEvent.userFraction}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        userFraction: parseFloat(e.target.value, 10),
-                      })
-                    }
-                  />
-                  <label>Is it discretionary?</label>
-                  <input
-                    type="checkbox"
-                    checked={newEvent.discretionary}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        discretionary: e.target.checked,
-                      })
-                    }
-                  />
-                </>
+                <ExpenseEventForm
+                  newEvent={newEvent}
+                  setNewEvent={setNewEvent}
+                  incomeEvents={incomeEvents}
+                />
               )}
 
-              {/* invest -> Start Year, Duration, assetAllocation, glidePath, assetAllocation2, maxCash */}
               {newEvent.type === "invest" && (
-                <>
-                  <label>Year range:</label>
-                  <input
-                    type="number"
-                    placeholder="Start Year"
-                    value={newEvent.start.lower}
-                    onChange={(e) =>
-                    {
-                      const lowerValue = parseInt(e.target.value, 10);
-                      setNewEvent({
-                        ...newEvent,
-                        start: {
-                          ...newEvent.start,
-                          lower: lowerValue,
-                          type: "uniform",
-                        }
-                      })
-                    }
-                    }
-                  />
-                  ~
-                  <input
-                    type="number"
-                    placeholder="End Year (Expected)"
-                    value={newEvent.start.upper}
-                    onChange={(e) =>
-                      {
-                        const upperValue = parseInt(e.target.value, 10);
-                        setNewEvent({
-                          ...newEvent,
-                          start: {
-                            ...newEvent.start,
-                            upper: upperValue,
-                            type: "uniform",
-                          }
-                        })
-                      }
-                    }
-                  />
-                  <input
-                    type="number"
-                    placeholder="Duration (year)"
-                    value={newEvent.duration}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        duration: parseInt(e.target.value, 10),
-                      })
-                    }
-                  />
-                  <label>Asset Allocation (%) </label>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <select
-                      value={selectInvestment}
-                      onChange={(e) => setSelectInvestment(e.target.value)}
-                    >
-                      <option value="">-- Select --</option>
-                      {assetAllocations.map((alloc, idx) => (
-                        <option key={idx} value={alloc}>
-                          {alloc}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      placeholder="e.g. 0.4"
-                      value={allocationNum}
-                      onChange={(e) => setAllocationNum(e.target.value, 10)}
-                      style={{ width: "50px" }}
-                    />
-                    <button
-                      onClick={() => {
-                        // If all values ​​are entered, add them to the assetAllocation object.
-                        if (selectInvestment && allocationNum) {
-                          const allocationValue = parseFloat(allocationNum);
-                          setNewEvent({
-                            ...newEvent,
-                            assetAllocation: {
-                              // Add new item while keeping existing assetAllocation value
-                              ...newEvent.assetAllocation,
-                              [selectInvestment]: allocationValue,
-                            },
-                          });
-                          // Initialization of input values
-                          setSelectInvestment("");
-                          setAllocationNum("");
-                        }
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                  {/* Display the list of added asset allocations */}
-                  <div style={{ marginTop: "10px" }}>
-                    <h5>Asset Allocations:</h5>
-                    <ul>
-                      {newEvent.assetAllocation &&
-                        Object.entries(newEvent.assetAllocation).map(
-                          ([asset, allocation]) => (
-                            <li key={asset}>
-                              {asset}: {allocation}{" "}
-                              <button
-                                onClick={() => {
-                                  // Deleting an asset: Creating a new object with the corresponding key removed
-                                  const { [asset]: _, ...rest } =
-                                    newEvent.assetAllocation;
-                                  setNewEvent({
-                                    ...newEvent,
-                                    assetAllocation: rest,
-                                  });
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </li>
-                          )
-                        )}
-                    </ul>
-                  </div>
-                  <label>
-                    Glide Path:
-                    <input
-                      type="checkbox"
-                      checked={newEvent.glidePath}
-                      onChange={(e) =>
-                        setNewEvent({
-                          ...newEvent,
-                          glidePath: e.target.checked,
-                          // if release glidePath, then reset assetAllocation2
-                          ...(e.target.checked === false
-                            ? { assetAllocation2: "" }
-                            : {}),
-                        })
-                      }
-                    />
-                  </label>
-                  {/* If glidePath checked */}
-                  {newEvent.glidePath && (
-                    <>
-                      <label>Asset Allocation2</label>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <select
-                          value={selectInvestment2}
-                          onChange={(e) => setSelectInvestment2(e.target.value)}
-                        >
-                          <option value="">-- Select --</option>
-                          {assetAllocations.map((alloc, idx) => (
-                            <option key={idx} value={alloc}>
-                              {alloc}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="number"
-                          placeholder="e.g. 0.4"
-                          value={allocationNum2}
-                          onChange={(e) =>
-                            setAllocationNum2(e.target.value, 10)
-                          }
-                          style={{ width: "50px" }}
-                        />
-                        <button
-                          onClick={() => {
-                            // If all values ​​are entered, add them to the assetAllocation object.
-                            if (selectInvestment2 && allocationNum2) {
-                              const allocationValue =
-                                parseFloat(allocationNum2);
-                              setNewEvent({
-                                ...newEvent,
-                                assetAllocation2: {
-                                  // Add new item while keeping existing assetAllocation value
-                                  ...newEvent.assetAllocation2,
-                                  [selectInvestment2]: allocationValue,
-                                },
-                              });
-                              // Initialization of input values
-                              setSelectInvestment("");
-                              setAllocationNum("");
-                            }
-                          }}
-                        >
-                          Add
-                        </button>
-                      </div>
-                      {/* Display the list of added asset allocations */}
-                      <div style={{ marginTop: "10px" }}>
-                        <h5>Asset Allocations2:</h5>
-                        <ul>
-                          {newEvent.assetAllocation2 &&
-                            Object.entries(newEvent.assetAllocation2).map(
-                              ([asset, allocation]) => (
-                                <li key={asset}>
-                                  {asset}: {allocation}{" "}
-                                  <button
-                                    onClick={() => {
-                                      // Deleting an asset: Creating a new object with the corresponding key removed
-                                      const { [asset]: _, ...rest } =
-                                        newEvent.assetAllocation2;
-                                      setNewEvent({
-                                        ...newEvent,
-                                        assetAllocation2: rest,
-                                      });
-                                    }}
-                                  >
-                                    Remove
-                                  </button>
-                                </li>
-                              )
-                            )}
-                        </ul>
-                      </div>
-                    </>
-                  )}
-                  <label>Cash (Max 1000)</label>
-                  <input
-                    type="number"
-                    placeholder="0 ~ 1000"
-                    value={newEvent.maxCash}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value, 10);
-                      setNewEvent({ ...newEvent, maxCash: val });
-                    }}
-                  />
-                </>
+                <InvestEventForm
+                  newEvent={newEvent}
+                  setNewEvent={setNewEvent}
+                  assetAllocations={assetAllocations}
+                  selectInvestment={selectInvestment}
+                  setSelectInvestment={setSelectInvestment}
+                  allocationNum={allocationNum}
+                  setAllocationNum={setAllocationNum}
+                  selectInvestment2={selectInvestment2}
+                  setSelectInvestment2={setSelectInvestment2}
+                  allocationNum2={allocationNum2}
+                  setAllocationNum2={setAllocationNum2}
+                />
               )}
 
-              {/* For rebalance */}
               {newEvent.type === "rebalance" && (
-                <>
-                  <label>Year range:</label>
-                  <input
-                    type="number"
-                    placeholder="Start Year"
-                    value={newEvent.start.lower}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        start: parseInt(e.target.value, 10),
-                      })
-                    }
-                  />
-                  ~
-                  <input
-                    type="number"
-                    placeholder="End Year (Expected)"
-                    value={newEvent.start.upper}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        start: parseInt(e.target.value, 10),
-                      })
-                    }
-                  />
-                  <input
-                    type="number"
-                    placeholder="Duration (year)"
-                    value={newEvent.duration}
-                    onChange={(e) =>
-                      setNewEvent({
-                        ...newEvent,
-                        duration: parseInt(e.target.value, 10),
-                      })
-                    }
-                  />
-                  <label>Asset Allocation (%) </label>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <select
-                      value={selectInvestment}
-                      onChange={(e) => setSelectInvestment(e.target.value)}
-                    >
-                      <option value="">-- Select --</option>
-                      {assetAllocations.map((alloc, idx) => (
-                        <option key={idx} value={alloc}>
-                          {alloc}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      placeholder="e.g. 0.4"
-                      value={allocationNum}
-                      onChange={(e) => setAllocationNum(e.target.value, 10)}
-                      style={{ width: "50px" }}
-                    />
-                    <button
-                      onClick={() => {
-                        // If all values ​​are entered, add them to the assetAllocation object.
-                        if (selectInvestment && allocationNum) {
-                          const allocationValue = parseFloat(allocationNum);
-                          setNewEvent({
-                            ...newEvent,
-                            assetAllocation: {
-                              // Add new item while keeping existing assetAllocation value
-                              ...newEvent.assetAllocation,
-                              [selectInvestment]: allocationValue,
-                            },
-                          });
-                          // Initialization of input values
-                          setSelectInvestment("");
-                          setAllocationNum("");
-                        }
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                  {/* Display the list of added assetAllocations */}
-                  <div style={{ marginTop: "10px" }}>
-                    <h5>Asset Allocations:</h5>
-                    <ul>
-                      {newEvent.assetAllocation &&
-                        Object.entries(newEvent.assetAllocation).map(
-                          ([asset, allocation]) => (
-                            <li key={asset}>
-                              {asset}: {allocation}{" "}
-                              <button
-                                onClick={() => {
-                                  // Deleting an asset: Creating a new object with the corresponding key removed
-                                  const { [asset]: _, ...rest } =
-                                    newEvent.assetAllocation;
-                                  setNewEvent({
-                                    ...newEvent,
-                                    assetAllocation: rest,
-                                  });
-                                }}
-                              >
-                                Remove
-                              </button>
-                            </li>
-                          )
-                        )}
-                    </ul>
-                  </div>
-                </>
+                <RebalanceEventForm
+                  newEvent={newEvent}
+                  setNewEvent={setNewEvent}
+                  assetAllocations={assetAllocations}
+                  selectInvestment={selectInvestment}
+                  setSelectInvestment={setSelectInvestment}
+                  allocationNum={allocationNum}
+                  setAllocationNum={setAllocationNum}
+                />
               )}
 
               <button onClick={handleConfirm}>Confirm</button>

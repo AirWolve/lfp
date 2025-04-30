@@ -1,0 +1,185 @@
+.formContainer {
+  max-width: 800px;
+  margin: 0px;
+  padding: 20px;
+}
+
+.formSection {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+  font-weight: 500;
+}
+
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+.formButton {
+  margin-top: 0px;
+}
+
+.inputHint {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.distributionInputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.toggleGroup {
+  margin-bottom: 15px;
+}
+
+.toggleLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.toggleSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleSlider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggleSlider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggleSwitch input:checked + .toggleSlider {
+  background-color: #4a90e2;
+}
+
+.toggleSwitch input:checked + .toggleSlider:before {
+  transform: translateX(26px);
+}
+
+.formRow {
+  display: flex;
+  gap: 12px;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.formRow > .formGroup,
+.formRow > .toggleGroup {
+  margin-bottom: 0;
+}
+
+.allocationGrid {
+  display: grid;
+  row-gap: 8px;
+}
+
+.allocationRow {
+  display: grid;
+  grid-template-columns: 50% 30% 20%;
+  align-items: center;
+  column-gap: 8px;
+}
+
+.allocationCell {
+  /* 필요시 개별 셀 스타일 */
+}
+
+.allocationRemoveBtn {
+  min-width: 60px;
+  height: 32px;
+  margin-left: 16px;
+}
+
+.allocationAddBtn {
+  min-width: 60px;
+  height: 36px;
+  margin-left: 10px;
+  padding: 0 16px;
+}
+
+.formFullButton {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 16px;
+  border: none;
+  color: white;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.formConfirmButton {
+  background: #5b8def;
+}
+
+.formCloseButton {
+  background: #777;
+  margin-bottom: 0;
+} 
