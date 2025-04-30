@@ -48,7 +48,7 @@ const InvestmentType = () => {
     localStorage.setItem("InvestmentTypes", JSON.stringify(updatedList));
 
     setInvestmentTypes([...investmentTypes, investmentType]);
-    setInvestmentType({ investmentTypeForm });
+    setInvestmentType(investmentTypeForm);
     closeModal();
   };
 
