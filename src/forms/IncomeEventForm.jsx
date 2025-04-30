@@ -101,7 +101,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
 
       <label>Distribution Type</label>
       <select
-        value={newEvent.changeDistribution.type}
+        value={newEvent.changeDistribution.type ?? "fixed"}
         onChange={(e) => {
           const selectedType = e.target.value;
           updateChangeDistribution(selectedType);
