@@ -11,10 +11,7 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState("import" | "export");
-
-  const openModal = () => setShowModal(true);
-  const closeModal = () => setShowModal(false);
+  const [activeTab, setActiveTab] = useState("import");
 
   useEffect(() => {
     // withCredentials: Set to true to ensure HTTP-Only cookies are sent along.
@@ -54,15 +51,16 @@ const Dashboard = () => {
             className="plan-button"
             onClick={() => {
               setActiveTab("import");
-              openModal();
+              setShowModal(true);
             }}
           >
             Import/Export Plan
           </button>
+          <button className="plan-button">Existing Plans</button>
           {showModal && (
             <div
               className="modalPopup"
-              onMouseDown={(closeModal)}
+              onMouseDown={() => setShowModal}
             >
               <div
                 className="modalContent"
@@ -87,14 +85,14 @@ const Dashboard = () => {
                   </button>
                   <button
                     className="closeButton"
-                    onClick={(closeModal)}
+                    onClick={() => setShowModal(false)}
                   >
                     
                     X
                   </button>
                   <div className="tabContent">
                     {activeTab === "import" ? (
-                      <FileImport onClose={(closeModal)} />
+                      <FileImport />
                     ) : (
                       <FileExport exportData={{
                         message: "Exported data from the app",
@@ -107,7 +105,6 @@ const Dashboard = () => {
               </div>
             </div>
           )}
-          <button className="plan-button">Existing Plans</button>
         </div>
       </div>
     </MenuLayout>
