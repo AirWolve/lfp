@@ -1,5 +1,5 @@
 import React from 'react';
-import '../css/FormStyles.css';
+import formStyles from '../css/FormStyles.module.css';
 
 export const initialExpenseEvent = {
   name: "",
@@ -48,10 +48,10 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
   };
 
   return (
-    <div className="form-container">
-      <div className="form-section">
-        <h3 className="section-title">기본 정보</h3>
-        <div className="form-group">
+    <div className={formStyles.formContainer}>
+      <div className={formStyles.formSection}>
+        <div className={formStyles.sectionTitle}>기본 정보</div>
+        <div className={formStyles.formGroup}>
           <label htmlFor="name">이름</label>
           <input
             type="text"
@@ -59,12 +59,12 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
             name="name"
             value={newEvent.name}
             onChange={handleInputChange}
-            className="form-input"
+            className={formStyles.formInput}
             placeholder="지출 이벤트 이름"
           />
         </div>
 
-        <div className="form-group">
+        <div className={formStyles.formGroup}>
           <label htmlFor="start">시작 연도</label>
           <input
             type="number"
@@ -72,12 +72,12 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
             name="start"
             value={newEvent.start}
             onChange={handleInputChange}
-            className="form-input"
+            className={formStyles.formInput}
             placeholder="시작 연도를 입력하세요"
           />
         </div>
 
-        <div className="form-group">
+        <div className={formStyles.formGroup}>
           <label htmlFor="duration">기간 (년)</label>
           <input
             type="number"
@@ -85,15 +85,15 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
             name="duration"
             value={newEvent.duration}
             onChange={handleInputChange}
-            className="form-input"
+            className={formStyles.formInput}
             placeholder="기간을 입력하세요"
           />
         </div>
       </div>
 
-      <div className="form-section">
-        <h3 className="section-title">금액 상세</h3>
-        <div className="form-group">
+      <div className={formStyles.formSection}>
+        <div className={formStyles.sectionTitle}>금액 상세</div>
+        <div className={formStyles.formGroup}>
           <label htmlFor="amount">금액</label>
           <input
             type="number"
@@ -101,16 +101,16 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
             name="amount"
             value={newEvent.amount}
             onChange={handleInputChange}
-            className="form-input"
+            className={formStyles.formInput}
             placeholder="금액을 입력하세요"
           />
         </div>
 
-        <div className="form-group">
+        <div className={formStyles.formGroup}>
           <label htmlFor="distributionType">분포 유형</label>
           <select
             id="distributionType"
-            className="form-select"
+            className={formStyles.formSelect}
             value={newEvent.changeDistribution.type}
             onChange={(e) => handleDistributionChange(e.target.value)}
           >
@@ -122,12 +122,12 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
         </div>
 
         {newEvent.changeDistribution.type === 'fixed' && (
-          <div className="form-group">
+          <div className={formStyles.formGroup}>
             <label htmlFor="fixedValue">고정 값</label>
             <input
               type="number"
               id="fixedValue"
-              className="form-input"
+              className={formStyles.formInput}
               value={newEvent.changeDistribution.value || ''}
               onChange={(e) => handleDistributionChange('fixed', { value: parseFloat(e.target.value) || 0 })}
               placeholder="고정 값을 입력하세요"
@@ -137,12 +137,12 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
 
         {newEvent.changeDistribution.type === 'normal' && (
           <>
-            <div className="form-group">
+            <div className={formStyles.formGroup}>
               <label htmlFor="mean">평균</label>
               <input
                 type="number"
                 id="mean"
-                className="form-input"
+                className={formStyles.formInput}
                 value={newEvent.changeDistribution.mean || ''}
                 onChange={(e) => handleDistributionChange('normal', {
                   mean: parseFloat(e.target.value) || 0,
@@ -151,12 +151,12 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
                 placeholder="평균값을 입력하세요"
               />
             </div>
-            <div className="form-group">
+            <div className={formStyles.formGroup}>
               <label htmlFor="stdev">표준편차</label>
               <input
                 type="number"
                 id="stdev"
-                className="form-input"
+                className={formStyles.formInput}
                 value={newEvent.changeDistribution.stdev || ''}
                 onChange={(e) => handleDistributionChange('normal', {
                   mean: newEvent.changeDistribution.mean,
@@ -170,12 +170,12 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
 
         {newEvent.changeDistribution.type === 'uniform' && (
           <>
-            <div className="form-group">
+            <div className={formStyles.formGroup}>
               <label htmlFor="lower">하한값</label>
               <input
                 type="number"
                 id="lower"
-                className="form-input"
+                className={formStyles.formInput}
                 value={newEvent.changeDistribution.lower || ''}
                 onChange={(e) => handleDistributionChange('uniform', {
                   lower: parseFloat(e.target.value) || 0,
@@ -184,12 +184,12 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
                 placeholder="하한값을 입력하세요"
               />
             </div>
-            <div className="form-group">
+            <div className={formStyles.formGroup}>
               <label htmlFor="upper">상한값</label>
               <input
                 type="number"
                 id="upper"
-                className="form-input"
+                className={formStyles.formInput}
                 value={newEvent.changeDistribution.upper || ''}
                 onChange={(e) => handleDistributionChange('uniform', {
                   lower: newEvent.changeDistribution.lower,
@@ -202,24 +202,24 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
         )}
       </div>
 
-      <div className="form-section">
-        <h3 className="section-title">추가 옵션</h3>
-        <div className="toggle-group">
-          <label>
+      <div className={formStyles.formSection}>
+        <div className={formStyles.sectionTitle}>추가 옵션</div>
+        <div className={formStyles.toggleGroup}>
+          <label className={formStyles.toggleLabel}>
             <span>물가 상승률 반영</span>
-            <div className="toggle-switch">
+            <div className={formStyles.toggleSwitch}>
               <input
                 type="checkbox"
                 name="inflationAdjusted"
                 checked={newEvent.inflationAdjusted}
                 onChange={handleInputChange}
               />
-              <span className="toggle-slider"></span>
+              <span className={formStyles.toggleSlider}></span>
             </div>
           </label>
         </div>
 
-        <div className="form-group">
+        <div className={formStyles.formGroup}>
           <label htmlFor="shareRatio">공유 비율</label>
           <input
             type="number"
@@ -227,13 +227,13 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
             name="shareRatio"
             value={newEvent.shareRatio}
             onChange={handleInputChange}
-            className="form-input"
+            className={formStyles.formInput}
             placeholder="공유 비율을 입력하세요"
             min="0"
             max="1"
             step="0.1"
           />
-          <span className="input-hint">0과 1 사이의 값을 입력하세요</span>
+          <span className={formStyles.inputHint}>0과 1 사이의 값을 입력하세요</span>
         </div>
       </div>
     </div>

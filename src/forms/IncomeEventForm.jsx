@@ -1,5 +1,5 @@
 import React from "react";
-import "../css/FormStyles.css";
+import formStyles from "../css/FormStyles.module.css";
 
 export const initialIncomeEvent = {
   name: "",
@@ -39,20 +39,21 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
   };
 
   return (
-    <div className="form-container">
+    <div className={formStyles.formContainer}>
       {/* Basic Info Section */}
-      <div className="form-section">
-        <div className="section-title">Basic Information</div>
-        <div className="form-group">
+      <div className={formStyles.formSection}>
+        <div className={formStyles.sectionTitle}>Basic Information</div>
+        <div className={formStyles.formGroup}>
           <label>Name</label>
           <input
             type="text"
             placeholder="Enter event name"
             value={newEvent.name}
             onChange={e => setNewEvent({ ...newEvent, name: e.target.value })}
+            className={formStyles.formInput}
           />
         </div>
-        <div className="form-group">
+        <div className={formStyles.formGroup}>
           <label>Start Year</label>
           <input
             type="number"
@@ -62,9 +63,10 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               ...newEvent,
               start: { ...newEvent.start, value: e.target.value === "" ? null : parseInt(e.target.value, 10) }
             })}
+            className={formStyles.formInput}
           />
         </div>
-        <div className="form-group">
+        <div className={formStyles.formGroup}>
           <label>Duration (years)</label>
           <input
             type="number"
@@ -74,14 +76,15 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               ...newEvent,
               duration: { ...newEvent.duration, value: e.target.value === "" ? null : parseInt(e.target.value, 10) }
             })}
+            className={formStyles.formInput}
           />
         </div>
       </div>
 
       {/* Amount Details Section */}
-      <div className="form-section">
-        <div className="section-title">Amount Details</div>
-        <div className="form-group">
+      <div className={formStyles.formSection}>
+        <div className={formStyles.sectionTitle}>Amount Details</div>
+        <div className={formStyles.formGroup}>
           <label>Amount</label>
           <input
             type="number"
@@ -91,11 +94,12 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               ...newEvent,
               initialAmount: e.target.value === "" ? null : parseFloat(e.target.value)
             })}
+            className={formStyles.formInput}
           />
         </div>
         {/* Change Type and Distribution Type in one row */}
-        <div className="form-row">
-          <div className="form-group flex-1">
+        <div className={formStyles.formRow}>
+          <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
             <label>Change Type</label>
             <select
               value={newEvent.changeAmtOrPct}
@@ -107,13 +111,14 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                   changeDistribution: { type: "fixed", value: null },
                 }));
               }}
+              className={formStyles.formSelect}
             >
               <option value="">-- Select Change Type --</option>
               <option value="amount">Amount</option>
               <option value="percent">Percent</option>
             </select>
           </div>
-          <div className="form-group flex-1">
+          <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
             <label>Distribution Type</label>
             <select
               value={newEvent.changeDistribution.type}
@@ -121,6 +126,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                 const selectedType = e.target.value;
                 updateChangeDistribution(selectedType);
               }}
+              className={formStyles.formSelect}
             >
               <option value="fixed">Fixed</option>
               <option value="normal">Normal</option>
@@ -130,7 +136,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
         </div>
         {/* Distribution type specific fields */}
         {newEvent.changeDistribution.type === "fixed" && (
-          <div className="form-group">
+          <div className={formStyles.formGroup}>
             <label>Fixed Value</label>
             <input
               type="number"
@@ -141,13 +147,14 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                   value: e.target.value === "" ? null : parseFloat(e.target.value),
                 })
               }
+              className={formStyles.formInput}
               style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
             />
           </div>
         )}
         {newEvent.changeDistribution.type === "normal" && (
-          <div className="form-row">
-            <div className="form-group flex-1">
+          <div className={formStyles.formRow}>
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
               <label>Mean</label>
               <input
                 type="number"
@@ -159,10 +166,11 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                     stdev: newEvent.changeDistribution.stdev,
                   })
                 }
+                className={formStyles.formInput}
                 style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
-            <div className="form-group flex-1">
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
               <label>Standard Deviation</label>
               <input
                 type="number"
@@ -174,14 +182,15 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                     stdev: e.target.value === "" ? null : parseFloat(e.target.value),
                   })
                 }
+                className={formStyles.formInput}
                 style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
           </div>
         )}
         {newEvent.changeDistribution.type === "uniform" && (
-          <div className="form-row">
-            <div className="form-group flex-1">
+          <div className={formStyles.formRow}>
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
               <label>Lower Bound</label>
               <input
                 type="number"
@@ -193,10 +202,11 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                     upper: newEvent.changeDistribution.upper,
                   })
                 }
+                className={formStyles.formInput}
                 style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
-            <div className="form-group flex-1">
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
               <label>Upper Bound</label>
               <input
                 type="number"
@@ -208,6 +218,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                     upper: e.target.value === "" ? null : parseFloat(e.target.value),
                   })
                 }
+                className={formStyles.formInput}
                 style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
@@ -216,13 +227,13 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
       </div>
 
       {/* Additional Options Section */}
-      <div className="form-section">
-        <div className="section-title">Additional Options</div>
-        <div className="form-row options-row">
-          <div className="toggle-group">
-            <label className="toggle-label">
+      <div className={formStyles.formSection}>
+        <div className={formStyles.sectionTitle}>Additional Options</div>
+        <div className={`${formStyles.formRow} ${formStyles.optionsRow}`}>
+          <div className={formStyles.toggleGroup}>
+            <label className={formStyles.toggleLabel}>
               <span>Inflation Adjusted</span>
-              <div className="toggle-switch">
+              <div className={formStyles.toggleSwitch}>
                 <input
                   type="checkbox"
                   checked={newEvent.inflationAdjusted}
@@ -233,14 +244,14 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                     })
                   }
                 />
-                <span className="toggle-slider"></span>
+                <span className={formStyles.toggleSlider}></span>
               </div>
             </label>
           </div>
-          <div className="toggle-group">
-            <label className="toggle-label">
+          <div className={formStyles.toggleGroup}>
+            <label className={formStyles.toggleLabel}>
               <span>Social Security</span>
-              <div className="toggle-switch">
+              <div className={formStyles.toggleSwitch}>
                 <input
                   type="checkbox"
                   checked={newEvent.socialSecurity}
@@ -251,12 +262,12 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                     })
                   }
                 />
-                <span className="toggle-slider"></span>
+                <span className={formStyles.toggleSlider}></span>
               </div>
             </label>
           </div>
         </div>
-        <div className="form-group">
+        <div className={formStyles.formGroup}>
           <label>Share Ratio</label>
           <input
             type="number"
@@ -268,11 +279,12 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                 userFraction: e.target.value === "" ? null : parseFloat(e.target.value),
               })
             }
+            className={formStyles.formInput}
             min="0"
             max="1"
             step="0.1"
           />
-          <span className="input-hint">(If you do not have a spouse, please enter 1.0)</span>
+          <span className={formStyles.inputHint}>(If you do not have a spouse, please enter 1.0)</span>
         </div>
       </div>
     </div>
