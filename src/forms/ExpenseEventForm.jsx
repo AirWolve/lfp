@@ -7,7 +7,6 @@ export const initialExpenseEvent = {
   start: {
     type: "fixed",
     value: null,
-    eventSeries: "",
   },
   duration: {
     type: "fixed",
@@ -18,10 +17,6 @@ export const initialExpenseEvent = {
   changeDistribution: {
     type: "fixed",
     value: null,
-    lower: null,
-    upper: null,
-    mean: null,
-    stdev: null,
   },
   inflationAdjusted: false,
   userFraction: null,
@@ -42,6 +37,35 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
     });
   };
 
+  // Start type과 값 업데이트 함수
+  const updateStart = (type, updates = {}) => {
+    const newStart = { type };
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== null) {
+        newStart[key] = value;
+      }
+    });
+    setNewEvent({
+      ...newEvent,
+      start: newStart,
+    });
+  };
+
+  // localStorage에서 type이 'income'인 이벤트의 name(중복 없이) 추출
+  let incomeSeriesList = [];
+  try {
+    const allEvents = JSON.parse(localStorage.getItem('EventSeries')) || [];
+    incomeSeriesList = Array.from(
+      new Set(
+        allEvents
+          .filter(ev => ev.type === 'income')
+          .map(ev => ev.name)
+      )
+    );
+  } catch (e) {
+    incomeSeriesList = [];
+  }
+
   return (
     <div className={formStyles.formContainer}>
       {/* Basic Info Section */}
@@ -57,19 +81,131 @@ const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
             className={formStyles.formInput}
           />
         </div>
-        <div className={formStyles.formGroup}>
-          <label>Start Year</label>
-          <input
-            type="number"
-            placeholder="Enter start year"
-            value={newEvent.start.value ?? ""}
-            onChange={e => setNewEvent({
-              ...newEvent,
-              start: { ...newEvent.start, value: e.target.value === "" ? null : parseInt(e.target.value, 10) }
-            })}
-            className={formStyles.formInput}
-          />
+        {/* Start Year Type & Value */}
+        <div className={formStyles.formRow}>
+          <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+            <label>Start Year Type</label>
+            <select
+              value={newEvent.start.type}
+              onChange={e => {
+                const selectedType = e.target.value;
+                updateStart(selectedType);
+              }}
+              className={formStyles.formSelect}
+            >
+              <option value="fixed">Fixed</option>
+              <option value="normal">Normal</option>
+              <option value="uniform">Uniform</option>
+              <option value="startWith">Start With</option>
+              <option value="startAfter">Start After</option>
+            </select>
+          </div>
+          {/* type별 입력 필드 */}
+          {newEvent.start.type === "fixed" && (
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}> 
+              <label>Start Year</label>
+              <input
+                type="number"
+                placeholder="Enter start year"
+                value={newEvent.start.value ?? ""}
+                onChange={e =>
+                  updateStart("fixed", {
+                    value: e.target.value === "" ? null : parseInt(e.target.value, 10),
+                  })
+                }
+                className={formStyles.formInput}
+              />
+            </div>
+          )}
+          {newEvent.start.type === "normal" && (
+            <>
+              <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+                <label>Mean</label>
+                <input
+                  type="number"
+                  placeholder="Enter mean year"
+                  value={newEvent.start.mean ?? ""}
+                  onChange={e =>
+                    updateStart("normal", {
+                      mean: e.target.value === "" ? null : parseFloat(e.target.value),
+                      stdev: newEvent.start.stdev,
+                    })
+                  }
+                  className={formStyles.formInput}
+                />
+              </div>
+              <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+                <label>Standard Deviation</label>
+                <input
+                  type="number"
+                  placeholder="Enter standard deviation"
+                  value={newEvent.start.stdev ?? ""}
+                  onChange={e =>
+                    updateStart("normal", {
+                      mean: newEvent.start.mean,
+                      stdev: e.target.value === "" ? null : parseFloat(e.target.value),
+                    })
+                  }
+                  className={formStyles.formInput}
+                />
+              </div>
+            </>
+          )}
+          {newEvent.start.type === "uniform" && (
+            <>
+              <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+                <label>Lower Bound</label>
+                <input
+                  type="number"
+                  placeholder="Enter lower bound"
+                  value={newEvent.start.lower ?? ""}
+                  onChange={e =>
+                    updateStart("uniform", {
+                      lower: e.target.value === "" ? null : parseFloat(e.target.value),
+                      upper: newEvent.start.upper,
+                    })
+                  }
+                  className={formStyles.formInput}
+                />
+              </div>
+              <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+                <label>Upper Bound</label>
+                <input
+                  type="number"
+                  placeholder="Enter upper bound"
+                  value={newEvent.start.upper ?? ""}
+                  onChange={e =>
+                    updateStart("uniform", {
+                      lower: newEvent.start.lower,
+                      upper: e.target.value === "" ? null : parseFloat(e.target.value),
+                    })
+                  }
+                  className={formStyles.formInput}
+                />
+              </div>
+            </>
+          )}
+          {(newEvent.start.type === "startWith" || newEvent.start.type === "startAfter") && (
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+              <label>{newEvent.start.type === "startWith" ? "Start With" : "Start After"} (Income Event Series)</label>
+              <select
+                value={newEvent.start.eventSeries || ""}
+                onChange={e =>
+                  updateStart(newEvent.start.type, {
+                    eventSeries: e.target.value
+                  })
+                }
+                className={formStyles.formSelect}
+              >
+                <option value="">-- Select Income Event Series --</option>
+                {incomeSeriesList.map(series => (
+                  <option key={series} value={series}>{series}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
+        {/* Duration */}
         <div className={formStyles.formGroup}>
           <label>Duration (years)</label>
           <input
