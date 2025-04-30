@@ -142,6 +142,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                 stdev: newEvent.changeDistribution.stdev,
               })
             }
+            style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
           />
           <label>Standard Deviation {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
           <input
@@ -154,6 +155,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                 stdev: parseFloat(e.target.value) || null,
               })
             }
+            style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
           />
         </div>
       )}
