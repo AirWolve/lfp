@@ -5,7 +5,7 @@ export const initialExpenseEvent = {
   name: "",
   type: "expense",
   start: {
-    type: "",
+    type: "fixed",
     value: null,
     eventSeries: "",
   },
@@ -29,211 +29,266 @@ export const initialExpenseEvent = {
 };
 
 const ExpenseEventForm = ({ newEvent, setNewEvent, incomeEvents }) => {
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setNewEvent(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handleDistributionChange = (type, updates = {}) => {
-    setNewEvent(prev => ({
-      ...prev,
-      changeDistribution: {
-        type,
-        ...updates
+  const updateChangeDistribution = (type, updates = {}) => {
+    const newDistribution = { type };
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== "") {
+        newDistribution[key] = value;
       }
-    }));
+    });
+    setNewEvent({
+      ...newEvent,
+      changeDistribution: newDistribution,
+    });
   };
 
   return (
     <div className={formStyles.formContainer}>
+      {/* Basic Info Section */}
       <div className={formStyles.formSection}>
-        <div className={formStyles.sectionTitle}>기본 정보</div>
+        <div className={formStyles.sectionTitle}>Basic Information</div>
         <div className={formStyles.formGroup}>
-          <label htmlFor="name">이름</label>
+          <label>Name</label>
           <input
             type="text"
-            id="name"
-            name="name"
+            placeholder="Enter event name"
             value={newEvent.name}
-            onChange={handleInputChange}
+            onChange={e => setNewEvent({ ...newEvent, name: e.target.value })}
             className={formStyles.formInput}
-            placeholder="지출 이벤트 이름"
           />
         </div>
-
         <div className={formStyles.formGroup}>
-          <label htmlFor="start">시작 연도</label>
+          <label>Start Year</label>
           <input
             type="number"
-            id="start"
-            name="start"
-            value={newEvent.start}
-            onChange={handleInputChange}
+            placeholder="Enter start year"
+            value={newEvent.start.value ?? ""}
+            onChange={e => setNewEvent({
+              ...newEvent,
+              start: { ...newEvent.start, value: e.target.value === "" ? null : parseInt(e.target.value, 10) }
+            })}
             className={formStyles.formInput}
-            placeholder="시작 연도를 입력하세요"
           />
         </div>
-
         <div className={formStyles.formGroup}>
-          <label htmlFor="duration">기간 (년)</label>
+          <label>Duration (years)</label>
           <input
             type="number"
-            id="duration"
-            name="duration"
-            value={newEvent.duration}
-            onChange={handleInputChange}
+            placeholder="Enter duration in years"
+            value={newEvent.duration.value ?? ""}
+            onChange={e => setNewEvent({
+              ...newEvent,
+              duration: { ...newEvent.duration, value: e.target.value === "" ? null : parseInt(e.target.value, 10) }
+            })}
             className={formStyles.formInput}
-            placeholder="기간을 입력하세요"
           />
         </div>
       </div>
 
+      {/* Amount Details Section */}
       <div className={formStyles.formSection}>
-        <div className={formStyles.sectionTitle}>금액 상세</div>
+        <div className={formStyles.sectionTitle}>Amount Details</div>
         <div className={formStyles.formGroup}>
-          <label htmlFor="amount">금액</label>
+          <label>Amount</label>
           <input
             type="number"
-            id="amount"
-            name="amount"
-            value={newEvent.amount}
-            onChange={handleInputChange}
+            placeholder="Enter amount"
+            value={newEvent.initialAmount ?? ""}
+            onChange={e => setNewEvent({
+              ...newEvent,
+              initialAmount: e.target.value === "" ? null : parseFloat(e.target.value)
+            })}
             className={formStyles.formInput}
-            placeholder="금액을 입력하세요"
           />
         </div>
-
-        <div className={formStyles.formGroup}>
-          <label htmlFor="distributionType">분포 유형</label>
-          <select
-            id="distributionType"
-            className={formStyles.formSelect}
-            value={newEvent.changeDistribution.type}
-            onChange={(e) => handleDistributionChange(e.target.value)}
-          >
-            <option value="">분포 유형을 선택하세요</option>
-            <option value="fixed">고정</option>
-            <option value="normal">정규 분포</option>
-            <option value="uniform">균등 분포</option>
-          </select>
+        {/* Change Type and Distribution Type in one row */}
+        <div className={formStyles.formRow}>
+          <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+            <label>Change Type</label>
+            <select
+              value={newEvent.changeAmtOrPct}
+              onChange={e => {
+                const selectedValue = e.target.value;
+                setNewEvent(prev => ({
+                  ...prev,
+                  changeAmtOrPct: selectedValue,
+                  changeDistribution: { type: "fixed", value: null },
+                }));
+              }}
+              className={formStyles.formSelect}
+            >
+              <option value="">-- Select Change Type --</option>
+              <option value="amount">Amount</option>
+              <option value="percent">Percent</option>
+            </select>
+          </div>
+          <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+            <label>Distribution Type</label>
+            <select
+              value={newEvent.changeDistribution.type}
+              onChange={e => {
+                const selectedType = e.target.value;
+                updateChangeDistribution(selectedType);
+              }}
+              className={formStyles.formSelect}
+            >
+              <option value="fixed">Fixed</option>
+              <option value="normal">Normal</option>
+              <option value="uniform">Uniform</option>
+            </select>
+          </div>
         </div>
-
-        {newEvent.changeDistribution.type === 'fixed' && (
+        {/* Distribution type specific fields */}
+        {newEvent.changeDistribution.type === "fixed" && (
           <div className={formStyles.formGroup}>
-            <label htmlFor="fixedValue">고정 값</label>
+            <label>Fixed Value</label>
             <input
               type="number"
-              id="fixedValue"
+              placeholder="Enter fixed value"
+              value={newEvent.changeDistribution.value ?? ""}
+              onChange={e =>
+                updateChangeDistribution("fixed", {
+                  value: e.target.value === "" ? null : parseFloat(e.target.value)
+                })
+              }
               className={formStyles.formInput}
-              value={newEvent.changeDistribution.value || ''}
-              onChange={(e) => handleDistributionChange('fixed', { value: parseFloat(e.target.value) || 0 })}
-              placeholder="고정 값을 입력하세요"
+              style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
             />
           </div>
         )}
-
-        {newEvent.changeDistribution.type === 'normal' && (
-          <>
-            <div className={formStyles.formGroup}>
-              <label htmlFor="mean">평균</label>
+        {newEvent.changeDistribution.type === "normal" && (
+          <div className={formStyles.formRow}>
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+              <label>Mean</label>
               <input
                 type="number"
-                id="mean"
+                placeholder="Enter mean value"
+                value={newEvent.changeDistribution.mean ?? ""}
+                onChange={e =>
+                  updateChangeDistribution("normal", {
+                    mean: e.target.value === "" ? null : parseFloat(e.target.value),
+                    stdev: newEvent.changeDistribution.stdev
+                  })
+                }
                 className={formStyles.formInput}
-                value={newEvent.changeDistribution.mean || ''}
-                onChange={(e) => handleDistributionChange('normal', {
-                  mean: parseFloat(e.target.value) || 0,
-                  stdev: newEvent.changeDistribution.stdev
-                })}
-                placeholder="평균값을 입력하세요"
+                style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
-            <div className={formStyles.formGroup}>
-              <label htmlFor="stdev">표준편차</label>
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+              <label>Standard Deviation</label>
               <input
                 type="number"
-                id="stdev"
+                placeholder="Enter standard deviation"
+                value={newEvent.changeDistribution.stdev ?? ""}
+                onChange={e =>
+                  updateChangeDistribution("normal", {
+                    mean: newEvent.changeDistribution.mean,
+                    stdev: e.target.value === "" ? null : parseFloat(e.target.value)
+                  })
+                }
                 className={formStyles.formInput}
-                value={newEvent.changeDistribution.stdev || ''}
-                onChange={(e) => handleDistributionChange('normal', {
-                  mean: newEvent.changeDistribution.mean,
-                  stdev: parseFloat(e.target.value) || 0
-                })}
-                placeholder="표준편차를 입력하세요"
+                style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
-          </>
+          </div>
         )}
-
-        {newEvent.changeDistribution.type === 'uniform' && (
-          <>
-            <div className={formStyles.formGroup}>
-              <label htmlFor="lower">하한값</label>
+        {newEvent.changeDistribution.type === "uniform" && (
+          <div className={formStyles.formRow}>
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+              <label>Lower Bound</label>
               <input
                 type="number"
-                id="lower"
+                placeholder="Enter lower bound"
+                value={newEvent.changeDistribution.lower ?? ""}
+                onChange={e =>
+                  updateChangeDistribution("uniform", {
+                    lower: e.target.value === "" ? null : parseFloat(e.target.value),
+                    upper: newEvent.changeDistribution.upper
+                  })
+                }
                 className={formStyles.formInput}
-                value={newEvent.changeDistribution.lower || ''}
-                onChange={(e) => handleDistributionChange('uniform', {
-                  lower: parseFloat(e.target.value) || 0,
-                  upper: newEvent.changeDistribution.upper
-                })}
-                placeholder="하한값을 입력하세요"
+                style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
-            <div className={formStyles.formGroup}>
-              <label htmlFor="upper">상한값</label>
+            <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
+              <label>Upper Bound</label>
               <input
                 type="number"
-                id="upper"
+                placeholder="Enter upper bound"
+                value={newEvent.changeDistribution.upper ?? ""}
+                onChange={e =>
+                  updateChangeDistribution("uniform", {
+                    lower: newEvent.changeDistribution.lower,
+                    upper: e.target.value === "" ? null : parseFloat(e.target.value)
+                  })
+                }
                 className={formStyles.formInput}
-                value={newEvent.changeDistribution.upper || ''}
-                onChange={(e) => handleDistributionChange('uniform', {
-                  lower: newEvent.changeDistribution.lower,
-                  upper: parseFloat(e.target.value) || 0
-                })}
-                placeholder="상한값을 입력하세요"
+                style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
               />
             </div>
-          </>
+          </div>
         )}
       </div>
 
+      {/* Additional Options Section */}
       <div className={formStyles.formSection}>
-        <div className={formStyles.sectionTitle}>추가 옵션</div>
-        <div className={formStyles.toggleGroup}>
-          <label className={formStyles.toggleLabel}>
-            <span>물가 상승률 반영</span>
-            <div className={formStyles.toggleSwitch}>
-              <input
-                type="checkbox"
-                name="inflationAdjusted"
-                checked={newEvent.inflationAdjusted}
-                onChange={handleInputChange}
-              />
-              <span className={formStyles.toggleSlider}></span>
-            </div>
-          </label>
+        <div className={formStyles.sectionTitle}>Additional Options</div>
+        <div className={formStyles.formRow}>
+          <div className={formStyles.toggleGroup}>
+            <label className={formStyles.toggleLabel}>
+              <span>Inflation Adjusted</span>
+              <div className={formStyles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={newEvent.inflationAdjusted}
+                  onChange={e =>
+                    setNewEvent({
+                      ...newEvent,
+                      inflationAdjusted: e.target.checked,
+                    })
+                  }
+                />
+                <span className={formStyles.toggleSlider}></span>
+              </div>
+            </label>
+          </div>
+          <div className={formStyles.toggleGroup}>
+            <label className={formStyles.toggleLabel}>
+              <span>Discretionary</span>
+              <div className={formStyles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={newEvent.discretionary}
+                  onChange={e =>
+                    setNewEvent({
+                      ...newEvent,
+                      discretionary: e.target.checked,
+                    })
+                  }
+                />
+                <span className={formStyles.toggleSlider}></span>
+              </div>
+            </label>
+          </div>
         </div>
-
         <div className={formStyles.formGroup}>
-          <label htmlFor="shareRatio">공유 비율</label>
+          <label>Share Ratio</label>
           <input
             type="number"
-            id="shareRatio"
-            name="shareRatio"
-            value={newEvent.shareRatio}
-            onChange={handleInputChange}
+            placeholder="Enter share ratio"
+            value={newEvent.userFraction ?? ""}
+            onChange={e =>
+              setNewEvent({
+                ...newEvent,
+                userFraction: e.target.value === "" ? null : parseFloat(e.target.value),
+              })
+            }
             className={formStyles.formInput}
-            placeholder="공유 비율을 입력하세요"
             min="0"
             max="1"
             step="0.1"
           />
-          <span className={formStyles.inputHint}>0과 1 사이의 값을 입력하세요</span>
+          <span className={formStyles.inputHint}>(If you do not have a spouse, please enter 1.0)</span>
         </div>
       </div>
     </div>
