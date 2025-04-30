@@ -56,6 +56,16 @@ const RebalanceEventForm = ({
     <div className={formStyles.formContainer}>
       <div className={formStyles.formSection}>
         <div className={formStyles.sectionTitle}>Basic Information</div>
+        <div className={formStyles.formGroup}>
+          <label>Name</label>
+          <input
+            type="text"
+            placeholder="Enter event name"
+            value={newEvent.name}
+            onChange={e => setNewEvent({ ...newEvent, name: e.target.value })}
+            className={formStyles.formInput}
+          />
+        </div>
         {/* Start Year Type & Value */}
         <div className={formStyles.formRow}>
           <div className={`${formStyles.formGroup} ${formStyles.flex1}`}>
