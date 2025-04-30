@@ -20,7 +20,7 @@ const FileImport = () => {
     }
 
     return (
-        <div>
+        <div className="ImportContainer">
             <input type="file" ref={importFef} onChange={handleOnChange} style={{ display: "none" }} />
             <button className="fileButton" onClick={onChooseFile}>
                 <span class="material-symbols-rounded">upload</span> Upload File
