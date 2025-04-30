@@ -322,23 +322,6 @@ class TaxCalculator:
         with open('./ctTax.yaml', 'w') as f:
             yaml.dump(tax, f, default_flow_style=False, sort_keys=False)
 
-    # def runIncomeTax(self, data:dict):
-    #     """
-    #     This is a function to run all tax calculator
-
-    #     Args:
-    #     ----
-    #         data: a dictionary of data to calculate tax amount
-    #         amount: a integer value of income amount to calculate tax
-    #     """
-    #     for ev in data.eventSeries:
-    #         if ev.type == "income":
-    #             income = ev.initialAmount
-    #             break
-
-    #     return income - self.federalTaxCalculator(data, income)\
-    #             - self.stateTaxCalculator(data, income, data.residenceState)
-
 # Inflation Assumption
 class Inflation:
     def __init__(self, data:dict):
