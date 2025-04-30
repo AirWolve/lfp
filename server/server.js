@@ -253,6 +253,7 @@ app.post("/api/sendJson", async (req, res) => {
 app.post("/api/run-simulation", async (req, res) => {
   try {
     const { yamlText } = YAML.stringify(req.body);
+    console.log(yamlText);
     if (!yamlText) {
       return res.status(400).json({ error: "YAML text is required" });
     }
