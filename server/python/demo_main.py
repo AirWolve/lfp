@@ -2,17 +2,25 @@ import sys
 import Simulation
 
 def main():
-    # stdin에서 YAML 텍스트를 읽음
-    yaml_text = sys.stdin.read()
+    # Read all lines from stdin
+    lines = sys.stdin.readlines()
+    if not lines or not "".join(lines).strip():
+        print("Error: No input provided via stdin", file=sys.stderr)
+        sys.exit(1)
+
+    # First line: email, rest: YAML
+    user_email = lines[0].strip()
+    yaml_text = "".join(lines[1:])
+
     if not yaml_text.strip():
         print("Error: No YAML text provided via stdin", file=sys.stderr)
         sys.exit(1)
 
     try:
-        # YAML 텍스트로부터 Scenario 객체 생성
+        # Pass YAML text to Simulation
         sim = Simulation.Simulation(yaml_text)
-        # 시뮬레이션 실행
-        result = sim.simulation()
+        # Run simulation, pass email if needed
+        result = sim.simulation(user_email, emailNeed=False)
         print(result)
         print("Simulation completed successfully")
     except Exception as e:
