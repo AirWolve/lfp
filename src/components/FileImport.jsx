@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import '../css/FileImport.css';
 import deleteIcon from '../assets/delete.svg';
 import { ReactComponent as UploadIcon } from '../assets/upload.svg';
+import { toast } from 'react-toastify';
 
 const FileImport = () => {
     const importRef = useRef();
@@ -9,7 +10,15 @@ const FileImport = () => {
     
     const handleOnChange = (event) => {
         if (event.target.files && event.target.files.length > 0) {
-            setSelectedFile(event.target.files[0]);
+            const file = event.target.files[0];
+            if (!file.name.toLowerCase().endsWith('.yaml')) {
+                toast.error('Only .yaml files can be uploaded.');
+                if (importRef.current) {
+                    importRef.current.value = "";
+                }
+                return;
+            }
+            setSelectedFile(file);
         }
     };
 
