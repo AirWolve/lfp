@@ -115,8 +115,8 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           <select
             id="changeTrend"
             name="changeTrend"
-            value={newEvent.changeTrend}
-            onChange={handleInputChange}
+            value={newEvent.changeDistribution.type}
+            onChange={(e) => updateChangeDistribution(e.target.value)}
             className="form-select"
           >
             <option value="fixed">Fixed</option>
