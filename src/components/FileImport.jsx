@@ -4,7 +4,7 @@ import deleteIcon from '../assets/delete.svg';
 import uploadIcon from '../assets/upload.svg';
 
 const FileImport = () => {
-    const importFef = useRef();
+    const importRef = useRef();
     const [selectedFile, setSelectedFile] = useState(null);
     
     const handleOnChange = (event) => {
@@ -14,7 +14,7 @@ const FileImport = () => {
     };
 
     const onChooseFile = () => {
-        importFef.current.click();
+        importRef.current.click();
     };
 
     const removeFile = () => {
@@ -23,18 +23,21 @@ const FileImport = () => {
 
     return (
         <div className="ImportContainer">
-            <input type="file" ref={importFef} onChange={handleOnChange} style={{ display: "none" }} />
-            <button className="fileButton" onClick={onChooseFile}>
-                <img alt="upload" src={uploadIcon} style={{ width: "1em", height: "1em", verticalAlign: "middle"}}/> Upload File
-            </button>
-
-            {selectedFile && <div className="selectFile">
-                <p>{selectedFile.name}</p>
-
-                <button onClick={removeFile}>
-                    <img alt="delete" src={deleteIcon} style={{ width: "1em", height: "1em", verticalAlign: "middle"}}/>
-                </button>
-            </div>}
+            <input type="file" ref={importRef} onChange={handleOnChange} style={{ display: "none" }} />
+            <div className="upload-area" onClick={onChooseFile}>
+                <div className="upload-icon">
+                    <img alt="upload" src={uploadIcon} style={{ width: "32px", height: "32px" }} />
+                </div>
+                <div className="upload-label">Upload File</div>
+            </div>
+            {selectedFile && (
+                <div className="uploaded-file">
+                    <span className="uploaded-file-name">{selectedFile.name}</span>
+                    <button className="delete-btn" onClick={removeFile}>
+                        <img alt="delete" src={deleteIcon} />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

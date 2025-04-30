@@ -1,6 +1,7 @@
 // src/components/FileExport.jsx
 import React from "react";
 import "./FileImport.css"; // FileImportExport와 동일한 스타일을 쓸 수 있습니다
+import downloadIcon from '../assets/download.svg';
 
 const FileExport = ({ exportData, fileName = "exported_data.json" }) => {
   const handleExport = () => {
@@ -31,8 +32,9 @@ const FileExport = ({ exportData, fileName = "exported_data.json" }) => {
   };
 
   return (
-    <button className="fileButton" onClick={handleExport}>
-      <span className="material-symbols-rounded">download</span> Export File
+    <button className="export-btn" onClick={handleExport}>
+      <img src={downloadIcon} alt="download" style={{ width: 22, height: 22, marginRight: 8 }} />
+      Export File
     </button>
   );
 };

@@ -60,11 +60,11 @@ const Dashboard = () => {
           {showModal && (
             <div
               className="modalPopup"
-              onMouseDown={() => setShowModal}
+              onMouseDown={() => setShowModal(false)}
             >
               <div
                 className="modalContent"
-                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <div className="tabHeader">
                   <button
@@ -86,21 +86,21 @@ const Dashboard = () => {
                   <button
                     className="closeButton"
                     onClick={() => setShowModal(false)}
+                    aria-label="Close modal"
                   >
-                    
                     X
                   </button>
-                  <div className="tabContent">
-                    {activeTab === "import" ? (
-                      <FileImport />
-                    ) : (
-                      <FileExport exportData={{
-                        message: "Exported data from the app",
-                        timestamp: new Date().toISOString(),
-                        item: [1, 2, 3]
-                      }} fileName="my_plan.json" />
-                    )}
-                  </div>
+                </div>
+                <div className="tabContent">
+                  {activeTab === "import" ? (
+                    <FileImport />
+                  ) : (
+                    <FileExport exportData={{
+                      message: "Exported data from the app",
+                      timestamp: new Date().toISOString(),
+                      item: [1, 2, 3]
+                    }} fileName="my_plan.json" />
+                  )}
                 </div>
               </div>
             </div>
