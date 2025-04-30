@@ -107,7 +107,6 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
           updateChangeDistribution(selectedType);
         }}
       >
-        <option value="">-- Select Distribution Type --</option>
         <option value="fixed">Fixed Value</option>
         <option value="normal">Normal Distribution</option>
         <option value="uniform">Uniform Distribution</option>
@@ -122,7 +121,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
             value={newEvent.changeDistribution.value ?? ""}
             onChange={(e) =>
               updateChangeDistribution("fixed", {
-                value: parseFloat(e.target.value) || null,
+                value: e.target.value === "" ? null : parseFloat(e.target.value),
               })
             }
           />
@@ -169,7 +168,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
             value={newEvent.changeDistribution.lower ?? ""}
             onChange={(e) =>
               updateChangeDistribution("uniform", {
-                lower: parseFloat(e.target.value) || null,
+                lower: e.target.value === "" ? null : parseFloat(e.target.value),
                 upper: newEvent.changeDistribution.upper,
               })
             }
@@ -182,7 +181,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
             onChange={(e) =>
               updateChangeDistribution("uniform", {
                 lower: newEvent.changeDistribution.lower,
-                upper: parseFloat(e.target.value) || null,
+                upper: e.target.value === "" ? null : parseFloat(e.target.value),
               })
             }
           />
