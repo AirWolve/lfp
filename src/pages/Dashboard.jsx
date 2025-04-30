@@ -45,9 +45,7 @@ const Dashboard = () => {
           {user?.name}
         </h2>
         <div className="button-grid">
-          <a href={`${constPath.basicSetting}`}>
-            <button className="plan-button">Create New Plan</button>
-          </a>
+          <button onClick={() => navigate(constPath.basicSetting)} className="plan-button">Create New Plan</button>
           <button
             className="plan-button"
             onClick={() => {
@@ -57,7 +55,6 @@ const Dashboard = () => {
           >
             Import/Export Plan
           </button>
-          <button className="plan-button">Existing Plans</button>
           {showModal && (
             <div
               className="modalPopup"
@@ -95,6 +92,7 @@ const Dashboard = () => {
                 <div className="tabContent">
                   {activeTab === "import" ? (
                     <FileImport />
+
                   ) : (
                     <FileExport exportData={{
                       message: "Exported data from the app",

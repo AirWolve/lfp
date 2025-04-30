@@ -25,11 +25,8 @@ const MenuLayout = ({ children }) => {
           <h2>Life Financial Planning</h2>
           <ul>
             <li>Dashboard</li>
-            <li>Senario</li>
             <li>Simulation</li>
-            <li>Previous Result</li>
-            <li>Export</li>
-            <li>Shared Users</li>
+            <li>History</li>
           </ul>
         </div>
       )}
