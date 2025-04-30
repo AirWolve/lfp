@@ -244,9 +244,18 @@ const InvestmentTypeForm = ({
         </div>
       </div>
 
-      {/* 버튼 구조를 InvestmentForm.jsx와 동일하게 변경 */}
-      <button onClick={handleConfirm}>Confirm</button>
-      <button className="close-btn" onClick={closeModal}>
+      <button
+        className={`${formStyles.formFullButton} ${formStyles.formConfirmButton}`}
+        onClick={handleConfirm}
+        type="button"
+      >
+        Confirm
+      </button>
+      <button
+        className={`${formStyles.formFullButton} ${formStyles.formCloseButton} close-btn`}
+        onClick={closeModal}
+        type="button"
+      >
         Close
       </button>
     </div>

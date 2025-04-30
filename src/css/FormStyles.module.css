@@ -161,4 +161,25 @@
   height: 36px;
   margin-left: 10px;
   padding: 0 16px;
+}
+
+.formFullButton {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 16px;
+  border: none;
+  color: white;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.formConfirmButton {
+  background: #5b8def;
+}
+
+.formCloseButton {
+  background: #777;
+  margin-bottom: 0;
 } 

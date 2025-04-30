@@ -100,7 +100,7 @@ const InvestmentType = () => {
             <div key={idx} className="event-item">
               <div className="event-summary">
                 <div className="event-header">
-                  <span className="event-badge invest">Investment</span>
+                  <span className="event-badge invest">Typs</span>
                   <strong>{inv.name}</strong>
                 </div>
                 <div className="event-tags-main">
