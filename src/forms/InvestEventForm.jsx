@@ -12,12 +12,8 @@ export const initialInvestEvent = {
     type: "fixed",
     value: null,
   },
-  assetAllocations: [],
-  glidePath: {
-    enabled: false,
-    endAllocations: [],
-  },
-  maxCash: 1000,
+  glidePath: false,
+  maxCash: null,
 };
 
 const InvestEventForm = ({
@@ -261,7 +257,7 @@ const InvestEventForm = ({
                   setAllocationNum("");
                 }
               }}
-              className={formStyles.formButton}
+              className={`${formStyles.formButton} ${formStyles.allocationAddBtn}`}
             >
               Add
             </button>
@@ -270,12 +266,13 @@ const InvestEventForm = ({
 
         <div className={formStyles.formGroup}>
           <h5>Asset Allocations:</h5>
-          <ul className={formStyles.allocationList}>
+          <div className={formStyles.allocationGrid}>
             {newEvent.assetAllocation &&
               Object.entries(newEvent.assetAllocation).map(
                 ([asset, allocation]) => (
-                  <li key={asset}>
-                    {asset}: {allocation}{" "}
+                  <div key={asset} className={formStyles.allocationRow}>
+                    <span className={formStyles.allocationCell}>{asset}</span>
+                    <span className={formStyles.allocationCell}>{allocation}</span>
                     <button
                       onClick={() => {
                         const { [asset]: _, ...rest } = newEvent.assetAllocation;
@@ -284,14 +281,14 @@ const InvestEventForm = ({
                           assetAllocation: rest,
                         });
                       }}
-                      className={formStyles.formButton}
+                      className={formStyles.allocationRemoveBtn}
                     >
                       Remove
                     </button>
-                  </li>
+                  </div>
                 )
               )}
-          </ul>
+          </div>
         </div>
 
         <div className={formStyles.toggleGroup}>
@@ -300,12 +297,11 @@ const InvestEventForm = ({
             <div className={formStyles.toggleSwitch}>
               <input
                 type="checkbox"
-                checked={newEvent.glidePath}
-                onChange={(e) =>
+                checked={!!newEvent.glidePath}
+                onChange={e =>
                   setNewEvent({
                     ...newEvent,
                     glidePath: e.target.checked,
-                    ...(e.target.checked === false ? { assetAllocation2: "" } : {}),
                   })
                 }
               />
@@ -356,7 +352,7 @@ const InvestEventForm = ({
                     setAllocationNum("");
                   }
                 }}
-                className={formStyles.formButton}
+                className={`${formStyles.formButton} ${formStyles.allocationAddBtn}`}
               >
                 Add
               </button>
@@ -364,12 +360,13 @@ const InvestEventForm = ({
 
             <div className={formStyles.formGroup}>
               <h5>Asset Allocations2:</h5>
-              <ul className={formStyles.allocationList}>
+              <div className={formStyles.allocationGrid}>
                 {newEvent.assetAllocation2 &&
                   Object.entries(newEvent.assetAllocation2).map(
                     ([asset, allocation]) => (
-                      <li key={asset}>
-                        {asset}: {allocation}{" "}
+                      <div key={asset} className={formStyles.allocationRow}>
+                        <span className={formStyles.allocationCell}>{asset}</span>
+                        <span className={formStyles.allocationCell}>{allocation}</span>
                         <button
                           onClick={() => {
                             const { [asset]: _, ...rest } =
@@ -379,14 +376,14 @@ const InvestEventForm = ({
                               assetAllocation2: rest,
                             });
                           }}
-                          className={formStyles.formButton}
+                          className={formStyles.allocationRemoveBtn}
                         >
                           Remove
                         </button>
-                      </li>
+                      </div>
                     )
                   )}
-              </ul>
+              </div>
             </div>
           </div>
         )}
