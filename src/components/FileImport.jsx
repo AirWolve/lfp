@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import './FileImport.css';
+import '../css/FileImport.css';
 import deleteIcon from '../assets/delete.svg';
 import { ReactComponent as UploadIcon } from '../assets/upload.svg';
 
