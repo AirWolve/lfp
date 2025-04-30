@@ -23,6 +23,7 @@ const Dashboard = () => {
         const userData = response.data;
         sessionStorage.setItem("userName", userData.given_name);
         sessionStorage.setItem("userImg", userData.picture);
+        sessionStorage.setItem("userEmail", userData.email);
         setUser(response.data);
       })
       .catch((error) => {
