@@ -167,9 +167,7 @@
   .tabHeader button.active {
     border-bottom: 2px solid #007bff;
   }
-  .tabContent {
-    /* import/export 컴포넌트 감싸는 영역 스타일 */
-  }
+  
   .closeButton {
     margin-left: auto;
     font-size: 1.2rem;
