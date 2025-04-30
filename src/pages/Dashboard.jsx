@@ -56,7 +56,6 @@ const Dashboard = () => {
           >
             Import/Export Plan
           </button>
-          <button className="plan-button">Existing Plans</button>
           {showModal && (
             <div
               className="modalPopup"
