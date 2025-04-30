@@ -40,67 +40,68 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
 
   return (
     <div className="form-container">
+      {/* Basic Info Section */}
       <div className="form-section">
-        <div className="form-row">
-          <div className="form-group">
-            <label>Start Year</label>
-            <input
-              type="number"
-              placeholder="e.g. 2025"
-              value={newEvent.start.value}
-              onChange={(e) =>
-                setNewEvent({
-                  ...newEvent,
-                  start: {
-                    ...newEvent.start,
-                    value: parseInt(e.target.value, 10) || 0,
-                  },
-                })
-              }
-            />
-          </div>
-          <div className="form-group">
-            <label>Duration (years)</label>
-            <input
-              type="number"
-              placeholder="e.g. 20"
-              value={newEvent.duration.value}
-              onChange={(e) =>
-                setNewEvent({
-                  ...newEvent,
-                  duration: {
-                    ...newEvent.duration,
-                    value: parseInt(e.target.value, 10) || 0,
-                  },
-                })
-              }
-            />
-          </div>
+        <div className="section-title">Basic Information</div>
+        <div className="form-group">
+          <label>Name</label>
+          <input
+            type="text"
+            placeholder="Enter event name"
+            value={newEvent.name}
+            onChange={e => setNewEvent({ ...newEvent, name: e.target.value })}
+          />
         </div>
+        <div className="form-group">
+          <label>Start Year</label>
+          <input
+            type="number"
+            placeholder="Enter start year"
+            value={newEvent.start.value ?? ""}
+            onChange={e => setNewEvent({
+              ...newEvent,
+              start: { ...newEvent.start, value: e.target.value === "" ? null : parseInt(e.target.value, 10) }
+            })}
+          />
+        </div>
+        <div className="form-group">
+          <label>Duration (years)</label>
+          <input
+            type="number"
+            placeholder="Enter duration in years"
+            value={newEvent.duration.value ?? ""}
+            onChange={e => setNewEvent({
+              ...newEvent,
+              duration: { ...newEvent.duration, value: e.target.value === "" ? null : parseInt(e.target.value, 10) }
+            })}
+          />
+        </div>
+      </div>
 
+      {/* Amount Details Section */}
+      <div className="form-section">
+        <div className="section-title">Amount Details</div>
         <div className="form-group">
           <label>Amount</label>
           <input
             type="number"
-            placeholder="e.g. 1234"
-            value={newEvent.initialAmount}
-            onChange={(e) =>
-              setNewEvent({
-                ...newEvent,
-                initialAmount: parseFloat(e.target.value, 10),
-              })
-            }
+            placeholder="Enter amount"
+            value={newEvent.initialAmount ?? ""}
+            onChange={e => setNewEvent({
+              ...newEvent,
+              initialAmount: e.target.value === "" ? null : parseFloat(e.target.value)
+            })}
           />
         </div>
-
+        {/* Change Type and Distribution Type in one row */}
         <div className="form-row">
           <div className="form-group flex-1">
             <label>Change Type</label>
             <select
               value={newEvent.changeAmtOrPct}
-              onChange={(e) => {
+              onChange={e => {
                 const selectedValue = e.target.value;
-                setNewEvent((prev) => ({
+                setNewEvent(prev => ({
                   ...prev,
                   changeAmtOrPct: selectedValue,
                   changeDistribution: { type: "fixed", value: null },
@@ -112,31 +113,30 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               <option value="percent">Percent</option>
             </select>
           </div>
-
           <div className="form-group flex-1">
             <label>Distribution Type</label>
             <select
               value={newEvent.changeDistribution.type}
-              onChange={(e) => {
+              onChange={e => {
                 const selectedType = e.target.value;
                 updateChangeDistribution(selectedType);
               }}
             >
-              <option value="fixed">Fixed Value</option>
-              <option value="normal">Normal Distribution</option>
-              <option value="uniform">Uniform Distribution</option>
+              <option value="fixed">Fixed</option>
+              <option value="normal">Normal</option>
+              <option value="uniform">Uniform</option>
             </select>
           </div>
         </div>
-
+        {/* Distribution type specific fields */}
         {newEvent.changeDistribution.type === "fixed" && (
           <div className="form-group">
-            <label>Fixed {newEvent.changeAmtOrPct === "percent" ? "Percentage" : "Amount"}</label>
+            <label>Fixed Value</label>
             <input
               type="number"
-              placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
+              placeholder="Enter fixed value"
               value={newEvent.changeDistribution.value ?? ""}
-              onChange={(e) =>
+              onChange={e =>
                 updateChangeDistribution("fixed", {
                   value: e.target.value === "" ? null : parseFloat(e.target.value),
                 })
@@ -145,16 +145,15 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
             />
           </div>
         )}
-
         {newEvent.changeDistribution.type === "normal" && (
           <div className="form-row">
             <div className="form-group flex-1">
-              <label>Mean {newEvent.changeAmtOrPct === "percent" ? "%" : ""}</label>
+              <label>Mean</label>
               <input
                 type="number"
-                placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 2.5" : "e.g. 1000"}
+                placeholder="Enter mean value"
                 value={newEvent.changeDistribution.mean ?? ""}
-                onChange={(e) =>
+                onChange={e =>
                   updateChangeDistribution("normal", {
                     mean: e.target.value === "" ? null : parseFloat(e.target.value),
                     stdev: newEvent.changeDistribution.stdev,
@@ -164,12 +163,12 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               />
             </div>
             <div className="form-group flex-1">
-              <label>Std Dev {newEvent.changeAmtOrPct === "percent" ? "%" : ""}</label>
+              <label>Standard Deviation</label>
               <input
                 type="number"
-                placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 0.5" : "e.g. 200"}
+                placeholder="Enter standard deviation"
                 value={newEvent.changeDistribution.stdev ?? ""}
-                onChange={(e) =>
+                onChange={e =>
                   updateChangeDistribution("normal", {
                     mean: newEvent.changeDistribution.mean,
                     stdev: e.target.value === "" ? null : parseFloat(e.target.value),
@@ -180,16 +179,15 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
             </div>
           </div>
         )}
-
         {newEvent.changeDistribution.type === "uniform" && (
           <div className="form-row">
             <div className="form-group flex-1">
-              <label>Lower Bound {newEvent.changeAmtOrPct === "percent" ? "%" : ""}</label>
+              <label>Lower Bound</label>
               <input
                 type="number"
-                placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 1.5" : "e.g. 500"}
+                placeholder="Enter lower bound"
                 value={newEvent.changeDistribution.lower ?? ""}
-                onChange={(e) =>
+                onChange={e =>
                   updateChangeDistribution("uniform", {
                     lower: e.target.value === "" ? null : parseFloat(e.target.value),
                     upper: newEvent.changeDistribution.upper,
@@ -199,12 +197,12 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               />
             </div>
             <div className="form-group flex-1">
-              <label>Upper Bound {newEvent.changeAmtOrPct === "percent" ? "%" : ""}</label>
+              <label>Upper Bound</label>
               <input
                 type="number"
-                placeholder={newEvent.changeAmtOrPct === "percent" ? "e.g. 3.5" : "e.g. 2000"}
+                placeholder="Enter upper bound"
                 value={newEvent.changeDistribution.upper ?? ""}
-                onChange={(e) =>
+                onChange={e =>
                   updateChangeDistribution("uniform", {
                     lower: newEvent.changeDistribution.lower,
                     upper: e.target.value === "" ? null : parseFloat(e.target.value),
@@ -215,7 +213,11 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
             </div>
           </div>
         )}
+      </div>
 
+      {/* Additional Options Section */}
+      <div className="form-section">
+        <div className="section-title">Additional Options</div>
         <div className="form-row options-row">
           <div className="toggle-group">
             <label className="toggle-label">
@@ -224,7 +226,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
                 <input
                   type="checkbox"
                   checked={newEvent.inflationAdjusted}
-                  onChange={(e) =>
+                  onChange={e =>
                     setNewEvent({
                       ...newEvent,
                       inflationAdjusted: e.target.checked,
@@ -235,44 +237,24 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               </div>
             </label>
           </div>
-
-          <div className="toggle-group">
-            <label className="toggle-label">
-              <span>Social Security</span>
-              <div className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={newEvent.socialSecurity}
-                  onChange={(e) =>
-                    setNewEvent({
-                      ...newEvent,
-                      socialSecurity: e.target.checked,
-                    })
-                  }
-                />
-                <span className="toggle-slider"></span>
-              </div>
-            </label>
-          </div>
         </div>
-
         <div className="form-group">
           <label>Share Ratio</label>
           <input
             type="number"
-            placeholder="e.g. 0.3"
-            value={newEvent.userFraction}
-            onChange={(e) =>
+            placeholder="Enter share ratio"
+            value={newEvent.userFraction ?? ""}
+            onChange={e =>
               setNewEvent({
                 ...newEvent,
-                userFraction: parseFloat(e.target.value, 10),
+                userFraction: e.target.value === "" ? null : parseFloat(e.target.value),
               })
             }
             min="0"
             max="1"
             step="0.1"
           />
-          <span className="input-hint">(If you do not have a spouse, please indicate 1.0)</span>
+          <span className="input-hint">(If you do not have a spouse, please enter 1.0)</span>
         </div>
       </div>
     </div>
