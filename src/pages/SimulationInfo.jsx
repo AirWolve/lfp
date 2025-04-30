@@ -3,13 +3,14 @@ import "../css/SimulationInfo.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";
+import FileImport from "../components/FileImport.jsx";
 
 const SimulationInfo = () => {
   const rawData = localStorage.getItem("BasicSettings");
   const data = JSON.parse(rawData);
   // Set Default Values
   const defaultScenarioData = {
-    inflationAssumption: {type: "fixed", value: null},
+    inflationAssumption: { type: "fixed", value: null },
     afterTaxContributionLimit: null,
     spendingStrategy: [],
     expenseWithdrawalStrategy: [],
@@ -19,7 +20,7 @@ const SimulationInfo = () => {
     RothConversionEnd: null,
     RothConversionStrategy: [],
     financialGoal: null,
-    residenceState: ""
+    residenceState: "",
   };
 
   // Use default values when retrieving data from localStorage
@@ -36,8 +37,10 @@ const SimulationInfo = () => {
     return defaultScenarioData;
   });
 
-  const [inflationRate, setInflationRate] = useState(
-    () => scenarioData.inflationAssumption.value ? scenarioData.inflationAssumption.value * 100 : null
+  const [inflationRate, setInflationRate] = useState(() =>
+    scenarioData.inflationAssumption.value
+      ? scenarioData.inflationAssumption.value * 100
+      : null
   );
   const [contributionLimit, setContributionLimit] = useState(
     () => scenarioData.afterTaxContributionLimit ?? null
@@ -59,15 +62,14 @@ const SimulationInfo = () => {
   );
 
   const preTaxInvestments = data.investments
-    .filter(inv => inv.taxStatus === 'pre-tax')
-    .map(inv => inv.id);
+    .filter((inv) => inv.taxStatus === "pre-tax")
+    .map((inv) => inv.id);
 
   const discreteEvents = data.eventSeries
-    .filter(event => event.discretionary === true)
-    .map(event => event.name);
+    .filter((event) => event.discretionary === true)
+    .map((event) => event.name);
 
-  const allInvestments = data.investments
-    .map(inv => inv.id);
+  const allInvestments = data.investments.map((inv) => inv.id);
 
   const [spendingStrategy, setSpendingStrategy] = useState(
     () => scenarioData.spendingStrategy ?? []
@@ -197,7 +199,6 @@ const SimulationInfo = () => {
     }
   };
 
-
   const navigate = useNavigate();
 
   const handleBack = (e) => {
@@ -208,7 +209,7 @@ const SimulationInfo = () => {
   const handleStartSimulation = async (e) => {
     e.preventDefault();
     const simulationInfo = {
-      inflationAssumption: {type: "fixed", value: inflationRate/100},
+      inflationAssumption: { type: "fixed", value: inflationRate / 100 },
       afterTaxContributionLimit: contributionLimit,
       spendingStrategy: spendingStrategy,
       expenseWithdrawalStrategy: withdrawalStrategy,
@@ -221,29 +222,35 @@ const SimulationInfo = () => {
       residenceState: livingState,
     };
 
-    const basicSettingData = JSON.parse(localStorage.getItem('BasicSettings'));
+    const basicSettingData = JSON.parse(localStorage.getItem("BasicSettings"));
 
     const combinedData = {
       ...basicSettingData,
-      ...simulationInfo
-    }
+      ...simulationInfo,
+    };
 
-    localStorage.setItem('ScenarioData', JSON.stringify(combinedData));
+    localStorage.setItem("ScenarioData", JSON.stringify(combinedData));
 
     console.log("Sending data to server:", combinedData);
     try {
       // Send scenario data to server
-      const response = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/run-simulation`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ yamlText: combinedData }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_LFP_API_URL}/api/run-simulation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ yamlText: combinedData }),
+        }
+      );
 
       console.log("Server response status:", response.status);
-      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+      console.log(
+        "Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
 
       const responseText = await response.text();
       console.log("Raw response:", responseText);
@@ -259,7 +266,9 @@ const SimulationInfo = () => {
       console.log("Parsed response:", result);
 
       if (!response.ok) {
-        throw new Error(`Failed to run simulation: ${result.error || responseText}`);
+        throw new Error(
+          `Failed to run simulation: ${result.error || responseText}`
+        );
       }
       navigate(`${constPath.overview}`);
     } catch (error) {
@@ -607,6 +616,28 @@ const SimulationInfo = () => {
               onChange={(e) => setLivingState(e.target.value)}
             />
           </label>
+        </section>
+        <section title="State tax">
+          <h4>Upload State Tax</h4>
+          <p style={{ textAlign: "center", fontSize: "13px", color: "#444" }}>
+            Upload the state tax file to use in the simulation.{" "}
+          </p>
+          <p>The file should be in the correct format.</p>
+          <p>Example:</p>
+          <p>NY:</p>
+          <p>name: "New York Tax"</p>
+          <p>socialsecurity: true</p>
+          <p>year: 2024</p>
+          <p>
+            individual:
+            {`{"8500": 0.04, "11700": 0.045, "13900": 0.0525, "80650":0.055, "215400":0.06, "1077550":0.0685, "5000000": 0.0965, "25000000": 0.103, "inf": 0.109}`}
+          </p>
+          <p>
+            couple:
+            {`{"17150": 0.04, "23600": 0.045, "27900": 0.0525, "161550":0.055, "323200":0.06, "2155350":0.0685, "5000000": 0.0965, "25000000": 0.103, "inf": 0.109}`}
+          </p>
+
+          <FileImport />
         </section>
         <div className="form-buttons">
           <button className="back" onClick={handleBack}>
