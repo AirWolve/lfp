@@ -662,7 +662,7 @@ class Simulation:
             if emailNeed == True:
                 self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
             else:
-                self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
+                self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals)
 
             # Pay discretionary expenses
             for expense in self.data.spendingStrategy:
@@ -670,7 +670,7 @@ class Simulation:
                     if ev.type == "expense":
                         amount = self.expenseSimul(ev, ev.initialAmount, year)
                         if emailNeed == True:
-                            (capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
+                            self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
                         else:
                             self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals)
 
