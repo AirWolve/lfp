@@ -333,7 +333,12 @@ class Simulation:
             targetYear = 0
             for evs in self.data.eventSeries:
                 if evs.name == ev.start["eventSeries"]:
-                    targetYear = evs.start["value"]
+                    if evs.type == "invest":
+                        targetYear = evs.invest.start["value"]
+                    elif evs.type == "rebalance":
+                        targetYear = evs.rebalance.start["value"]
+                    else:
+                        targetYear = evs.start["value"]
             if targetYear == year:
                 if ev.type != "expense":
                     raise ValueError("Event type is not expense")
@@ -370,7 +375,12 @@ class Simulation:
             targetYear = 0
             for evs in self.data.eventSeries:
                 if evs.name == ev.start["eventSeries"]:
-                    targetYear = evs.start["value"]+1
+                    if evs.type == "invest":
+                        targetYear = evs.invest.start["value"] + 1
+                    elif evs.type == "rebalance":
+                        targetYear = evs.rebalance.start["value"] + 1
+                    else:
+                        targetYear = evs.start["value"]+1
             if targetYear == year:
                 if ev.type != "expense":
                     raise ValueError("Event type is not expense")
@@ -565,11 +575,11 @@ class Simulation:
         # Find the invest event for the current year
         for ev in self.data.eventSeries:
             if ev.type == "invest" and ev.invest.start["type"] == "fixed" and ev.invest.start["value"] == curYear:
-                maxCash = ev.maxCash
-                asset_allocation = ev.assetAllocation
+                maxCash = ev.invest.maxCash
+                asset_allocation = ev.invest.assetAllocation
                 break
             elif ev.type == "invest" and ev.invest.start["type"] == "startWith":
-                target = ev.eventSeries
+                target = ev.invest.start["eventSeries"]
                 targetYear = 0
                 for evs in self.data.eventSeries:
                     if evs.name == target:
@@ -579,7 +589,7 @@ class Simulation:
                     asset_allocation = ev.assetAllocation
                     break
             elif ev.type == "invest" and ev.invest.start["type"] == "startAfter":
-                target = ev.eventSeries
+                target = ev.invest.start["eventSeries"]
                 targetYear = 0
                 for evs in self.data.eventSeries:
                     if evs.name == target:
@@ -695,7 +705,12 @@ class Simulation:
                     targetYear = 0
                     for evs in self.data.eventSeries:
                         if evs.name == ev.start["eventSeries"]:
-                            targetYear = ev.start["value"]
+                            if evs.type == "invest":
+                                targetYear = evs.invest.start["value"]
+                            elif evs.type == "rebalance":
+                                targetYear = evs.rebalance.start["value"]
+                            else:
+                                targetYear = ev.start["value"]
                     
                     if targetYear == year:
                         target_allocation = ev.assetAllocation
@@ -714,7 +729,12 @@ class Simulation:
                     targetYear = 0
                     for evs in self.data.eventSeries:
                         if evs.name == ev.start["eventSeries"]:
-                            targetYear = ev.start["value"] + 1
+                            if evs.type == "invest":
+                                targetYear = evs.invest.start["value"] + 1
+                            elif evs.type == "rebalance":
+                                targetYear = evs.rebalance.start["value"] + 1
+                            else:
+                                targetYear = ev.start["value"] + 1
                     
                     if targetYear == year:
                         target_allocation = ev.assetAllocation
@@ -730,7 +750,7 @@ class Simulation:
                                 inv.value += target_value - inv.value
                 
                 elif ev.type == "rebalance" and ev.rebalance.start["type"] == "nomral":
-                    targetYear = np.random.normal(ev.start["mean"], ev.start["stdev"])
+                    targetYear = np.random.normal(ev.rebalance.start["mean"], ev.rebalance.start["stdev"])
                     ev.start = {"type": "fixed", "value":targetYear}                    
                     if targetYear == year:
                         target_allocation = ev.assetAllocation
@@ -746,7 +766,7 @@ class Simulation:
                                 inv.value += target_value - inv.value
 
                 elif ev.type == "rebalance" and ev.rebalance.start["type"] == "uniform":
-                    targetYear = np.random.uniform(ev.start["lower"], ev.start["upper"])
+                    targetYear = np.random.uniform(ev.rebalance.start["lower"], ev.rebalance.start["upper"])
                     ev.start = {"type": "fixed", "value":targetYear}                    
                     if targetYear == year:
                         target_allocation = ev.assetAllocation

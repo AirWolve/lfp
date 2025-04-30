@@ -131,19 +131,16 @@ class TaxCalculator:
         ----
             state: a string value of state name such as NJ, NY, etc.
         """
-        if state not in self.stateTax.keys():
-            return 0, "State Tax Not Found!"
-        
         if email != None:
             if taxable > 0:
                 if data.maritalStatus == "couple":
-                    for key, value in self.stateTax[email][state][0]["couple"].items():
+                    for key, value in self.stateTax[email][0][state][0]["couple"].items():
                         if key == "inf":
                             return taxable * value
                         elif taxable < int(key):
                             return taxable * value
                 else:
-                    for key, value in self.stateTax[email][state][0]["individual"].items():
+                    for key, value in self.stateTax[email][0][state][0]["individual"].items():
                         if key == "inf":
                             return taxable * value
                         elif taxable < int(key):

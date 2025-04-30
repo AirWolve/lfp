@@ -258,9 +258,11 @@ class EventSeries:
     def __init__(self, parameters:dict):
         if parameters["type"] == "invest":
             self.type = "invest"
+            self.name = parameters["name"]
             self.invest = Invest(parameters)
         elif parameters["type"] == "rebalance":
             self.type = "rebalance"
+            self.name = parameters["name"]
             self.rebalance = Rebalance(parameters)
         else:    
             self.name:str = parameters["name"]
