@@ -44,9 +44,7 @@ const Dashboard = () => {
           {user?.name}
         </h2>
         <div className="button-grid">
-          <a href={`${constPath.basicSetting}`}>
-            <button className="plan-button">Create New Plan</button>
-          </a>
+          <button href={`${constPath.basicSetting}`} className="plan-button">Create New Plan</button>
           <button
             className="plan-button"
             onClick={() => {
