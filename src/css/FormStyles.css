@@ -114,4 +114,13 @@
 
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(26px);
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.flex-1 {
+  flex: 1;
 } 

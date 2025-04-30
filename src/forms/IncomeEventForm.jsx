@@ -237,6 +237,24 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               </div>
             </label>
           </div>
+          <div className="toggle-group">
+            <label className="toggle-label">
+              <span>Social Security</span>
+              <div className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={newEvent.socialSecurity}
+                  onChange={e =>
+                    setNewEvent({
+                      ...newEvent,
+                      socialSecurity: e.target.checked,
+                    })
+                  }
+                />
+                <span className="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
         </div>
         <div className="form-group">
           <label>Share Ratio</label>
