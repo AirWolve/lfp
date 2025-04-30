@@ -14,7 +14,8 @@ export const initialIncomeEvent = {
   initialAmount: null,
   changeAmtOrPct: "",
   changeDistribution: {
-    type: "",
+    type: "fixed",
+    value: null
   },
   inflationAdjusted: false,
   userFraction: null,
