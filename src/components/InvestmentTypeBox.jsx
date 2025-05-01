@@ -6,8 +6,19 @@ import { constPath } from "../config.js";
 const InvestmentTypeBox = () => {
   const investmentType = JSON.parse(localStorage.getItem("InvestmentTypes")) ?? null;
   const navigate = useNavigate();
-  const displayedItems = investmentType.slice(0, 2);
   console.log(investmentType);
+
+  const safeRender = (value) => {
+    if (value === null || value === undefined) return 'N/A';
+    try {
+      return typeof value === 'object' ? JSON.stringify(value) : String(value);
+    } catch (e) {
+      console.error('Error rendering value:', e);
+      return 'Error';
+    }
+  };
+
+  const displayedItems = investmentType?.slice(0, 2) ?? [];
 
   return (
     <div className="basic-info-box">
@@ -23,17 +34,17 @@ const InvestmentTypeBox = () => {
         </h3>
       </div>
       <div className="basic-info-box-content">
-        {investmentType ? (
-            displayedItems.map((type, index) => (
-              <div key={index} className="investment-type">
-                <p>Name: {type.name}</p>
-                <p>Description: {type.description}</p>
-                <p>Taxability: {type.taxability ? "true" : "false"}</p>
-                <br />
-              </div>
-            ))
+        {investmentType && investmentType.length > 0 ? (
+          displayedItems.map((type, index) => (
+            <div key={index} className="investment-type">
+              <p>Name: {safeRender(type.name)}</p>
+              <p>Description: {safeRender(type.description)}</p>
+              <p>Taxability: {safeRender(type.taxability)}</p>
+              <br />
+            </div>
+          ))
         ) : (
-            <p> No data exists </p>
+          <p>No data exists</p>
         )}
       </div>
     </div>
