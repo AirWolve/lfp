@@ -7,7 +7,7 @@ const EventSeriesBox = () => {
   const eventSeries = JSON.parse(localStorage.getItem("EventSeries")) ?? null;
   const navigate = useNavigate();
   const displayedItems = eventSeries.slice(0, 2);
-  const hasMoreItems = eventSeries.length > 3;
+  // const hasMoreItems = eventSeries.length > 3;
   console.log(eventSeries);
   
   return (
@@ -35,7 +35,7 @@ const EventSeriesBox = () => {
         ) : (
             <p> No data exists </p>
         )}
-        {hasMoreItems && <p>...</p>}
+        {/* {hasMoreItems && <p>...</p>} */}
       </div>
     </div>
   );
