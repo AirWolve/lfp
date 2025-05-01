@@ -1,3 +1,7 @@
+.overviewScreen {
+  height: auto;
+}
+
 /* layout */
 .dashboard-container {
     display: flex;
@@ -139,6 +143,12 @@
   }
   
   /* Summary box */
+.summary-box-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
   .summary-box {
     width: 260px;
     background-color: white;
@@ -176,5 +186,16 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-  
-  
+
+  .boxButton {
+    background-color: white;
+    border: none;
+    padding: -10px;
+  }
+
+  .editIcon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: inline-block;
+  }

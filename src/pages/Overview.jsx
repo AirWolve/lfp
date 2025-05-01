@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Overview.css";
-import "../components/BasicInfoBox.jsx";
+import BasicInfoBox from "../components/BasicInfoBox.jsx";
+import InvestmentTypeBox from "../components/InvestmentTypeBox.jsx";
+import InvestmentsBox from "../components/InvestmentsBox.jsx";
+import EventSeriesBox from "../components/EventSeriesBox.jsx";
 import { constPath } from "../config.js";
 import MenuLayout from "../components/MenuLayout.jsx";
+
 import {
   ResponsiveContainer,
   // LineChart,
@@ -16,7 +20,6 @@ import {
   // Tooltip,
   // Legend,
 } from "recharts";
-import BasicInfoBox from "../components/BasicInfoBox.jsx";
 
 const Overview = () => {
   const navigate = useNavigate();
@@ -46,7 +49,7 @@ const Overview = () => {
 
   return (
     <MenuLayout>
-      <div>
+      <div className="overviewScreen">
           <button
             className="make-plan-btn"
             onClick={handleMakePlan}
@@ -54,6 +57,22 @@ const Overview = () => {
           >
             Start Simulation
           </button>
+          {simulationResult ? (
+            <div className="simulation-results">
+              <h3>Simulation Results</h3>
+              {typeof simulationResult === "object" ? (
+                Object.entries(simulationResult).map(([key, value]) => (
+                  <p key={key}>
+                    <strong>{key}:</strong> <span>{value}</span>
+                  </p>
+                ))
+              ) : (
+                <pre>{simulationResult}</pre>
+              )}
+            </div>
+          ) : (
+            <div></div>
+          )}
         <div className="main-content">
           <div className="charts">
             <div className="one-dimensional-graph">
@@ -129,25 +148,19 @@ const Overview = () => {
           </div> */}
           </div>
         </div>
-        <div className="summary-box">
-          <BasicInfoBox />
-          <p style={{ fontWeight: "bold" }}>Overview your assets status</p>
-          {simulationResult ? (
-            <div className="simulation-results">
-              <h3>Simulation Results</h3>
-              {typeof simulationResult === "object" ? (
-                Object.entries(simulationResult).map(([key, value]) => (
-                  <p key={key}>
-                    <strong>{key}:</strong> <span>{value}</span>
-                  </p>
-                ))
-              ) : (
-                <pre>{simulationResult}</pre>
-              )}
-            </div>
-          ) : (
-            <div></div>
-          )}
+        <div className="summary-box-grid">
+          <div className="summary-box">
+            <BasicInfoBox />
+          </div>
+          <div className="summary-box">
+            <InvestmentTypeBox />
+          </div>
+          <div className="summary-box">
+            <InvestmentsBox />
+          </div>
+          <div className="summary-box">
+            <EventSeriesBox />
+          </div>
         </div>
       </div>
     </MenuLayout>
