@@ -115,10 +115,6 @@ const Overview = () => {
             </div>
           </div>
         </div>
-        {basicInfo ||
-        investmentTypes ||
-        investments ||
-        eventSeries ? (
           <div className="summary-box-grid">
             <div className="summary-box">
               <BasicInfoBox />
@@ -133,11 +129,6 @@ const Overview = () => {
               <EventSeriesBox />
             </div>
           </div>
-        ) : (
-          <div>
-            <p style={{ textAlign: "center", fontSize: "25px", color: "Black"}}>There are no data.</p>
-          </div>
-        )}
       </div>
     </MenuLayout>
   );
