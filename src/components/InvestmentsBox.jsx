@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 
 const InvestmentsBox = () => {
-  const investments = JSON.parse(localStorage.getItem("Investments"));
+  const investments = JSON.parse(localStorage.getItem("Investments")) ?? null;
   const navigate = useNavigate();
   const displayedItems = investments.slice(0, 2);
-  console.log("Enter InvestmentsBox");
+  console.log(investments);
   
   return (
     <div className="basic-info-box">

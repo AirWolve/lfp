@@ -4,11 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 
 const EventSeriesBox = () => {
-  const eventSeries = JSON.parse(localStorage.getItem("EventSeries"));
+  const eventSeries = JSON.parse(localStorage.getItem("EventSeries")) ?? null;
   const navigate = useNavigate();
   const displayedItems = eventSeries.slice(0, 2);
   const hasMoreItems = eventSeries.length > 3;
-  console.log("Enter EventSeriesBox");
+  console.log(eventSeries);
   
   return (
     <div className="basic-info-box">

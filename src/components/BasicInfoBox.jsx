@@ -4,9 +4,9 @@ import editIcon from "../assets/editIcon.svg";
 import { useNavigate } from "react-router-dom";
 
 const BasicInfoBox = () => {
-    const basicInfo = JSON.parse(localStorage.getItem("basicInfo"));
+    const basicInfo = JSON.parse(localStorage.getItem("basicInfo")) ?? null;
     const navigate = useNavigate();
-    console.log("Enter BasicInfoBox");
+    console.log(basicInfo);
     return (
         <div className="basic-info-box">
             <div className="basic-info-box-title">
