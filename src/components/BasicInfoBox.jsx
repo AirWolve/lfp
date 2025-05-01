@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 const BasicInfoBox = () => {
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo"));
     const navigate = useNavigate();
+    console.log("Enter BasicInfoBox");
     return (
         <div className="basic-info-box">
             <div className="basic-info-box-title">

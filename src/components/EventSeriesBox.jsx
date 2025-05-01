@@ -8,7 +8,8 @@ const EventSeriesBox = () => {
   const navigate = useNavigate();
   const displayedItems = eventSeries.slice(0, 2);
   const hasMoreItems = eventSeries.length > 3;
-
+  console.log("Enter EventSeriesBox");
+  
   return (
     <div className="basic-info-box">
       <div className="basic-info-box-title">

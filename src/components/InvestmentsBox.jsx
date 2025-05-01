@@ -7,6 +7,8 @@ const InvestmentsBox = () => {
   const investments = JSON.parse(localStorage.getItem("Investments"));
   const navigate = useNavigate();
   const displayedItems = investments.slice(0, 2);
+  console.log("Enter InvestmentsBox");
+  
   return (
     <div className="basic-info-box">
       <div className="basic-info-box-title">
