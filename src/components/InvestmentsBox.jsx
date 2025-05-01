@@ -1,7 +1,6 @@
 import React from "react";
 import editIcon from "../assets/editIcon.svg";
 import { useNavigate } from "react-router-dom";
-import editIcon from "../assets/editIcon.svg";
 import { constPath } from "../config.js";
 
 const InvestmentsBox = () => {
