@@ -12,25 +12,27 @@ const EventSeriesBox = () => {
   return (
     <div className="basic-info-box">
       <div className="basic-info-box-title">
-        <h3>Event Series Information<button
-          className="boxButton"
-          onClick={() => navigate(constPath.eventSeries)}
-        >
-          <img className="editIcon" alt="edit" src={editIcon} />
-        </button></h3>
-        
+        <h3>
+          Event Series Information
+          <button
+            className="boxButton"
+            onClick={() => navigate(constPath.eventSeries)}
+          >
+            <img className="editIcon" alt="edit" src={editIcon} />
+          </button>
+        </h3>
       </div>
       <div className="basic-info-box-content">
         {eventSeries ? (
           <>
-        {displayedItems.map((type, index) => (
-          <div key={index}>
-            <p>Name: {type.name}</p>
-            <p>Type: {type.type}</p>
-            <br />
-          </div>
-        ))}
-        </>
+            {displayedItems.map((type, index) => (
+              <div key={index}>
+                <p>Name: {type.name}</p>
+                <p>Type: {type.type}</p>
+                <br />
+              </div>
+            ))}
+          </>
         ) : (
           <>
             <p> No data exists </p>
