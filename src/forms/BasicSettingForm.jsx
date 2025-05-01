@@ -133,23 +133,19 @@ const BasicSettingForm = ({ settings, setSettings }) => {
           <div className={formStyles.labelWrapper}>
             <label>Couple</label>
           </div>
-          <div className={formStyles.radioButtonGroup}>
-            <div className={`${formStyles.radioButton} ${settings.isCouple ? formStyles.selected : ''}`}>
+          <div className={formStyles.toggleContainer}>
+            <div className={formStyles.toggleLabels}>
+              <span className={settings.isCouple ? formStyles.active : ''}>Yes</span>
+              <span className={!settings.isCouple ? formStyles.active : ''}>No</span>
+            </div>
+            <label className={formStyles.toggleSwitch}>
               <input
-                type="radio"
+                type="checkbox"
                 checked={settings.isCouple}
-                onChange={() => setSettings({ ...settings, isCouple: true })}
+                onChange={(e) => setSettings({ ...settings, isCouple: e.target.checked })}
               />
-              <span>Yes</span>
-            </div>
-            <div className={`${formStyles.radioButton} ${!settings.isCouple ? formStyles.selected : ''}`}>
-              <input
-                type="radio"
-                checked={!settings.isCouple}
-                onChange={() => setSettings({ ...settings, isCouple: false })}
-              />
-              <span>No</span>
-            </div>
+              <span className={formStyles.toggleSlider}></span>
+            </label>
           </div>
         </div>
       </div>
