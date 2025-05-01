@@ -132,21 +132,23 @@ const BasicSettingForm = ({ settings, setSettings }) => {
         <div className={formStyles.formRow}>
           <label>Couple</label>
           <div className={formStyles.radioGroup}>
-            <label>
+            <label className={formStyles.radioLabel}>
               <input
                 type="radio"
                 checked={settings.isCouple}
                 onChange={() => setSettings({ ...settings, isCouple: true })}
+                className={formStyles.radioInput}
               />
-              Yes
+              <span className={formStyles.radioText}>Yes</span>
             </label>
-            <label>
+            <label className={formStyles.radioLabel}>
               <input
                 type="radio"
                 checked={!settings.isCouple}
                 onChange={() => setSettings({ ...settings, isCouple: false })}
+                className={formStyles.radioInput}
               />
-              No
+              <span className={formStyles.radioText}>No</span>
             </label>
           </div>
         </div>

@@ -38,43 +38,13 @@ const BasicSetting = () => {
       const parsed = JSON.parse(savedUserInfoData);
       setScenarioName(parsed.name ?? "Scenario Name");
       
-      // Convert legacy life expectancy data to new format
-      const convertToLifeExpectancy = (value, type = "fixed") => {
-        if (value === undefined || value === null) return { type: "fixed", value: null };
-        
-        switch (type) {
-          case "fixed":
-            return { type: "fixed", value: value };
-          case "normal":
-            return {
-              type: "normal",
-              mean: value?.mean ?? value,
-              stdev: value?.stdev ?? 2
-            };
-          case "uniform":
-            return {
-              type: "uniform",
-              lower: value?.lower ?? (value - 2),
-              upper: value?.upper ?? (value + 2)
-            };
-          default:
-            return { type: "fixed", value: value };
-        }
-      };
-
       setSettings({
         isCouple: parsed.maritalStatus === "couple",
         userBirthYear: parsed.birthYears?.[0] ?? null,
         spouseBirthYear: parsed.maritalStatus === "couple" ? parsed.birthYears?.[1] : null,
-        userLifeExpectancy: convertToLifeExpectancy(
-          parsed.lifeExpectancy?.[0],
-          parsed.lifeExpectancyType?.[0] ?? "fixed"
-        ),
+        userLifeExpectancy: parsed.lifeExpectancy?.[0] ?? { type: "fixed", value: null },
         spouseLifeExpectancy: parsed.maritalStatus === "couple" 
-          ? convertToLifeExpectancy(
-              parsed.lifeExpectancy?.[1],
-              parsed.lifeExpectancyType?.[1] ?? "fixed"
-            )
+          ? (parsed.lifeExpectancy?.[1] ?? { type: "fixed", value: null })
           : { type: "fixed", value: null },
       });
     }
@@ -105,19 +75,6 @@ const BasicSetting = () => {
     }
 
     // Save to localStorage
-    const getLifeExpectancyValue = (expectancy) => {
-      switch (expectancy.type) {
-        case "fixed":
-          return expectancy.value;
-        case "normal":
-          return expectancy.mean;
-        case "uniform":
-          return (expectancy.lower + expectancy.upper) / 2;
-        default:
-          return null;
-      }
-    };
-
     localStorage.setItem(
       "basicInfo",
       JSON.stringify({
@@ -127,14 +84,8 @@ const BasicSetting = () => {
           ? [settings.userBirthYear, settings.spouseBirthYear] 
           : [settings.userBirthYear],
         lifeExpectancy: settings.isCouple
-          ? [getLifeExpectancyValue(settings.userLifeExpectancy), getLifeExpectancyValue(settings.spouseLifeExpectancy)]
-          : [getLifeExpectancyValue(settings.userLifeExpectancy)],
-        lifeExpectancyType: settings.isCouple
-          ? [settings.userLifeExpectancy.type, settings.spouseLifeExpectancy.type]
-          : [settings.userLifeExpectancy.type],
-        lifeExpectancyDetails: settings.isCouple
           ? [settings.userLifeExpectancy, settings.spouseLifeExpectancy]
-          : [settings.userLifeExpectancy],
+          : [settings.userLifeExpectancy]
       })
     );
     
