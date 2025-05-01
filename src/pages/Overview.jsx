@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Overview.css";
 import BasicInfoBox from "../components/BasicInfoBox.jsx";
@@ -23,24 +23,19 @@ import {
 
 const Overview = () => {
   const navigate = useNavigate();
-  const [simulationResult, setSimulationResult] = useState(null);
+  // const [simulationResult, setSimulationResult] = useState(null);
 
-  const basicInfo = JSON.parse(localStorage.getItem("basicInfo"));
-  const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes"));
-  const investments = JSON.parse(localStorage.getItem("Investments"));
-  const eventSeries = JSON.parse(localStorage.getItem("EventSeries"));
-
-  useEffect(() => {
-    const result = localStorage.getItem("simulationResult");
-    if (result) {
-      try {
-        const parsedResult = JSON.parse(result);
-        setSimulationResult(parsedResult);
-      } catch (e) {
-        setSimulationResult(result);
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   const result = localStorage.getItem("simulationResult");
+  //   if (result) {
+  //     try {
+  //       const parsedResult = JSON.parse(result);
+  //       setSimulationResult(parsedResult);
+  //     } catch (e) {
+  //       setSimulationResult(result);
+  //     }
+  //   }
+  // }, []);
 
   const handleMakePlan = (e) => {
     e.preventDefault();
@@ -62,7 +57,7 @@ const Overview = () => {
         >
           Start Simulation
         </button>
-        {simulationResult ? (
+        {/* {simulationResult ? (
           <div className="simulation-results">
             <h3>Simulation Results</h3>
             {typeof simulationResult === "object" ? (
@@ -77,7 +72,7 @@ const Overview = () => {
           </div>
         ) : (
           <div></div>
-        )}
+        )} */}
         <div className="main-content">
           <div className="charts">
             <div className="one-dimensional-graph">
@@ -115,10 +110,6 @@ const Overview = () => {
             </div>
           </div>
         </div>
-        {basicInfo ||
-        investmentTypes ||
-        investments ||
-        eventSeries ? (
           <div className="summary-box-grid">
             <div className="summary-box">
               <BasicInfoBox />
@@ -133,11 +124,6 @@ const Overview = () => {
               <EventSeriesBox />
             </div>
           </div>
-        ) : (
-          <div>
-            <p style={{ textAlign: "center", fontSize: "25px", color: "Black"}}>There are no data.</p>
-          </div>
-        )}
       </div>
     </MenuLayout>
   );
