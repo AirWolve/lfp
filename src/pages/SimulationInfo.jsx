@@ -43,19 +43,19 @@ const SimulationInfo = () => {
       : null
   );
   const [contributionLimit, setContributionLimit] = useState(
-    () => scenarioData.afterTaxContributionLimit ?? null
+    () => Number(scenarioData.afterTaxContributionLimit) || null
   );
   const [rothOpt, setRothOpt] = useState(
     () => scenarioData.RothConversionOpt ?? false
   );
   const [rothStart, setRothStart] = useState(
-    () => scenarioData.RothConversionStart ?? null
+    () => Number(scenarioData.RothConversionStart) || null
   );
   const [rothEnd, setRothEnd] = useState(
-    () => scenarioData.RothConversionEnd ?? null
+    () => Number(scenarioData.RothConversionEnd) || null
   );
   const [financialGoals, setFinancialGoals] = useState(
-    () => scenarioData.financialGoal ?? null
+    () => Number(scenarioData.financialGoal) || null
   );
   const [livingState, setLivingState] = useState(
     () => scenarioData.residenceState ?? ""
@@ -310,8 +310,8 @@ const SimulationInfo = () => {
               <input
                 type="number"
                 placeholder="e.g. 500"
-                value={contributionLimit}
-                onChange={(e) => setContributionLimit(e.target.value)}
+                value={contributionLimit || ""}
+                onChange={(e) => setContributionLimit(e.target.value === "" ? null : Number(e.target.value))}
               />{" "}
               $
             </label>
@@ -525,15 +525,15 @@ const SimulationInfo = () => {
             <input
               type="number"
               placeholder="e.g. 2050"
-              value={rothStart}
-              onChange={(e) => setRothStart(e.target.value)}
+              value={rothStart || ""}
+              onChange={(e) => setRothStart(e.target.value === "" ? null : Number(e.target.value))}
             />
             <span style={{ marginLeft: "20px" }}>To</span>
             <input
               type="number"
               placeholder="e.g. 2060"
-              value={rothEnd}
-              onChange={(e) => setRothEnd(e.target.value)}
+              value={rothEnd || ""}
+              onChange={(e) => setRothEnd(e.target.value === "" ? null : Number(e.target.value))}
             />
           </label>
         </section>
@@ -603,8 +603,8 @@ const SimulationInfo = () => {
             <input
               type="number"
               placeholder="e.g. 10000"
-              value={financialGoals}
-              onChange={(e) => setFinancialGoals(e.target.value)}
+              value={financialGoals || ""}
+              onChange={(e) => setFinancialGoals(e.target.value === "" ? null : Number(e.target.value))}
             />
           </label>
           <span style={{ marginLeft: "10px", marginRight: "40px" }}>$</span>
