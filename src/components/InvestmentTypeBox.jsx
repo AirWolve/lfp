@@ -13,7 +13,7 @@ const InvestmentTypeBox = () => {
     <div className="basic-info-box">
       <div className="basic-info-box-title">
         <h3>
-          Invest Type Information{" "}
+          Invest Type Information
           <button
             className="boxButton"
             onClick={() => navigate(constPath.investmentType)}
