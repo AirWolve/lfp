@@ -24,7 +24,7 @@ const InvestmentTypeBox = () => {
         </h3>
       </div>
       <div className="basic-info-box-content">
-        {InvestmentType ? (
+        {investmentType ? (
             displayedItems.map((type, index) => (
               <div key={index} className="investment-type">
                 <p>Name: {type.name}</p>
