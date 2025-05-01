@@ -24,20 +24,16 @@ const InvestmentTypeBox = () => {
       </div>
       <div className="basic-info-box-content">
         {InvestmentType ? (
-          <>
-            {displayedItems.map((type, index) => (
+            displayedItems.map((type, index) => (
               <div key={index} className="investment-type">
                 <p>Name: {type.name}</p>
                 <p>Description: {type.description}</p>
                 <p>Taxability: {type.taxability ? "true" : "false"}</p>
                 <br />
               </div>
-            ))}
-          </>
+            ))
         ) : (
-          <>
             <p> No data exists </p>
-          </>
         )}
       </div>
     </div>

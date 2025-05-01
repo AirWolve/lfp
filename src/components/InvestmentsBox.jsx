@@ -22,20 +22,16 @@ const InvestmentsBox = () => {
       </div>
       <div className="basic-info-box-content">
         {investments ? (
-          <>
-            {displayedItems.map((type, index) => (
-              <div key={index} className="investments">
-                <p>Name: {type.id}</p>
-                <p>Tax Status: {type.taxStatus}</p>
-                <p>value: {type.value}</p>
-                <br />
-              </div>
-            ))}
-          </>
+          displayedItems.map((type, index) => (
+            <div key={index} className="investments">
+              <p>Name: {type.id}</p>
+              <p>Tax Status: {type.taxStatus}</p>
+              <p>value: {type.value}</p>
+              <br />
+            </div>
+          ))
         ) : (
-          <>
-            <p> No data exists </p>
-          </>
+          <p> No data exists </p>
         )}
       </div>
     </div>

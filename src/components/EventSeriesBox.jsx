@@ -24,19 +24,15 @@ const EventSeriesBox = () => {
       </div>
       <div className="basic-info-box-content">
         {eventSeries ? (
-          <>
-            {displayedItems.map((type, index) => (
-              <div key={index}>
-                <p>Name: {type.name}</p>
-                <p>Type: {type.type}</p>
-                <br />
-              </div>
-            ))}
-          </>
+          displayedItems.map((type, index) => (
+            <div key={index}>
+              <p>Name: {type.name}</p>
+              <p>Type: {type.type}</p>
+              <br />
+            </div>
+          ))
         ) : (
-          <>
             <p> No data exists </p>
-          </>
         )}
         {hasMoreItems && <p>...</p>}
       </div>

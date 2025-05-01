@@ -13,24 +13,22 @@ const BasicInfoBox = () => {
             </div>
             <div className="basic-info-box-content">
                 {basicInfo ? (
-                    <>
-                <p>Senario Name: {basicInfo.name}</p>
-                <p>Marital Status: {basicInfo.maritalStatus}</p>
-                <p>Birth Years:</p>
-                <ul>
-                    <li>User: {basicInfo.birthYears[0]}</li>
-                    {basicInfo.maritalStatus === "couple" && <li>Spouse: {basicInfo.birthYears[1]}</li>}
-                </ul>
-                <p>life Expectancy:</p>
-                <ul>
-                    <li>User: {basicInfo.lifeExpectancy[0]}</li>
-                    {basicInfo.maritalStatus === "couple" && <li>Spouse: {basicInfo.lifeExpectancy[1]}</li>}
-                </ul>
-                </>
+                  <div>
+                    <p>Scenario Name: {basicInfo.name}</p>
+                    <p>Marital Status: {basicInfo.maritalStatus}</p>
+                    <p>Birth Years:</p>
+                    <ul>
+                      <li>User: {basicInfo.birthYears[0]}</li>
+                      {basicInfo.maritalStatus === "couple" && <li>Spouse: {basicInfo.birthYears[1]}</li>}
+                    </ul>
+                    <p>Life Expectancy:</p>
+                    <ul>
+                      <li>User: {basicInfo.lifeExpectancy[0]}</li>
+                      {basicInfo.maritalStatus === "couple" && <li>Spouse: {basicInfo.lifeExpectancy[1]}</li>}
+                    </ul>
+                  </div>
                 ) : (
-                    <>
-                        <p> No data exists </p>
-                    </>
+                  <p>No data exists</p>
                 )}
             </div>
         </div>
