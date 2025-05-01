@@ -38,18 +38,44 @@ const BasicSetting = () => {
       const parsed = JSON.parse(savedUserInfoData);
       setScenarioName(parsed.name ?? "Scenario Name");
       
+      // Convert legacy life expectancy data to new format
+      const convertToLifeExpectancy = (value, type = "fixed") => {
+        if (value === undefined || value === null) return { type: "fixed", value: null };
+        
+        switch (type) {
+          case "fixed":
+            return { type: "fixed", value: value };
+          case "normal":
+            return {
+              type: "normal",
+              mean: value?.mean ?? value,
+              stdev: value?.stdev ?? 2
+            };
+          case "uniform":
+            return {
+              type: "uniform",
+              lower: value?.lower ?? (value - 2),
+              upper: value?.upper ?? (value + 2)
+            };
+          default:
+            return { type: "fixed", value: value };
+        }
+      };
+
       setSettings({
         isCouple: parsed.maritalStatus === "couple",
         userBirthYear: parsed.birthYears?.[0] ?? null,
         spouseBirthYear: parsed.maritalStatus === "couple" ? parsed.birthYears?.[1] : null,
-        userLifeExpectancy: {
-          type: "fixed",
-          value: parsed.lifeExpectancy?.[0] ?? null,
-        },
-        spouseLifeExpectancy: {
-          type: "fixed",
-          value: parsed.maritalStatus === "couple" ? parsed.lifeExpectancy?.[1] : null,
-        },
+        userLifeExpectancy: convertToLifeExpectancy(
+          parsed.lifeExpectancy?.[0],
+          parsed.lifeExpectancyType?.[0] ?? "fixed"
+        ),
+        spouseLifeExpectancy: parsed.maritalStatus === "couple" 
+          ? convertToLifeExpectancy(
+              parsed.lifeExpectancy?.[1],
+              parsed.lifeExpectancyType?.[1] ?? "fixed"
+            )
+          : { type: "fixed", value: null },
       });
     }
   }, []);
@@ -59,13 +85,39 @@ const BasicSetting = () => {
     e.preventDefault();
     
     // Validation
-    if (!scenarioName || !settings.userBirthYear || !settings.userLifeExpectancy.value ||
-        (settings.isCouple && (!settings.spouseBirthYear || !settings.spouseLifeExpectancy.value))) {
+    const validateLifeExpectancy = (expectancy) => {
+      switch (expectancy.type) {
+        case "fixed":
+          return expectancy.value !== null;
+        case "normal":
+          return expectancy.mean !== null && expectancy.stdev !== null;
+        case "uniform":
+          return expectancy.lower !== null && expectancy.upper !== null;
+        default:
+          return false;
+      }
+    };
+
+    if (!scenarioName || !settings.userBirthYear || !validateLifeExpectancy(settings.userLifeExpectancy) ||
+        (settings.isCouple && (!settings.spouseBirthYear || !validateLifeExpectancy(settings.spouseLifeExpectancy)))) {
       toast.warning("Please fill in all fields");
       return;
     }
 
     // Save to localStorage
+    const getLifeExpectancyValue = (expectancy) => {
+      switch (expectancy.type) {
+        case "fixed":
+          return expectancy.value;
+        case "normal":
+          return expectancy.mean;
+        case "uniform":
+          return (expectancy.lower + expectancy.upper) / 2;
+        default:
+          return null;
+      }
+    };
+
     localStorage.setItem(
       "basicInfo",
       JSON.stringify({
@@ -75,8 +127,14 @@ const BasicSetting = () => {
           ? [settings.userBirthYear, settings.spouseBirthYear] 
           : [settings.userBirthYear],
         lifeExpectancy: settings.isCouple
-          ? [settings.userLifeExpectancy.value, settings.spouseLifeExpectancy.value]
-          : [settings.userLifeExpectancy.value],
+          ? [getLifeExpectancyValue(settings.userLifeExpectancy), getLifeExpectancyValue(settings.spouseLifeExpectancy)]
+          : [getLifeExpectancyValue(settings.userLifeExpectancy)],
+        lifeExpectancyType: settings.isCouple
+          ? [settings.userLifeExpectancy.type, settings.spouseLifeExpectancy.type]
+          : [settings.userLifeExpectancy.type],
+        lifeExpectancyDetails: settings.isCouple
+          ? [settings.userLifeExpectancy, settings.spouseLifeExpectancy]
+          : [settings.userLifeExpectancy],
       })
     );
     

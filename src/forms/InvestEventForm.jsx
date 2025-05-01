@@ -348,8 +348,8 @@ const InvestEventForm = ({
                         [selectInvestment2]: allocationValue,
                       },
                     });
-                    setSelectInvestment("");
-                    setAllocationNum("");
+                    setSelectInvestment2("");
+                    setAllocationNum2("");
                   }
                 }}
                 className={`${formStyles.formButton} ${formStyles.allocationAddBtn}`}
