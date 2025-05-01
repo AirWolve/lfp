@@ -281,4 +281,53 @@
   .lifeExpectancyContainer {
     flex-direction: column;
   }
+}
+
+.labelWrapper {
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+}
+
+.labelWrapper label {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.radioButtonGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.radioButton {
+  position: relative;
+  padding: 8px 24px;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radioButton input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.radioButton span {
+  color: #333;
+  font-size: 14px;
+}
+
+.radioButton.selected {
+  background: #3182CE;
+  border-color: #3182CE;
+}
+
+.radioButton.selected span {
+  color: white;
 } 

@@ -2,7 +2,7 @@ import React from "react";
 import formStyles from "../css/FormStyles.module.css";
 
 export const initialBasicSetting = {
-  isCouple: true,
+  isCouple: false,
   userBirthYear: null,
   spouseBirthYear: null,
   userLifeExpectancy: {
@@ -130,26 +130,26 @@ const BasicSettingForm = ({ settings, setSettings }) => {
       {/* Couple Selection */}
       <div className={formStyles.formSection}>
         <div className={formStyles.formRow}>
-          <label>Couple</label>
-          <div className={formStyles.radioGroup}>
-            <label className={formStyles.radioLabel}>
+          <div className={formStyles.labelWrapper}>
+            <label>Couple</label>
+          </div>
+          <div className={formStyles.radioButtonGroup}>
+            <div className={`${formStyles.radioButton} ${settings.isCouple ? formStyles.selected : ''}`}>
               <input
                 type="radio"
                 checked={settings.isCouple}
                 onChange={() => setSettings({ ...settings, isCouple: true })}
-                className={formStyles.radioInput}
               />
-              <span className={formStyles.radioText}>Yes</span>
-            </label>
-            <label className={formStyles.radioLabel}>
+              <span>Yes</span>
+            </div>
+            <div className={`${formStyles.radioButton} ${!settings.isCouple ? formStyles.selected : ''}`}>
               <input
                 type="radio"
                 checked={!settings.isCouple}
                 onChange={() => setSettings({ ...settings, isCouple: false })}
-                className={formStyles.radioInput}
               />
-              <span className={formStyles.radioText}>No</span>
-            </label>
+              <span>No</span>
+            </div>
           </div>
         </div>
       </div>
