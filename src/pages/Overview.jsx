@@ -25,11 +25,6 @@ const Overview = () => {
   const navigate = useNavigate();
   const [simulationResult, setSimulationResult] = useState(null);
 
-  const basicInfo = JSON.parse(localStorage.getItem("basicInfo"));
-  const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes"));
-  const investments = JSON.parse(localStorage.getItem("Investments"));
-  const eventSeries = JSON.parse(localStorage.getItem("EventSeries"));
-
   useEffect(() => {
     const result = localStorage.getItem("simulationResult");
     if (result) {
