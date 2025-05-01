@@ -14,6 +14,7 @@
 .formRow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
   margin-bottom: 15px;
 }
@@ -304,13 +305,59 @@
 .labelWrapper {
   display: flex;
   align-items: center;
-  min-width: 120px;
 }
 
 .labelWrapper label {
   font-size: 16px;
   color: #333;
   font-weight: 500;
+}
+
+.toggleWrapper {
+  margin-left: auto;
+}
+
+.customToggle {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.customToggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleButton {
+  display: flex;
+  width: 200px;
+  height: 40px;
+  background: white;
+  border: 1px solid #e0e4e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.toggleOption {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.customToggle input:checked ~ .toggleButton .toggleOption:first-child {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.customToggle input:not(:checked) ~ .toggleButton .toggleOption:last-child {
+  background-color: #4a90e2;
+  color: white;
 }
 
 .radioButtonGroup {
