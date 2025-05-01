@@ -25,6 +25,11 @@ const Overview = () => {
   const navigate = useNavigate();
   const [simulationResult, setSimulationResult] = useState(null);
 
+  const basicInfo = JSON.parse(localStorage.getItem("basicInfo"));
+  const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes"));
+  const investments = JSON.parse(localStorage.getItem("Investments"));
+  const eventSeries = JSON.parse(localStorage.getItem("EventSeries"));
+
   useEffect(() => {
     const result = localStorage.getItem("simulationResult");
     if (result) {
@@ -50,29 +55,29 @@ const Overview = () => {
   return (
     <MenuLayout>
       <div className="overviewScreen">
-          <button
-            className="make-plan-btn"
-            onClick={handleMakePlan}
-            style={{ margin: "30px" }}
-          >
-            Start Simulation
-          </button>
-          {simulationResult ? (
-            <div className="simulation-results">
-              <h3>Simulation Results</h3>
-              {typeof simulationResult === "object" ? (
-                Object.entries(simulationResult).map(([key, value]) => (
-                  <p key={key}>
-                    <strong>{key}:</strong> <span>{value}</span>
-                  </p>
-                ))
-              ) : (
-                <pre>{simulationResult}</pre>
-              )}
-            </div>
-          ) : (
-            <div></div>
-          )}
+        <button
+          className="make-plan-btn"
+          onClick={handleMakePlan}
+          style={{ margin: "30px" }}
+        >
+          Start Simulation
+        </button>
+        {simulationResult ? (
+          <div className="simulation-results">
+            <h3>Simulation Results</h3>
+            {typeof simulationResult === "object" ? (
+              Object.entries(simulationResult).map(([key, value]) => (
+                <p key={key}>
+                  <strong>{key}:</strong> <span>{value}</span>
+                </p>
+              ))
+            ) : (
+              <pre>{simulationResult}</pre>
+            )}
+          </div>
+        ) : (
+          <div></div>
+        )}
         <div className="main-content">
           <div className="charts">
             <div className="one-dimensional-graph">
@@ -108,60 +113,31 @@ const Overview = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            {/* <div className="line-chart-box">
-            <ResponsiveContainer width={400} height={250}>
-              <LineChart
-                data={lineData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
-              >
-                <CartesianGrid strokeDasharray="1 1" />
-                <XAxis
-                  dataKey="year"
-                  label={{
-                    value: "Next 10 Years",
-                    position: "insideBottom",
-                    offset: -5,
-                  }}
-                />
-                <YAxis 
-                domain={["dataMin - 1", "dataMax + 1"]}
-                label={{
-                  value: "change trend of assets",
-                  angle: -90,
-                  position: "insideLeft",
-                  dy: 70,
-                }}
-                />
-                <Tooltip />
-                <Legend verticalAlign="top" height={30} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  name="Projected Value"
-                  stroke="#3f545c"
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div> */}
           </div>
         </div>
-        <div className="summary-box-grid">
-          <div className="summary-box">
-            <BasicInfoBox />
+        {basicInfo ||
+        investmentTypes ||
+        investments ||
+        eventSeries ? (
+          <div className="summary-box-grid">
+            <div className="summary-box">
+              <BasicInfoBox />
+            </div>
+            <div className="summary-box">
+              <InvestmentTypeBox />
+            </div>
+            <div className="summary-box">
+              <InvestmentsBox />
+            </div>
+            <div className="summary-box">
+              <EventSeriesBox />
+            </div>
           </div>
-          <div className="summary-box">
-            <InvestmentTypeBox />
+        ) : (
+          <div>
+            <p style={{ textAlign: "center", fontSize: "25px", color: "Black"}}>There are no data.</p>
           </div>
-          <div className="summary-box">
-            <InvestmentsBox />
-          </div>
-          <div className="summary-box">
-            <EventSeriesBox />
-          </div>
-        </div>
+        )}
       </div>
     </MenuLayout>
   );
