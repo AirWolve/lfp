@@ -30,64 +30,101 @@ class Simulation:
                 break
 
     # start 1
-    def texInflation(self, year:int):
+    def taxInflation(self, year:int):
         """
-        This function is for calculating the tax and inflation return the list of dictionaries
+        Calculate inflation-adjusted tax brackets for the current simulation year.
+        
+        For fixed inflation rate:
+            - Uses compound growth formula directly from base values
+        For distribution-based inflation:
+            - Applies current year's inflation rate to previous year's thresholds
+        
+        Args:
+        ----
+            year: Current simulation year
         """
         curInfAssum = self.inf.runInflation()
-        ind_tax = dict()
-        cou_tax = dict()
         
+        # Store base values if not already stored
+        if not hasattr(self, 'base_brackets'):
+            self.base_brackets = {
+                'individual': {k: int(k) if k != 'inf' else k for k, v in self.tax.federalTax['individual'].items()},
+                'couple': {k: int(k) if k != 'inf' else k for k, v in self.tax.federalTax['couple'].items()},
+                'cap_individual': {k: int(k) if k != 'inf' else k for k, v in self.tax.capTax['individual'].items()},
+                'cap_couple': {k: int(k) if k != 'inf' else k for k, v in self.tax.capTax['couple'].items()}
+            }
+            self.prev_year_brackets = {
+                'individual': self.base_brackets['individual'].copy(),
+                'couple': self.base_brackets['couple'].copy(),
+                'cap_individual': self.base_brackets['cap_individual'].copy(),
+                'cap_couple': self.base_brackets['cap_couple'].copy()
+            }
+
+        # Update federal tax brackets
+        ind_tax = {}
+        cou_tax = {}
+        
+        # Process individual brackets
         for key, value in self.tax.federalTax["individual"].items():
             if key == "inf":
                 ind_tax[key] = value
                 continue
+                
             if self.data.inflationAssumption["type"] == "fixed":
-                inftax = int(key) * (1 + curInfAssum) ** (year - self.year)
-                ind_tax[inftax] = value
+                # For fixed rate, calculate directly from base value
+                inftax = self.base_brackets['individual'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
-                inftax = int(key) * np.prod(1+np.clip(curInfAssum, -0.99, None))
-                ind_tax[inftax] = value
+                # For distribution-based, apply current year's inflation to previous year's value
+                inftax = self.prev_year_brackets['individual'][key] * (1 + curInfAssum)
+                self.prev_year_brackets['individual'][key] = inftax
+            ind_tax[inftax] = value
 
+        # Process couple brackets
         for key, value in self.tax.federalTax["couple"].items():
             if key == "inf":
                 cou_tax[key] = value
                 continue
+                
             if self.data.inflationAssumption["type"] == "fixed":
-                inftax = int(key) * (1 + curInfAssum) ** (year - self.year)
-                cou_tax[inftax] = value
+                inftax = self.base_brackets['couple'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
-                inftax = int(key) * np.prod(1+np.clip(curInfAssum, -0.99, None))
-                cou_tax[inftax] = value
-        
+                inftax = self.prev_year_brackets['couple'][key] * (1 + curInfAssum)
+                self.prev_year_brackets['couple'][key] = inftax
+            cou_tax[inftax] = value
+
         self.tax.federalTax["individual"] = ind_tax
         self.tax.federalTax["couple"] = cou_tax
 
-        ind_tax = dict()
-        cou_tax = dict()
+        # Update capital gains tax brackets
+        ind_tax = {}
+        cou_tax = {}
 
+        # Process individual capital gains brackets
         for key, value in self.tax.capTax["individual"].items():
             if key == "inf":
                 ind_tax[key] = value
                 continue
+                
             if self.data.inflationAssumption["type"] == "fixed":
-                inftax = int(key) * (1 + curInfAssum) ** (year - self.year)
-                ind_tax[inftax] = value
+                inftax = self.base_brackets['cap_individual'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
-                inftax = int(key) * np.prod(1+np.clip(curInfAssum, -0.99, None))
-                ind_tax[inftax] = value
-        
+                inftax = self.prev_year_brackets['cap_individual'][key] * (1 + curInfAssum)
+                self.prev_year_brackets['cap_individual'][key] = inftax
+            ind_tax[inftax] = value
+
+        # Process couple capital gains brackets
         for key, value in self.tax.capTax["couple"].items():
             if key == "inf":
                 cou_tax[key] = value
                 continue
+                
             if self.data.inflationAssumption["type"] == "fixed":
-                inftax = int(key) * (1 + curInfAssum) ** (year - self.year)
-                cou_tax[inftax] = value
+                inftax = self.base_brackets['cap_couple'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
-                inftax = int(key) * np.prod(1+np.clip(curInfAssum, -0.99, None))
-                cou_tax[inftax] = value
-        
+                inftax = self.prev_year_brackets['cap_couple'][key] * (1 + curInfAssum)
+                self.prev_year_brackets['cap_couple'][key] = inftax
+            cou_tax[inftax] = value
+
         self.tax.capTax["individual"] = ind_tax
         self.tax.capTax["couple"] = cou_tax
 
@@ -650,7 +687,7 @@ class Simulation:
             curYearEarlyWithdrawals = 0  # Initialize early withdrawals for the current year
             capitalGain = 0
 
-            self.texInflation(year)  # Adjust tax brackets and capital gain tax for inflation
+            self.taxInflation(year)  # Adjust tax brackets and capital gain tax for inflation
 
             # Process income events
             for ev in self.data.eventSeries:
