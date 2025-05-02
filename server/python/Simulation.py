@@ -2,6 +2,10 @@ import Calculator as ca
 import Scenario as sc
 import numpy as np
 
+kFixed = "fixed"
+kUniform = "uniform"
+kNormal = "normal"
+
 class Simulation:
     # def __init__(self, path:str):
     #     self.data = sc.importYAML(path)
@@ -70,7 +74,7 @@ class Simulation:
                 ind_tax[key] = value
                 continue
                 
-            if self.data.inflationAssumption["type"] == "fixed":
+            if self.data.inflationAssumption["type"] == kFixed:
                 # For fixed rate, calculate directly from base value
                 inftax = self.base_brackets['individual'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
@@ -85,7 +89,7 @@ class Simulation:
                 cou_tax[key] = value
                 continue
                 
-            if self.data.inflationAssumption["type"] == "fixed":
+            if self.data.inflationAssumption["type"] == kFixed:
                 inftax = self.base_brackets['couple'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
                 inftax = self.prev_year_brackets['couple'][key] * (1 + curInfAssum)
@@ -105,7 +109,7 @@ class Simulation:
                 ind_tax[key] = value
                 continue
                 
-            if self.data.inflationAssumption["type"] == "fixed":
+            if self.data.inflationAssumption["type"] == kFixed:
                 inftax = self.base_brackets['cap_individual'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
                 inftax = self.prev_year_brackets['cap_individual'][key] * (1 + curInfAssum)
@@ -118,7 +122,7 @@ class Simulation:
                 cou_tax[key] = value
                 continue
                 
-            if self.data.inflationAssumption["type"] == "fixed":
+            if self.data.inflationAssumption["type"] == kFixed:
                 inftax = self.base_brackets['cap_couple'][key] * (1 + curInfAssum) ** (year - self.year)
             else:
                 inftax = self.prev_year_brackets['cap_couple'][key] * (1 + curInfAssum)
@@ -133,7 +137,7 @@ class Simulation:
         This function is for calculating the after tax contribution limit with inflation assumption
         """
         curInfAssum = self.inf.runInflation()
-        if self.data.inflationAssumption["type"] == "fixed":
+        if self.data.inflationAssumption["type"] == kFixed:
             return self.data.afterTaxContributionLimit * (1+curInfAssum) ** (year - self.year)
         else:
             return self.data.afterTaxContributionLimit * np.prod(1+np.clip(curInfAssum, -0.99, None))
@@ -148,29 +152,29 @@ class Simulation:
                 if inv.investmentType == "cash":
                     inv.updateValue(inv.value+amount)   # update previous year income to cash amount
             if ev.changeAmtOrPct == "amount":
-                if ev.changeDistribution["type"] == "fixed":
+                if ev.changeDistribution["type"] == kFixed:
                     inf_amount = amount + ev.changeDistribution["value"]
-                elif ev.changeDistribution["type"] == "uniform":
+                elif ev.changeDistribution["type"] == kUniform:
                     inf_amount = amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
-                elif ev.changeDistribution["type"] == "mean":
+                elif ev.changeDistribution["type"] == kNormal:
                     inf_amount = amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
                 else:
                     print(ev.toDict())
             else:
-                if ev.changeDistribution["type"] == "fixed":
+                if ev.changeDistribution["type"] == kFixed:
                     inf_amount = amount * (1 + ev.changeDistribution["value"])
-                elif ev.changeDistribution["type"] == "uniform":
+                elif ev.changeDistribution["type"] == kUniform:
                     inf_amount = amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
-                elif ev.changeDistribution["type"] == "normal":
+                elif ev.changeDistribution["type"] == kNormal:
                     inf_amount = amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
                 else:
                     print(ev.toDict())
             if ev.inflationAdjusted == True:
                 infAdj = self.inf.runInflation()
-                if self.data.inflationAssumption["type"] == "fixed":
-                    inf_amount += inf_amount * (1+infAdj) ** (year - self.year)
+                if self.data.inflationAssumption["type"] == kFixed:
+                    inf_amount += inf_amount * (1 + infAdj) ** (year - self.year)
                 else:
-                    inf_amount += inf_amount * np.prod(1+np.clip(infAdj, -0.99, None))
+                    inf_amount += inf_amount * (np.prod(1 + np.clip(infAdj, -0.99, None)))
 
             curYearIncome = 0
             curYearSS = 0
@@ -229,16 +233,16 @@ class Simulation:
                 income = 0
                 if invT.name == invs.investmentType:
                     if invT.incomeAmtOrPct == "amount":
-                        if invT.incomeDistribution["type"] == "fixed":
+                        if invT.incomeDistribution["type"] == kFixed:
                             income = invs.value + invT.incomeDistribution["value"]
-                        elif invT.incomeDistribution["type"] == "uniform":
+                        elif invT.incomeDistribution["type"] == kUniform:
                             income = invs.value + np.random.uniform(invT.incomeDistribution["lower"], invT.incomeDistribution["upper"])
                         else:
                             income = invs.value + np.random.normal(invT.incomeDistribution["mean"], invT.incomeDistribution["stdev"])
                     else:
-                        if invT.incomeDistribution["type"] == "fixed":
+                        if invT.incomeDistribution["type"] == kFixed:
                             income = invs.value * (1 + invT.incomeDistribution["value"])
-                        elif invT.incomeDistribution["type"] == "uniform":
+                        elif invT.incomeDistribution["type"] == kUniform:
                             income = invs.value * (1 + np.random.uniform(invT.incomeDistribution["lower"], invT.incomeDistribution["upper"]))
                         else:
                             income = invs.value * (1 + np.random.normal(invT.incomeDistribution["mean"], invT.incomeDistribution["stdev"]))
@@ -249,16 +253,16 @@ class Simulation:
 
                     change = 0
                     if invT.returnAmtOrPct == "amount":
-                        if invT.returnDistribution["type"] == "fixed":
+                        if invT.returnDistribution["type"] == kFixed:
                             change = invT.returnDistribution["value"]
-                        elif invT.returnDistribution["type"] == "uniform":
+                        elif invT.returnDistribution["type"] == kUniform:
                             change = np.random.uniform(invT.returnDistribution["lower"], invT.returnDistribution["upper"])
                         else:
                             change = np.random.normal(invT.returnDistribution["mean"], invT.returnDistribution["stdev"])
                     else:
-                        if invT.returnDistribution["type"] == "fixed":
+                        if invT.returnDistribution["type"] == kFixed:
                             change = invs.value * (1 + invT.returnDistribution["value"])
-                        elif invT.returnDistribution["type"] == "uniform":
+                        elif invT.returnDistribution["type"] == kUniform:
                             change = invs.value * (1 + np.random.uniform(invT.returnDistribution["lower"], invT.returnDistribution["upper"]))
                         else:
                             change = invs.value * (1 + np.random.normal(invT.returnDistribution["mean"], invT.returnDistribution["stdev"]))
@@ -334,7 +338,7 @@ class Simulation:
         return sum_amount
 
     def expenseSimul(self, ev, amount:int, year:int):
-        if ev.start["type"] == "fixed" and ev.start["value"] == year:
+        if ev.start["type"] == kFixed and ev.start["value"] == year:
             if ev.type != "expense":
                 raise ValueError("Event type is not expense")
             elif ev.type == "expense":
@@ -342,26 +346,26 @@ class Simulation:
                     if inv.investmentType == "cash":
                         inv.updateValue(inv.value+amount)   # update previous year income to cash amount
                 if ev.changeAmtOrPct == "amount":
-                    if ev.changeDistribution["type"] == "fixed":
+                    if ev.changeDistribution["type"] == kFixed:
                         inf_amount = amount + ev.changeDistribution["value"]
-                    elif ev.changeDistribution["type"] == "unifomrm":
+                    elif ev.changeDistribution["type"] == kUniform:
                         inf_amount = amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
                     else:
                         inf_amount = amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
                 else:
-                    if ev.changeDistribution["type"] == "fixed":
+                    if ev.changeDistribution["type"] == kFixed:
                         inf_amount = amount * (1 + ev.changeDistribution["value"])
-                    elif ev.changeDistribution["type"] == "unifomrm":
+                    elif ev.changeDistribution["type"] == kUniform:
                         inf_amount = amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
                     else:
                         inf_amount = amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
                 
                 if ev.inflationAdjusted == True:
                     infAdj = self.inf.runInflation()
-                    if self.data.inflationAssumption["type"] == "fixed":
-                        inf_amount += inf_amount * (1+infAdj) ** (year - self.year)
+                    if self.data.inflationAssumption["type"] == kFixed:
+                        inf_amount += inf_amount * (1 + infAdj) ** (year - self.year)
                     else:
-                        inf_amount += inf_amount * np.prod(1+np.clip(infAdj, -0.99, None))
+                        inf_amount += inf_amount * np.prod(1 + np.clip(infAdj, -0.99, None))
 
                 return inf_amount
             else:
@@ -384,26 +388,26 @@ class Simulation:
                         if inv.investmentType == "cash":
                             inv.updateValue(inv.value+amount)   # update previous year income to cash amount
                     if ev.changeAmtOrPct == "amount":
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount + ev.changeDistribution["value"]
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
                         else:
                             inf_amount = amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
                     else:
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount * (1 + ev.changeDistribution["value"])
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
                         else:
                             inf_amount = amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
                     
                     if ev.inflationAdjusted == True:
                         infAdj = self.inf.runInflation()
-                        if self.data.inflationAssumption["type"] == "fixed":
-                            inf_amount += inf_amount * (1+infAdj) ** (year - self.year)
+                        if self.data.inflationAssumption["type"] == kFixed:
+                            inf_amount += inf_amount * (1 + infAdj) ** (year - self.year)
                         else:
-                            inf_amount += inf_amount * np.prod(1+np.clip(infAdj, -0.99, None))
+                            inf_amount += inf_amount * np.prod(1 + np.clip(infAdj, -0.99, None))
 
                     return inf_amount
             else:
@@ -426,33 +430,33 @@ class Simulation:
                         if inv.investmentType == "cash":
                             inv.updateValue(inv.value+amount)   # update previous year income to cash amount
                     if ev.changeAmtOrPct == "amount":
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount + ev.changeDistribution["value"]
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
                         else:
                             inf_amount = amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
                     else:
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount * (1 + ev.changeDistribution["value"])
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
                         else:
                             inf_amount = amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
                     
                     if ev.inflationAdjusted == True:
                         infAdj = self.inf.runInflation()
-                        if self.data.inflationAssumption["type"] == "fixed":
-                            inf_amount += inf_amount * (1+infAdj) ** (year - self.year)
+                        if self.data.inflationAssumption["type"] == kFixed:
+                            inf_amount += inf_amount * (1 + infAdj) ** (year - self.year)
                         else:
-                            inf_amount += inf_amount * np.prod(1+np.clip(infAdj, -0.99, None))
+                            inf_amount += inf_amount * np.prod(1 + np.clip(infAdj, -0.99, None))
 
                     return inf_amount
             else:
                 return 0
-        elif ev.start["type"] == "normal":
+        elif ev.start["type"] == kNormal:
             targetYear = np.random.normal(ev.start["mean"], ev.start["stdev"])
-            ev.start = {"type": "fixed", "value": targetYear}
+            ev.start = {"type": kFixed, "value": targetYear}
             if targetYear == year:
                 if ev.type != "expense":
                     raise ValueError("Event type is not expense")
@@ -461,33 +465,33 @@ class Simulation:
                         if inv.investmentType == "cash":
                             inv.updateValue(inv.value+amount)   # update previous year income to cash amount
                     if ev.changeAmtOrPct == "amount":
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount + ev.changeDistribution["value"]
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
                         else:
                             inf_amount = amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
                     else:
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount * (1 + ev.changeDistribution["value"])
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
                         else:
                             inf_amount = amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
                     
                     if ev.inflationAdjusted == True:
                         infAdj = self.inf.runInflation()
-                        if self.data.inflationAssumption["type"] == "fixed":
-                            inf_amount += inf_amount * (1+infAdj) ** (year - self.year)
+                        if self.data.inflationAssumption["type"] == kFixed:
+                            inf_amount += inf_amount * (1 + infAdj) ** (year - self.year)
                         else:
-                            inf_amount += inf_amount * np.prod(1+np.clip(infAdj, -0.99, None))
+                            inf_amount += inf_amount * np.prod(1 + np.clip(infAdj, -0.99, None))
 
                     return inf_amount
             else:
                 return 0
-        elif ev.start["type"] == "uniform":
+        elif ev.start["type"] == kUniform:
             targetYear = np.random.uniform(ev.start["lower"], ev.start["upper"])
-            ev.start = {"type": "fixed", "value": targetYear}
+            ev.start = {"type": kFixed, "value": targetYear}
             if targetYear == year:
                 if ev.type != "expense":
                     raise ValueError("Event type is not expense")
@@ -496,26 +500,26 @@ class Simulation:
                         if inv.investmentType == "cash":
                             inv.updateValue(inv.value+amount)   # update previous year income to cash amount
                     if ev.changeAmtOrPct == "amount":
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount + ev.changeDistribution["value"]
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
                         else:
                             inf_amount = amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
                     else:
-                        if ev.changeDistribution["type"] == "fixed":
+                        if ev.changeDistribution["type"] == kFixed:
                             inf_amount = amount * (1 + ev.changeDistribution["value"])
-                        elif ev.changeDistribution["type"] == "unifomrm":
+                        elif ev.changeDistribution["type"] == kUniform:
                             inf_amount = amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
                         else:
                             inf_amount = amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
                     
                     if ev.inflationAdjusted == True:
                         infAdj = self.inf.runInflation()
-                        if self.data.inflationAssumption["type"] == "fixed":
-                            inf_amount += inf_amount * (1+infAdj) ** (year - self.year)
+                        if self.data.inflationAssumption["type"] == kFixed:
+                            inf_amount += inf_amount * (1 + infAdj) ** (year - self.year)
                         else:
-                            inf_amount += inf_amount * np.prod(1+np.clip(infAdj, -0.99, None))
+                            inf_amount += inf_amount * np.prod(1 + np.clip(infAdj, -0.99, None))
 
                     return inf_amount
             else:
@@ -611,7 +615,7 @@ class Simulation:
 
         # Find the invest event for the current year
         for ev in self.data.eventSeries:
-            if ev.type == "invest" and ev.invest.start["type"] == "fixed" and ev.invest.start["value"] == curYear:
+            if ev.type == "invest" and ev.invest.start["type"] == kFixed and ev.invest.start["value"] == curYear:
                 maxCash = ev.invest.maxCash
                 asset_allocation = ev.invest.assetAllocation
                 break
@@ -635,10 +639,10 @@ class Simulation:
                     maxCash = ev.maxCash
                     asset_allocation = ev.assetAllocation
                     break
-            elif ev.type == "invest" and ev.invest.start["type"] == "uniform":
-                ev.invest.start = {"type": "fixed", "value":np.random.uniform(ev.invest.start["lower"], ev.invest.start["upper"])}
-            elif ev.type == "invest" and ev.invest.start["type"] == "normal":
-                ev.invest.start = {"type": "fixed", "value": np.random.normal(ev.invest.start["mean"], ev.invest.start["stdev"])}
+            elif ev.type == "invest" and ev.invest.start["type"] == kUniform:
+                ev.invest.start = {"type": kFixed, "value":np.random.uniform(ev.invest.start["lower"], ev.invest.start["upper"])}
+            elif ev.type == "invest" and ev.invest.start["type"] == kNormal:
+                ev.invest.start = {"type": kFixed, "value": np.random.normal(ev.invest.start["mean"], ev.invest.start["stdev"])}
         
         # Inflation-adjusted annual limit for after-tax contributions
         L = self.limitInflation(curYear)
@@ -691,7 +695,7 @@ class Simulation:
 
             # Process income events
             for ev in self.data.eventSeries:
-                if ev.type == "income" and ev.start["type"] == "fixed" and ev.start["value"] == year:
+                if ev.type == "income" and ev.start["type"] == kFixed and ev.start["value"] == year:
                     curYearSS, curYearIncome = self.incomeEventSimul(ev, ev.initialAmount, year)
 
             # Perform RMD if applicable
@@ -726,7 +730,7 @@ class Simulation:
 
             # Rebalance logic
             for ev in self.data.eventSeries:
-                if ev.type == "rebalance" and ev.rebalance.start["type"] == "fixed" and ev.rebalance.start["value"] == year:
+                if ev.type == "rebalance" and ev.rebalance.start["type"] == kFixed and ev.rebalance.start["value"] == year:
                     target_allocation = ev.assetAllocation
                     total_value = sum(inv.value for inv in self.data.investments)
                     for inv in self.data.investments:
@@ -786,9 +790,9 @@ class Simulation:
                                 # Buy shortfall
                                 inv.value += target_value - inv.value
                 
-                elif ev.type == "rebalance" and ev.rebalance.start["type"] == "nomral":
+                elif ev.type == "rebalance" and ev.rebalance.start["type"] == kNormal:
                     targetYear = np.random.normal(ev.rebalance.start["mean"], ev.rebalance.start["stdev"])
-                    ev.start = {"type": "fixed", "value":targetYear}                    
+                    ev.start = {"type": kFixed, "value":targetYear}                    
                     if targetYear == year:
                         target_allocation = ev.assetAllocation
                         total_value = sum(inv.value for inv in self.data.investments)
@@ -802,9 +806,9 @@ class Simulation:
                                 # Buy shortfall
                                 inv.value += target_value - inv.value
 
-                elif ev.type == "rebalance" and ev.rebalance.start["type"] == "uniform":
+                elif ev.type == "rebalance" and ev.rebalance.start["type"] == kUniform:
                     targetYear = np.random.uniform(ev.rebalance.start["lower"], ev.rebalance.start["upper"])
-                    ev.start = {"type": "fixed", "value":targetYear}                    
+                    ev.start = {"type": kFixed, "value":targetYear}                    
                     if targetYear == year:
                         target_allocation = ev.assetAllocation
                         total_value = sum(inv.value for inv in self.data.investments)
