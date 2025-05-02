@@ -135,25 +135,47 @@ class TaxCalculator:
     
     def capitalGainTax(self, data:dict, taxable:int):
         """
-        This is a function to calculate capital gains tax
-
-        consider all taxable investment
+        Calculate capital gains tax using progressive tax rates
+        
+        Args:
+        ----
+            data: Scenario data dictionary
+            taxable: Total taxable capital gains
+        
+        Returns:
+        ----
+            Total capital gains tax amount
         """
-        if taxable > 0:
-            if data.maritalStatus == "couple":
-                for key, value in self.capTax["couple"].items():
-                    if key == "inf":
-                        return taxable * value
-                    elif taxable < int(key):
-                        return taxable * value
-            else:
-                for key, value in self.capTax["individual"].items():
-                    if key == "inf":
-                        return taxable * value
-                    elif taxable < int(key):
-                        return taxable * value
-        else:
+        if taxable <= 0:
             return 0
+            
+        # Get tax brackets based on marital status
+        brackets = self.capTax["couple" if data.maritalStatus == "couple" else "individual"]
+        
+        # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
+        tax_brackets = [(int(k), v) for k, v in brackets.items() if k != "inf"]
+        tax_brackets.sort()  # Sort by threshold
+        
+        # Add infinity bracket at the end
+        inf_rate = brackets.get("inf", 0)
+        tax_brackets.append((float('inf'), inf_rate))
+        
+        total_tax = 0
+        prev_threshold = 0
+        
+        # Calculate tax for each bracket
+        for threshold, rate in tax_brackets:
+            if taxable > prev_threshold:
+                # Calculate capital gains in this bracket
+                bracket_gains = min(taxable - prev_threshold, threshold - prev_threshold)
+                total_tax += bracket_gains * rate
+                
+            if taxable <= threshold:
+                break
+                
+            prev_threshold = threshold
+        
+        return total_tax
         
     def stateTaxCalculator(self, data:dict, taxable:int, state:str, email):
         """
