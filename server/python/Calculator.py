@@ -100,7 +100,7 @@ class TaxCalculator:
         
         # Calculate state tax based on income before standard deduction
         # This is because state tax calculations might have different rules
-        stateTax = self.stateTaxCalculator(data, amount - 0.15*curYearSS, data.residenceState, email)
+        stateTax = self.stateTaxCalculator(data, amount - 0.15*curYearSS, data.residenceState, curYearSS, email)
         
         if taxable <= 0:
             return stateTax  # Return only state tax if no federal taxable income
@@ -177,47 +177,77 @@ class TaxCalculator:
         
         return total_tax
         
-    def stateTaxCalculator(self, data:dict, taxable:int, state:str, email):
+    def stateTaxCalculator(self, data:dict, taxable:int, state:str, curYearSS:int=0, email=None):
         """
-        This is a function to calculate state tax amount
-
+        Calculate state tax amount with proper handling of missing state data
+        and social security income
+        
         Args:
         ----
-            state: a string value of state name such as NJ, NY, etc.
-        """
-        if email != None:
-            if taxable > 0:
-                if data.maritalStatus == "couple":
-                    for key, value in self.stateTax[email][0][state][0]["couple"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-                else:
-                    for key, value in self.stateTax[email][0][state][0]["individual"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-            else:
-                return 0
-        else:
-            if taxable > 0:
-                if data.maritalStatus == "couple":
-                    for key, value in self.stateTax[state][0]["couple"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-                else:
-                    for key, value in self.stateTax[state][0]["individual"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-            else:
-                return 0
+            data: Scenario data dictionary
+            taxable: Total taxable income before social security adjustment
+            state: State code (e.g., 'NJ', 'NY')
+            curYearSS: Current year social security income (default: 0)
+            email: Optional email for custom tax rates
         
+        Returns:
+        ----
+            State tax amount
+        """
+        if taxable <= 0:
+            return 0
+
+        # Determine if social security is taxable in this state
+        is_ss_taxable = self.socialSecurity(state)
+        
+        # If social security is not taxable in this state, remove it from taxable income
+        if not is_ss_taxable:
+            taxable = max(0, taxable - curYearSS)
+            
+        try:
+            # Get state tax brackets
+            if email:
+                try:
+                    brackets = self.stateTax[email][0][state][0][data.maritalStatus]
+                except (KeyError, IndexError):
+                    print(f"Warning: No tax data found for state {state} in user profile {email}. Ignoring state tax.")
+                    return 0
+            else:
+                try:
+                    brackets = self.stateTax[state][0][data.maritalStatus]
+                except (KeyError, IndexError):
+                    print(f"Warning: No tax data found for state {state}. Ignoring state tax.")
+                    return 0
+
+            # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
+            tax_brackets = [(int(k), v) for k, v in brackets.items() if k != "inf"]
+            tax_brackets.sort()  # Sort by threshold
+            
+            # Add infinity bracket at the end
+            inf_rate = brackets.get("inf", 0)
+            tax_brackets.append((float('inf'), inf_rate))
+            
+            total_tax = 0
+            prev_threshold = 0
+            
+            # Calculate tax for each bracket
+            for threshold, rate in tax_brackets:
+                if taxable > prev_threshold:
+                    # Calculate income in this bracket
+                    bracket_income = min(taxable - prev_threshold, threshold - prev_threshold)
+                    total_tax += bracket_income * rate
+                    
+                if taxable <= threshold:
+                    break
+                    
+                prev_threshold = threshold
+            
+            return total_tax
+
+        except Exception as e:
+            print(f"Warning: Error calculating state tax for {state}: {str(e)}. Ignoring state tax.")
+            return 0
+
     def earlyWithdrawal(self, data:dict, withdrawal:int):
         """
         This is a function to calculate early withdrawal tax
@@ -279,17 +309,21 @@ class TaxCalculator:
 
     def socialSecurity(self, state:str):
         """
-        This is a function to get social security tax amount
-
+        Check if a state taxes social security income
+        
         Args:
         ----
-            amount: a integer value of amount to calculate tax
-            state: a string value of state name such as NJ, NY, etc.
+            state: State code (e.g., 'NJ', 'NY')
+        
+        Returns:
+        ----
+            bool: True if the state taxes social security, False otherwise
         """
-        if state in self.stateTax["nonsocialsecurity"]:
-            return "We ignore the social security for this state"
-        else:
-            pass
+        try:
+            return state not in self.stateTax.get("nonsocialsecurity", [])
+        except Exception as e:
+            print(f"Warning: Error checking social security taxation for state {state}: {str(e)}. Assuming social security is not taxable.")
+            return False
 
     def updateFederalTax(self):
         """
