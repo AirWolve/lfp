@@ -248,16 +248,23 @@ class TaxCalculator:
             print(f"Warning: Error calculating state tax for {state}: {str(e)}. Ignoring state tax.")
             return 0
 
-    def earlyWithdrawal(self, data:dict, withdrawal:int):
+    def earlyWithdrawal(self, data:dict, withdrawal:int, simYear:int=None):
         """
-        This is a function to calculate early withdrawal tax
+        Calculate early withdrawal penalty tax (10% penalty for withdrawals before age 59)
         
         Args:
         ----
-            withdrawal: a integer value of withdrawal amount
+            data: Scenario data dictionary containing birthYears
+            withdrawal: Amount withdrawn from retirement accounts
+            simYear: Current simulation year (defaults to current calendar year if not provided)
+        
+        Returns:
+        ----
+            Early withdrawal penalty amount (10% of withdrawal if age < 59, otherwise 0)
         """
-        age = data.birthYears[0]-self.year
-
+        # Calculate current age (year - birthYear)
+        age = self.year - data.birthYears[0]  # Using first person's birth year for now
+        
         if age < 59:
             return withdrawal * 0.1
         else:
