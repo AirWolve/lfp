@@ -79,27 +79,59 @@ class TaxCalculator:
     # Tax Calculator
     def federalTaxCalculator(self, data:dict, amount:int, curYearSS, email=None):
         """
-        This is a function to calculate tax amount
+        This is a function to calculate federal tax amount using progressive tax rates
+        
+        Args:
+        ----
+            data: Scenario data dictionary
+            amount: Total taxable income
+            curYearSS: Current year social security income
+            email: Optional email for custom tax rates
+        
+        Returns:
+        ----
+            Total tax amount including federal and state tax
         """
-        taxable = amount - 0.15*curYearSS
-        stateTax = self.stateTaxCalculator(data, taxable, data.residenceState, email)
-
-        if taxable > 0:
-            if data.maritalStatus == "couple":
-                for key, value in self.federalTax["couple"].items():
-                    if key == "inf":
-                        return (taxable * value + stateTax)
-                    elif taxable < int(key):
-                        return (taxable * value + stateTax)
-
-            elif data.maritalStatus == "individual":
-                for key, value in self.federalTax["individual"].items():
-                    if key == "inf":
-                        return (taxable * value + stateTax)
-                    elif taxable < int(key):
-                        return (taxable * value + stateTax)
-        else:
-            return 0
+        # Get standard deduction based on marital status
+        standard_deduction = self.federalTax["standardDeduction"][data.maritalStatus]
+        
+        # Calculate taxable income after social security exclusion and standard deduction
+        taxable = max(0, amount - 0.15*curYearSS - standard_deduction)
+        
+        # Calculate state tax based on income before standard deduction
+        # This is because state tax calculations might have different rules
+        stateTax = self.stateTaxCalculator(data, amount - 0.15*curYearSS, data.residenceState, email)
+        
+        if taxable <= 0:
+            return stateTax  # Return only state tax if no federal taxable income
+            
+        # Get tax brackets based on marital status
+        brackets = self.federalTax["couple" if data.maritalStatus == "couple" else "individual"]
+        
+        # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
+        tax_brackets = [(int(k), v) for k, v in brackets.items() if k != "inf"]
+        tax_brackets.sort()  # Sort by threshold
+        
+        # Add infinity bracket at the end
+        inf_rate = brackets.get("inf", 0)
+        tax_brackets.append((float('inf'), inf_rate))
+        
+        total_tax = 0
+        prev_threshold = 0
+        
+        # Calculate tax for each bracket
+        for threshold, rate in tax_brackets:
+            if taxable > prev_threshold:
+                # Calculate income in this bracket
+                bracket_income = min(taxable - prev_threshold, threshold - prev_threshold)
+                total_tax += bracket_income * rate
+                
+            if taxable <= threshold:
+                break
+                
+            prev_threshold = threshold
+        
+        return total_tax + stateTax
     
     def capitalGainTax(self, data:dict, taxable:int):
         """
