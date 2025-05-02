@@ -188,38 +188,87 @@ class Simulation:
     # end 2
 
     # start 3
-    def RMDSimul(self, invId, year:int, curYearIncome, prop_inv:bool=False):
-        inv = None
-        rmd = 0
+    def RMDSimul(self, year, curYearIncome):
+        """
+        Calculate and process Required Minimum Distribution (RMD) for the current year.
+        RMD calculation starts at age 73, but first distribution occurs at age 74.
         
-        for i in self.data.investments:
-            if invId == i.id:
-                inv = i
+        Args:
+        ----
+            year: Current simulation year
+            curYearIncome: Current year's taxable income
+            
+        Returns:
+        ----
+            float: Updated taxable income including RMD amount
+        """
+        # Calculate current age
+        age = year - self.data.birthYears[0]
         
-        if inv.taxStatus != "pre-tax":
-            raise ValueError("Investment tax status is not pre-tax")
-
-        elif inv.taxStatus == "pre-tax":
-            curYear = year - self.data.birthYears[0]
-            if curYear >= 73:
-                d = self.rmd.runRMD(self.data, curYear)
-                s = 0
-                for invs in self.data.investments:
-                    if invs.taxStatus == "pre-tax" and "IRA" not in invs.investmentType:
-                        s += invs.value
-                print(s, d)
-                rmd = s/d
-                curYearIncome += rmd
-        # move the amount
-        for invss in self.data.investments:
-            if invss.investmentType == inv.investmentType and invss.taxStatus == "non-retirement":
-                invss.value += rmd
-                inv.value -= rmd
-                prop_inv = True
+        # Only process RMD at age 74 and above
+        if age < 74:
+            return curYearIncome
+            
+        # Get distribution period from RMD calculator
+        distribution_period = self.rmd.runRMD(age)
+        if distribution_period == 0:
+            return curYearIncome
+            
+        # Calculate total value of all pre-tax accounts
+        total_pretax_value = 0
+        for inv in self.data.investments:
+            if inv.taxStatus == "pre-tax":  # Include all pre-tax accounts regardless of name
+                total_pretax_value += inv.value
+                
+        # Calculate RMD amount
+        rmd_amount = total_pretax_value / distribution_period
         
-        if prop_inv == False:
-            new_inv = sc.Investments({"investmentType": inv.investmentType, "value": rmd, "taxStatus": "non-retirement", "id": inv.investmentType+"non-retirement"})
-            self.data.investments.append(new_inv)
+        # Add RMD to taxable income
+        curYearIncome += rmd_amount
+        
+        # Process RMD withdrawals according to RMDStrategy
+        remaining_rmd = rmd_amount
+        for rmd_inv_id in self.data.RMDStrategy:
+            if remaining_rmd <= 0:
+                break
+                
+            # Find the source investment
+            source_inv = None
+            for inv in self.data.investments:
+                if inv.id == rmd_inv_id:
+                    source_inv = inv
+                    break
+            
+            if source_inv is None or source_inv.taxStatus != "pre-tax":
+                continue
+                
+            # Calculate withdrawal amount for this account
+            withdrawal = min(remaining_rmd, source_inv.value)
+            if withdrawal <= 0:
+                continue
+                
+            # Find or create corresponding non-retirement account
+            target_inv = None
+            for inv in self.data.investments:
+                if (inv.investmentType == source_inv.investmentType and 
+                    inv.taxStatus == "non-retirement"):
+                    target_inv = inv
+                    break
+            
+            if target_inv is None:
+                # Create new non-retirement account
+                target_inv = sc.Investment(
+                    id=f"{source_inv.id}_nonret",
+                    investmentType=source_inv.investmentType,
+                    taxStatus="non-retirement",
+                    value=0
+                )
+                self.data.investments.append(target_inv)
+            
+            # Transfer funds
+            source_inv.value -= withdrawal
+            target_inv.value += withdrawal
+            remaining_rmd -= withdrawal
         
         return curYearIncome
     # end 3
@@ -699,8 +748,7 @@ class Simulation:
                     curYearSS, curYearIncome = self.incomeEventSimul(ev, ev.initialAmount, year)
 
             # Perform RMD if applicable
-            for rmdInv in self.data.RMDStrategy:
-                curYearIncome = self.RMDSimul(rmdInv, year, curYearIncome)
+            curYearIncome = self.RMDSimul(year, curYearIncome)
 
             # Update investment values
             curYearIncome, capitalGain = self.investmentsSimul(curYearIncome, capitalGain)

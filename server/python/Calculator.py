@@ -51,19 +51,39 @@ class RMDCalculator:
         with open('./LFTTable.yaml', 'w') as f:
             yaml.dump(result, f, default_flow_style=False, sort_keys=False)
 
-    # RMD Calculator
-    def runRMD(self, data, age):
+    def getLFT(self, age):
+        """
+        Get the Life Expectancy Factor (distribution period) for a given age
         
-        if age < 73:
+        Args:
+        ----
+            age: Age of the account holder
+            
+        Returns:
+        ----
+            float: Distribution period from the Uniform Lifetime Table
+        """
+        if age > 120:
+            return self.LFTTable.get(str(120))
+        else:
+            return self.LFTTable.get(str(age))
+
+    def runRMD(self, age):
+        """
+        Get the distribution period for RMD calculation
+        
+        Args:
+        ----
+            age: Age of the account holder
+            
+        Returns:
+        ----
+            float: Distribution period from the Uniform Lifetime Table, or 0 if age < 73
+        """
+        if age < 73:  # RMD calculation starts at age 73
             return 0
         else:
-            for idn in data.RMDStrategy:
-                for inv in data.investments:
-                    if inv.id == idn:
-                        if age > 120:
-                            return inv.value / self.LFTTable.get(str(120))
-                        else:
-                            return inv.value / self.LFTTable.get(str(age))
+            return self.getLFT(age)
 
 class TaxCalculator:
     def __init__(self):
