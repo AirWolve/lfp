@@ -34,7 +34,7 @@ class Simulation:
                 break
 
     # start 1
-    def taxInflation(self, year:int):
+    def taxInflation(self, year:int, curInflation:float):
         """
         Calculate inflation-adjusted tax brackets for the current simulation year.
         
@@ -47,8 +47,6 @@ class Simulation:
         ----
             year: Current simulation year
         """
-        curInfAssum = self.inf.runInflation()
-        
         # Store base values if not already stored
         if not hasattr(self, 'base_brackets'):
             self.base_brackets = {
@@ -76,10 +74,10 @@ class Simulation:
                 
             if self.data.inflationAssumption["type"] == kFixed:
                 # For fixed rate, calculate directly from base value
-                inftax = self.base_brackets['individual'][key] * (1 + curInfAssum) ** (year - self.year)
+                inftax = self.base_brackets['individual'][key] * (1 + curInflation) ** (year - self.year)
             else:
                 # For distribution-based, apply current year's inflation to previous year's value
-                inftax = self.prev_year_brackets['individual'][key] * (1 + curInfAssum)
+                inftax = self.prev_year_brackets['individual'][key] * (1 + curInflation)
                 self.prev_year_brackets['individual'][key] = inftax
             ind_tax[inftax] = value
 
@@ -90,9 +88,9 @@ class Simulation:
                 continue
                 
             if self.data.inflationAssumption["type"] == kFixed:
-                inftax = self.base_brackets['couple'][key] * (1 + curInfAssum) ** (year - self.year)
+                inftax = self.base_brackets['couple'][key] * (1 + curInflation) ** (year - self.year)
             else:
-                inftax = self.prev_year_brackets['couple'][key] * (1 + curInfAssum)
+                inftax = self.prev_year_brackets['couple'][key] * (1 + curInflation)
                 self.prev_year_brackets['couple'][key] = inftax
             cou_tax[inftax] = value
 
@@ -110,9 +108,9 @@ class Simulation:
                 continue
                 
             if self.data.inflationAssumption["type"] == kFixed:
-                inftax = self.base_brackets['cap_individual'][key] * (1 + curInfAssum) ** (year - self.year)
+                inftax = self.base_brackets['cap_individual'][key] * (1 + curInflation) ** (year - self.year)
             else:
-                inftax = self.prev_year_brackets['cap_individual'][key] * (1 + curInfAssum)
+                inftax = self.prev_year_brackets['cap_individual'][key] * (1 + curInflation)
                 self.prev_year_brackets['cap_individual'][key] = inftax
             ind_tax[inftax] = value
 
@@ -123,24 +121,23 @@ class Simulation:
                 continue
                 
             if self.data.inflationAssumption["type"] == kFixed:
-                inftax = self.base_brackets['cap_couple'][key] * (1 + curInfAssum) ** (year - self.year)
+                inftax = self.base_brackets['cap_couple'][key] * (1 + curInflation) ** (year - self.year)
             else:
-                inftax = self.prev_year_brackets['cap_couple'][key] * (1 + curInfAssum)
+                inftax = self.prev_year_brackets['cap_couple'][key] * (1 + curInflation)
                 self.prev_year_brackets['cap_couple'][key] = inftax
             cou_tax[inftax] = value
 
         self.tax.capTax["individual"] = ind_tax
         self.tax.capTax["couple"] = cou_tax
 
-    def limitInflation(self, year:int):
+    def limitInflation(self, year:int, curInflation:float):
         """
         This function is for calculating the after tax contribution limit with inflation assumption
         """
-        curInfAssum = self.inf.runInflation()
         if self.data.inflationAssumption["type"] == kFixed:
-            return self.data.afterTaxContributionLimit * (1+curInfAssum) ** (year - self.year)
+            return self.data.afterTaxContributionLimit * (1+curInflation) ** (year - self.year)
         else:
-            return self.data.afterTaxContributionLimit * np.prod(1+np.clip(curInfAssum, -0.99, None))
+            return self.data.afterTaxContributionLimit * np.prod(1+np.clip(curInflation, -0.99, None))
     # end 1
 
     # start 2
@@ -620,7 +617,7 @@ class Simulation:
                             inv.value = 0
         return capitalgain, curYearIncome, curYearEarlyWithdrawals
 
-    def payTax(self, capitalgain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email=None):
+    def payTax(self, capitalgain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email=None, expense_amount=None):
         # self.tax.federalTax is already infaltion adjusted
         incomeTax = self.tax.federalTaxCalculator(self.data, curYearIncome, curYearSS, email)
         cgTax = self.tax.capitalGainTax(self.data, curYearGains)
@@ -634,6 +631,8 @@ class Simulation:
             print("ewTax")
 
         p = self.sumNonDiscretionary() + incomeTax + cgTax + ewTax  # total payment amount
+        if expense_amount is not None:
+            p = expense_amount  # 부분 지출 처리
         
         for inv in self.data.investments:
             if inv.investmentType == "cash":
@@ -694,7 +693,7 @@ class Simulation:
                 ev.invest.start = {"type": kFixed, "value": np.random.normal(ev.invest.start["mean"], ev.invest.start["stdev"])}
         
         # Inflation-adjusted annual limit for after-tax contributions
-        L = self.limitInflation(curYear)
+        L = self.limitInflation(curYear, self.inf.runInflation())
 
         # Calculate total allocation for after-tax investments
         after_tax_investments = [inv for inv in self.data.investments if inv.taxStatus == "after-tax"]
@@ -731,8 +730,26 @@ class Simulation:
         This function simulates the entire scenario year by year and returns a list of updated Scenario objects.
         """
         updated_scenarios = []  # List to store updated Scenario objects for each year
+        self.yearly_data = {}
 
         for year in range(self.year, self.duration + 1):
+            # 0-a. 매년 인플레이션 값을 한 번만 샘플링
+            curInflation = self.inf.runInflation()
+
+            # 0-b. 인플레이션 반영 세율/공제 갱신 (curInflation 사용)
+            self.taxInflation(year, curInflation)
+
+            # 0-c. 인플레이션 반영 연간 한도 갱신 (curInflation 사용)
+            curLimit = self.limitInflation(year, curInflation)
+
+            # 연도별 pre-tax value, 나이 등 저장
+            pre_tax_values = [inv.value for inv in self.data.investments if inv.taxStatus == "pre-tax"]
+            self.yearly_data[year] = {
+                "pre_tax_values": pre_tax_values,
+                "age": year - self.data.birthYears[0],
+                # ... 필요한 값 추가 가능
+            }
+
             # Initialize variables for the current year
             curYearIncome = 0
             curYearSS = 0
@@ -740,38 +757,148 @@ class Simulation:
             curYearEarlyWithdrawals = 0  # Initialize early withdrawals for the current year
             capitalGain = 0
 
-            self.taxInflation(year)  # Adjust tax brackets and capital gain tax for inflation
-
-            # Process income events
+            # Process income events (수정된 부분)
             for ev in self.data.eventSeries:
                 if ev.type == "income" and ev.start["type"] == kFixed and ev.start["value"] == year:
-                    curYearSS, curYearIncome = self.incomeEventSimul(ev, ev.initialAmount, year)
+                    prev_amount = ev.initialAmount
+                    # 변화분 샘플링
+                    if ev.changeAmtOrPct == "amount":
+                        if ev.changeDistribution["type"] == kFixed:
+                            new_amount = prev_amount + ev.changeDistribution["value"]
+                        elif ev.changeDistribution["type"] == kUniform:
+                            new_amount = prev_amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
+                        elif ev.changeDistribution["type"] == kNormal:
+                            new_amount = prev_amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
+                        else:
+                            new_amount = prev_amount
+                    else:
+                        if ev.changeDistribution["type"] == kFixed:
+                            new_amount = prev_amount * (1 + ev.changeDistribution["value"])
+                        elif ev.changeDistribution["type"] == kUniform:
+                            new_amount = prev_amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
+                        elif ev.changeDistribution["type"] == kNormal:
+                            new_amount = prev_amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
+                        else:
+                            new_amount = prev_amount
+                    # 인플레이션 반영 (curInflation 사용)
+                    if ev.inflationAdjusted == True:
+                        if self.data.inflationAssumption["type"] == kFixed:
+                            new_amount += new_amount * (1 + curInflation) ** (year - self.year)
+                        else:
+                            new_amount += new_amount * (np.prod(1 + np.clip(curInflation, -0.99, None)))
+                    # 사망 여부 반영 (userFraction)
+                    user_alive = True
+                    spouse_alive = True
+                    if len(self.data.birthYears) > 0 and len(self.data.lifeExpectancy) > 0:
+                        user_death_year = self.data.birthYears[0] + (self.data.lifeExpectancy[0]["value"] if self.data.lifeExpectancy[0]["type"] == "fixed" else self.data.lifeExpectancy[0]["mean"])
+                        if year >= user_death_year:
+                            user_alive = False
+                    if self.data.maritalStatus == "couple" and len(self.data.birthYears) > 1 and len(self.data.lifeExpectancy) > 1:
+                        spouse_death_year = self.data.birthYears[1] + (self.data.lifeExpectancy[1]["value"] if self.data.lifeExpectancy[1]["type"] == "fixed" else self.data.lifeExpectancy[1]["mean"])
+                        if year >= spouse_death_year:
+                            spouse_alive = False
+                    fraction = 1.0
+                    if not user_alive:
+                        fraction -= ev.userFraction
+                    if self.data.maritalStatus == "couple" and not spouse_alive:
+                        fraction -= (1.0 - ev.userFraction)
+                        fraction = max(0, fraction)
+                    new_amount *= fraction
+                    for inv in self.data.investments:
+                        if inv.investmentType == "cash":
+                            inv.updateValue(inv.value + new_amount)
+                    if hasattr(ev, "socialSecurity") and ev.socialSecurity == True:
+                        curYearSS += new_amount
+                    else:
+                        curYearIncome += new_amount
+                    ev.initialAmount = new_amount
 
-            # Perform RMD if applicable
-            curYearIncome = self.RMDSimul(year, curYearIncome)
+            # 2. RMD는 항상 전년도 상태로 계산
+            if year > self.year:
+                prev_year = year - 1
+                age = self.yearly_data[prev_year]["age"]
+                pre_tax_values = self.yearly_data[prev_year]["pre_tax_values"]
+                s = sum(pre_tax_values)
+                if age >= 73 and s > 0:
+                    d = self.rmd.runRMD(age)
+                    rmd = s / d
+                    curYearIncome += rmd
+                    # RMD 전략에 따라 in-kind 이전 (기존 로직 활용)
+                    remaining_rmd = rmd
+                    for rmd_inv_id in self.data.RMDStrategy:
+                        if remaining_rmd <= 0:
+                            break
+                        source_inv = None
+                        for inv in self.data.investments:
+                            if inv.id == rmd_inv_id:
+                                source_inv = inv
+                                break
+                        if source_inv is None or source_inv.taxStatus != "pre-tax":
+                            continue
+                        withdrawal = min(remaining_rmd, source_inv.value)
+                        if withdrawal <= 0:
+                            continue
+                        target_inv = None
+                        for inv in self.data.investments:
+                            if (inv.investmentType == source_inv.investmentType and inv.taxStatus == "non-retirement"):
+                                target_inv = inv
+                                break
+                        if target_inv is None:
+                            target_inv = sc.Investment(
+                                id=f"{source_inv.id}_nonret",
+                                investmentType=source_inv.investmentType,
+                                taxStatus="non-retirement",
+                                value=0
+                            )
+                            self.data.investments.append(target_inv)
+                        source_inv.value -= withdrawal
+                        target_inv.value += withdrawal
+                        remaining_rmd -= withdrawal
 
-            # Update investment values
+            # Update investment values (3번 로직은 기존과 동일)
             curYearIncome, capitalGain = self.investmentsSimul(curYearIncome, capitalGain)
 
             # Run Roth conversion optimizer if enabled
             if self.data.RothConversionOpt and self.data.RothConversionStart <= year <= self.data.RothConversionEnd:
                 curYearIncome = self.RCOptimizer(self.tax.federalTax, curYearIncome, curYearSS)
 
-            # Pay non-discretionary expenses and taxes
-            if emailNeed == True:
-                self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
-            else:
-                self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals)
+            # 연도별 값 저장
+            self.yearly_data[year] = {
+                "curYearIncome": curYearIncome,
+                "curYearSS": curYearSS,
+                "curYearGains": capitalGain,
+                "curYearEarlyWithdrawals": curYearEarlyWithdrawals,
+                "cash": next((inv.value for inv in self.data.investments if inv.investmentType == "cash"), 0)
+            }
 
-            # Pay discretionary expenses
+            # 5. Pay non-discretionary expenses and previous year's taxes (전년도 값 사용)
+            if year > self.year:
+                prev = self.yearly_data[year-1]
+                self.payTax(
+                    prev["curYearGains"],
+                    prev["curYearIncome"],
+                    prev["curYearSS"],
+                    prev["curYearGains"],
+                    prev["curYearEarlyWithdrawals"],
+                    email if emailNeed else None
+                )
+
+            # 6. Pay discretionary expenses (financialGoal 미만이면 중단, 마지막은 부분 지출)
+            total_assets = sum(inv.value for inv in self.data.investments)
             for expense in self.data.spendingStrategy:
                 for ev in self.data.eventSeries:
                     if ev.type == "expense":
                         amount = self.expenseSimul(ev, ev.initialAmount, year)
-                        if emailNeed == True:
-                            self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
+                        # 지출 전 자산 체크
+                        if total_assets - amount < self.data.financialGoal:
+                            # 부분 지출만 가능
+                            partial_amount = max(0, total_assets - self.data.financialGoal)
+                            if partial_amount > 0:
+                                self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email if emailNeed else None, expense_amount=partial_amount)
+                            break  # 더 이상 지출하지 않음
                         else:
-                            self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals)
+                            self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email if emailNeed else None, expense_amount=amount)
+                            total_assets -= amount
 
             # Run investment events
             self.buyInvestment(year)
@@ -847,7 +974,7 @@ class Simulation:
                         for inv in self.data.investments:
                             target_value = total_value * target_allocation.get(inv.id, 0)
                             if inv.value > target_value:
-                                # Sell excess
+                                # Sell excess 
                                 capitalGain += self.sellInvestment(inv, {}, full=False, f=(inv.value - target_value) / inv.value)
                                 inv.value = target_value
                             elif inv.value < target_value:
