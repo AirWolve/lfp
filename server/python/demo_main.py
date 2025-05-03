@@ -1,5 +1,6 @@
 import sys
 import Simulation
+import yaml
 
 def main():
     # Read all lines from stdin
@@ -21,33 +22,44 @@ def main():
         sim = Simulation.Simulation(yaml_text)
         # Run simulation, pass email if needed
         result = sim.simulation(user_email, emailNeed=False)
-        # result는 연도별 dict 리스트
+        
+        # Print results (refactored simulation result format)
         print("===== Simulation Results by Year =====")
-        for idx, year_data in enumerate(result):
-            print(f"--- Year {idx+1} ---")
-            # 주요 정보만 요약 출력 (필요시 key를 조정)
-            if 'year' in year_data:
-                print(f"Year: {year_data['year']}")
-            if 'investments' in year_data:
-                total_assets = sum(inv.get('value', 0) for inv in year_data['investments'])
-                print(f"  Total Assets: {total_assets:,.2f}")
-                for inv in year_data['investments']:
-                    print(f"    {inv['investmentType']} ({inv['taxStatus']}): {inv['value']:,.2f}")
-            if 'curYearIncome' in year_data:
-                print(f"  Income: {year_data['curYearIncome']}")
-            if 'curYearSS' in year_data:
-                print(f"  Social Security: {year_data['curYearSS']}")
-            if 'curYearGains' in year_data:
-                print(f"  Capital Gains: {year_data['curYearGains']}")
-            if 'curYearEarlyWithdrawals' in year_data:
-                print(f"  Early Withdrawals: {year_data['curYearEarlyWithdrawals']}")
-            print()
-        print("Simulation completed successfully")
+        
+        # Access yearly information from yearly_data
+        if hasattr(sim, 'yearly_data') and sim.yearly_data:
+            for year, year_data in sorted(sim.yearly_data.items()):
+                print(f"\n--- Year: {year} ---")
+                print(f"  Total Assets: ${year_data.get('total_assets', 0):,.2f}")
+                
+                # Income and tax info
+                print(f"  Income: ${year_data.get('income', 0):,.2f}")
+                print(f"  Social Security: ${year_data.get('social_security', 0):,.2f}")
+                print(f"  Capital Gains: ${year_data.get('capital_gains', 0):,.2f}")
+                
+                # Tax info
+                print(f"  Income Tax: ${year_data.get('income_tax', 0):,.2f}")
+                print(f"  Capital Gains Tax: ${year_data.get('capital_gains_tax', 0):,.2f}")
+                print(f"  Early Withdrawal Tax: ${year_data.get('early_withdrawal_tax', 0):,.2f}")
+                
+                # Investment info
+                print("\n  Investment Details:")
+                investments = year_data.get('investments', {})
+                for inv_id, value in investments.items():
+                    # Print only investments with value
+                    if value > 0:
+                        print(f"    {inv_id}: ${value:,.2f}")
+        else:
+            # If no yearly_data, print year and total assets directly from result
+            for year, total_assets in result:
+                print(f"\n--- Year: {year} ---")
+                print(f"  Total Assets: ${total_assets:,.2f}")
+                
+        print("\nSimulation completed successfully.")
     except Exception as e:
-        print(f"Error during simulation: {str(e)}", file=sys.stderr)
-        print("YAML input (first 20 lines):", file=sys.stderr)
-        for l in yaml_text.splitlines()[:20]:
-            print(l, file=sys.stderr)
+        print(f"Error occurred during simulation: {str(e)}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":
