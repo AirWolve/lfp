@@ -10,12 +10,16 @@ const userSchema = new mongoose.Schema({
 const scenarioSchema = new mongoose.Schema({
   email: { type: String, required: true },
   scenarioPath: { type: String, required: true },
+const historySchema = new mongoose.Schema({
+  user: { type: String, required: true },
+  simResult: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
 const SchemaModels = { 
   userSchema,
   scenarioSchema 
+  historySchema
 };
 
 module.exports = { SchemaModels };
