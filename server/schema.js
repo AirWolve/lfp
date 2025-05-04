@@ -8,8 +8,13 @@ const userSchema = new mongoose.Schema({
 });
 
 const scenarioSchema = new mongoose.Schema({
-  email: { type: String, required: true },
-  scenarioPath: { type: String, required: true },
+  name: { type: String, required: true },
+  user: { type: String, required: true },
+  scenarioData: { type: String, required: true },
+  history_id: { type: Object, required: true},
+  createdAt: { type: Date, default: Date.now }
+});
+
 const historySchema = new mongoose.Schema({
   user: { type: String, required: true },
   simResult: { type: String, required: true },
@@ -18,7 +23,7 @@ const historySchema = new mongoose.Schema({
 
 const SchemaModels = { 
   userSchema,
-  scenarioSchema 
+  scenarioSchema,
   historySchema
 };
 
