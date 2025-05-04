@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: #4b626b;
   }
   
@@ -8,15 +8,24 @@ body {
     text-align: center;
     padding: 40px;
     color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   
   .scenario-title {
-    font-size: 20px;
+    font-size: 24px;
     margin-bottom: 30px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
+  }
+  
+  .scenario-title h2 {
+    margin: 0;
+    font-weight: 600;
   }
   
   .edit-icon {
@@ -30,10 +39,11 @@ body {
     background-color: white;
     border-radius: 12px;
     padding: 30px 40px;
-    max-width: 600px;
+    max-width: 800px;
+    width: 100%;
     margin: 0 auto;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    color: black;
+    color: #2e434a;
   }
   
   .form-container h3 {
@@ -41,9 +51,10 @@ body {
   }
   
   .form-description {
-    font-size: 13px;
+    font-size: 14px;
     margin-bottom: 25px;
-    color: #444;
+    color: #666;
+    line-height: 1.5;
   }
   
   /* Form */
@@ -107,32 +118,69 @@ body {
   
   /* Buttons */
   .form-buttons {
-    margin-top: 20px;
+    margin-top: 30px;
     display: flex;
     justify-content: space-between;
+    gap: 20px;
   }
   
   .back, .next {
     padding: 10px 20px;
-    border-radius: 20px;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
-    font-weight: bold;
-    width: 100px;
+    font-weight: 500;
+    font-size: 14px;
+    min-width: 100px;
+    height: 36px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .back {
     background-color: white;
-    border: 1px solid #ccc;
+    border: 1.5px solid #e0e4e8;
+    color: #495057;
+  }
+  
+  .back:hover {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
   }
   
   .next {
     background-color: #3f545c;
     color: white;
-    box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
   }
   
   .next:hover {
     background-color: #2e434a;
+    transform: translateY(-1px);
+  }
+  
+  .next:active {
+    transform: translateY(0);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .scenario-wrapper {
+      padding: 20px;
+    }
+  
+    .form-container {
+      padding: 20px;
+      border-radius: 12px;
+    }
+  
+    .form-buttons {
+      flex-direction: column;
+    }
+  
+    .back, .next {
+      width: 100%;
+    }
   }
   

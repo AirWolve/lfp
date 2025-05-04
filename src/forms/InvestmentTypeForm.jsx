@@ -1,5 +1,5 @@
 import React from "react";
-import formStyles from "../css/FormStyles.module.css";
+import formStyles from "../css/InvestmentTypeForm.module.css";
 
 const InvestmentTypeForm = ({
   investmentType,
