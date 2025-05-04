@@ -1,5 +1,6 @@
 .overviewScreen {
   height: auto;
+  margin: 10px;
 }
 
 /* layout */
@@ -129,7 +130,7 @@
   .charts {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    width: auto 0;
   }
   
   .line-chart-box {

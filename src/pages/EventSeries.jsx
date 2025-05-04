@@ -21,11 +21,13 @@ const EventSeries = () => {
 
   const handleNext = async (e) => {
     e.preventDefault();
+    const currentTime = new Date().toISOString();
+
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo") || "{}");
     const investmentTypes = JSON.parse(localStorage.getItem("InvestmentTypes") || "{}");
     const investments = JSON.parse(localStorage.getItem("Investments") || "{}");
     const eventSeries = JSON.parse(localStorage.getItem("EventSeries") || "[]");
-
+    
     if (!basicInfo.name) {
       toast.error("Scenario name is required in Basic Settings");
       return;
@@ -35,7 +37,8 @@ const EventSeries = () => {
       ...basicInfo,
       investmentTypes,
       investments,
-      eventSeries
+      eventSeries,
+      currentTime,
     };
 
     localStorage.setItem("BasicSettings", JSON.stringify(combinedData));
