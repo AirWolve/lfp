@@ -50,6 +50,9 @@ class Simulation:
                     'cap_individual': self.base_brackets['cap_individual'].copy(),
                     'cap_couple': self.base_brackets['cap_couple'].copy()
                 }
+                # 표준공제 base 값도 저장
+                self.base_standard_deduction = self.tax.federalTax["standardDeduction"].copy()
+                self.prev_standard_deduction = self.base_standard_deduction.copy()
 
             # Update federal tax brackets
             ind_tax = {}
@@ -106,6 +109,16 @@ class Simulation:
                 cou_tax[inftax] = value
             self.tax.capTax["individual"] = ind_tax
             self.tax.capTax["couple"] = cou_tax
+
+            # 표준공제도 인플레이션 반영하여 갱신
+            std = {}
+            for k in self.base_standard_deduction:
+                if self.data.inflationAssumption["type"] == kFixed:
+                    std[k] = self.base_standard_deduction[k] * (1 + curInflation) ** (year - self.year)
+                else:
+                    std[k] = self.prev_standard_deduction[k] * (1 + curInflation)
+                    self.prev_standard_deduction[k] = std[k]
+            self.tax.federalTax["standardDeduction"] = std
         except Exception as e:
             raise
 
@@ -391,7 +404,9 @@ class Simulation:
                     else:
                         change = np.random.normal(invT.returnDistribution["mean"], invT.returnDistribution["stdev"])
                     invs.value += change
-                    capitalGain += change
+                    # 현금성 투자(capitalGain 무시)
+                    if invs.investmentType != "cash":
+                        capitalGain += change
                 else:  # percent
                     if invT.returnDistribution["type"] == kFixed:
                         rate = invT.returnDistribution["value"]
@@ -401,7 +416,8 @@ class Simulation:
                         rate = np.random.normal(invT.returnDistribution["mean"], invT.returnDistribution["stdev"])
                     change = invs.value * rate
                     invs.value += change
-                    capitalGain += change
+                    if invs.investmentType != "cash":
+                        capitalGain += change
         # 5. Expense deduction: use average of start-of-year/end-of-year values
         for invT in self.data.investmentTypes:
             for invs in self.data.investments:
@@ -412,7 +428,7 @@ class Simulation:
                 avg_val = (start_val + end_val) / 2
                 expense = avg_val * invT.expenseRatio
                 invs.value -= expense
-                
+        
         return {"income": curYearIncome, "gains": capitalGain}
 
     # start 5
@@ -608,22 +624,16 @@ class Simulation:
                 fraction = max(0, fraction)
             inf_amount *= fraction
 
-        # Add expense to cash (negative sign)
-        cash_investment = None
-        for inv in self.data.investments:
-            if inv.investmentType == "cash":
-                cash_investment = inv
-                break
-                
-        if cash_investment and inf_amount > 0:
-            cash_investment.value -= inf_amount
-
+        # 현금 차감은 여기서 하지 않음 (중복 방지)
         return inf_amount
 
     def sellInvestment(self, inv, purchaseDict: dict, full=True, f=0.0):
         """
         Calculate capital gain/income gain when selling an investment, handle partial sale, manage purchaseDict
         """
+        # 현금성 투자(capitalGain 무시)
+        if inv.investmentType == "cash":
+            return 0
         purchase = purchaseDict[inv.id] + self.initialInvestmentValue[inv.id]
         if full:
             capitalgain = inv.value - purchase
@@ -667,63 +677,31 @@ class Simulation:
                 break
         return capitalgain, curYearIncome, curYearEarlyWithdrawals
 
-    def payTax(self, capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email=None, expense_amount=None):
+    def payTax(self, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email=None):
         """
         Handle tax and expenses accurately by year: (1) tax/expense calculation, (2) withdrawal priority per investment, (3) asset flow separation, (4) avoid duplicates
+        Returns: (federalTax, stateTax, capitalGainTax, earlyWithdrawalTax)
         """
         # 1. Tax calculation
-        incomeTax = self.tax.federalTaxCalculator(self.data, curYearIncome, curYearSS, email)
+        federalTax, stateTax = self.tax.federalTaxCalculator(self.data, curYearIncome, curYearSS, email)
         cgTax = self.tax.capitalGainTax(self.data, curYearGains)
         ewTax = self.tax.earlyWithdrawal(self.data, curYearEarlyWithdrawals)
 
-        if incomeTax is None:
-            print("income tax is None, using 0 instead")
-            incomeTax = 0
-        elif cgTax is None:
+        if federalTax is None:
+            print("federal tax is None, using 0 instead")
+            federalTax = 0
+        if stateTax is None:
+            print("state tax is None, using 0 instead")
+            stateTax = 0
+        if cgTax is None:
             print("capital gains tax is None, using 0 instead")
             cgTax = 0
-        elif ewTax is None:
+        if ewTax is None:
             print("early withdrawal tax is None, using 0 instead")
             ewTax = 0
 
-        # 2. Non-discretionary expense (necessary expense) + tax sum
-        total_payment = self.sumNonDiscretionary() + incomeTax + cgTax + ewTax
-        if expense_amount is not None:
-            total_payment = expense_amount  # Handle partial expense
-
-        # 3. Check cash balance and withdraw insufficient amount
-        cash = 0
-        for inv in self.data.investments:
-            if inv.investmentType == "cash":
-                cash = inv.value
-                break
-        withdrawal = total_payment - cash
-        if withdrawal > 0:
-            capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
-        # Withdraw from cash balance first
-        for inv in self.data.investments:
-            if inv.investmentType == "cash":
-                inv.value = max(0, inv.value - total_payment)
-                break
-
-        # 4. Discretionary expense (optional expense) + tax sum
-        total_payment2 = self.sumDiscretionary() + incomeTax + cgTax + ewTax
-        if expense_amount is not None:
-            total_payment2 = expense_amount  # Handle partial expense
-        cash2 = 0
-        for inv in self.data.investments:
-            if inv.investmentType == "cash":
-                cash2 = inv.value
-                break
-        withdrawal2 = total_payment2 - cash2
-        if withdrawal2 > 0:
-            capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal2, capitalGain, curYearIncome, curYearEarlyWithdrawals)
-        for inv in self.data.investments:
-            if inv.investmentType == "cash":
-                inv.value = max(0, inv.value - total_payment2)
-                break
-                
-        return incomeTax, cgTax, ewTax
+        # 현금 차감은 여기서 하지 않음 (중복 방지)
+        return federalTax, stateTax, cgTax, ewTax
 
     def buyInvestment(self, curYear):
         """
@@ -811,7 +789,7 @@ class Simulation:
         """
         if ev.type != "rebalance":
             raise ValueError("Event type is not rebalance")
-            
+        
         # 1. Filter target tax status (taxStatus) accounts
         # Target all investments and only account IDs included in assetAllocation
         target_investments = []
@@ -823,12 +801,12 @@ class Simulation:
         
         if not target_investments:
             return 0  # No target investment
-            
+        
         # 2. Calculate current total value
         total_value = sum(inv.value for inv in target_investments)
         if total_value <= 0:
             return 0  # No rebalancing needed if total value is 0 or less
-            
+        
         # 3. Calculate target asset allocation ratio
         target_allocations = {}
         
@@ -837,10 +815,8 @@ class Simulation:
             start_year = ev.start["value"] if ev.start["type"] == kFixed else year
             end_year = start_year + ev.duration - 1
             progress = min(1.0, max(0.0, (year - start_year) / max(1, end_year - start_year)))
-            
             initial_allocation = ev.assetAllocation  # Starting allocation
             final_allocation = ev.assetAllocation2 if hasattr(ev, 'assetAllocation2') else ev.assetAllocation  # Ending allocation
-            
             for inv_id, start_pct in initial_allocation.items():
                 end_pct = final_allocation.get(inv_id, 0)
                 current_pct = start_pct + progress * (end_pct - start_pct)
@@ -849,12 +825,12 @@ class Simulation:
         else:
             # Use fixed asset allocation
             target_allocations = ev.assetAllocation
-            
+        
         # Normalize target ratio (sum to 100%)
         total_pct = sum(target_allocations.values())
         if total_pct <= 0:
             return 0
-            
+        
         normalized_allocations = {k: v / total_pct for k, v in target_allocations.items()}
         
         # 4. Calculate difference between current state and target state
@@ -875,7 +851,7 @@ class Simulation:
                 # Buy needed
                 buy_amount = target_value - current_value
                 buy_dict[inv.id] = buy_amount
-                    
+        
         # 5. Process all sells first and calculate capital gain
         capital_gains = 0
         cash_available = 0
@@ -883,20 +859,17 @@ class Simulation:
         for inv, sell_amount in sell_list:
             if inv.value <= 0 or sell_amount <= 0:
                 continue
-                
             # Calculate sell ratio
             sell_fraction = min(1.0, sell_amount / inv.value)
-            
-            # Calculate capital gain (only for non-retirement accounts)
-            if inv.taxStatus == "non-retirement":
+            # Calculate capital gain (only for non-retirement accounts, cash 제외)
+            if inv.taxStatus == "non-retirement" and inv.investmentType != "cash":
                 gain = self.sellInvestment(inv, self.purchaseDict, full=False, f=sell_fraction)
                 capital_gains += gain
             else:
-                # Retirement accounts do not need capital gain calculation, just adjust value
+                # Retirement accounts or cash do not need capital gain calculation, just adjust value
                 inv.value -= sell_amount
-                
             cash_available += sell_amount
-            
+        
         # 6. Process cash purchase
         for inv_id, buy_amount in buy_dict.items():
             if cash_available <= 0 or buy_amount <= 0:
@@ -948,7 +921,6 @@ class Simulation:
             self.taxInflation(year, curInflation)
             curLimit = self.limitInflation(year, curInflation)
             
-            # Store current year start point pre-tax account values (for RMD calculation)
             prev_year_pretax_values = [inv.value for inv in self.data.investments if inv.taxStatus == "pre-tax"]
 
             curYearIncome = 0
@@ -956,11 +928,12 @@ class Simulation:
             curYearGains = 0
             curYearEarlyWithdrawals = 0
             capitalGain = 0
+            curYearExpense = {}  # category: amount
+            curYearInvest = {}
 
             # 1. Process income event
             for ev in self.data.eventSeries:
                 if ev.type == "income":
-                    # Check year condition
                     if self.checkYear(ev, year):
                         evt_ss, evt_income = self.incomeEventSimul(ev, ev.initialAmount, year)
                         curYearSS += evt_ss
@@ -984,15 +957,71 @@ class Simulation:
                 if hasattr(self.data, 'RothConversionStart') and hasattr(self.data, 'RothConversionEnd'):
                     if self.data.RothConversionStart <= year <= self.data.RothConversionEnd:
                         rc_amount, curYearIncome = self.RCOptimizer(curYearIncome, curYearSS, year)
-            
-            # 5. Process tax and expenses
-            incomeTax, cgTax, ewTax = self.payTax(capitalGain, curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email, None)
-            
-            # 6. Process discretionary expense
+
+            # 5. Process non-discretionary expenses and previous year's taxes
+            nondis_expense_total = 0
             for ev in self.data.eventSeries:
-                if ev.type == "expense" and hasattr(ev, 'discretionary') and ev.discretionary:
+                if ev.type == "expense" and hasattr(ev, 'discretionary') and not ev.discretionary:
                     if self.checkYear(ev, year):
-                        self.expenseSimul(ev, ev.initialAmount, year)
+                        amt = self.expenseSimul(ev, ev.initialAmount, year)
+                        category = getattr(ev, "name", "unknown")
+                        curYearExpense[category] = curYearExpense.get(category, 0) + amt
+                        nondis_expense_total += amt
+            # 세금 계산
+            federalTax, stateTax, cgTax, ewTax = self.payTax(curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
+            curYearTax = {
+                'federal': federalTax,
+                'state': stateTax,
+                'capital_gains': cgTax,
+                'early_withdrawal': ewTax
+            }
+            # 비재량지출+세금 총합 출금 (현금 부족시 투자 매도)
+            total_payment = nondis_expense_total + federalTax + stateTax + cgTax + ewTax
+            cash = 0
+            for inv in self.data.investments:
+                if inv.investmentType == "cash":
+                    cash = inv.value
+                    break
+            withdrawal = total_payment - cash
+            if withdrawal > 0:
+                capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
+            for inv in self.data.investments:
+                if inv.investmentType == "cash":
+                    inv.value = max(0, inv.value - total_payment)
+                    break
+
+            # 6. Process discretionary expenses in spendingStrategy order
+            discretionary_left = True
+            for cat in getattr(self.data, 'spendingStrategy', []):
+                for ev in self.data.eventSeries:
+                    if ev.type == "expense" and hasattr(ev, 'discretionary') and ev.discretionary and getattr(ev, 'name', None) == cat:
+                        if self.checkYear(ev, year):
+                            amt = self.expenseSimul(ev, ev.initialAmount, year)
+                            # 재량지출은 자산이 financialGoal 아래로 떨어지지 않는 한만 지출
+                            total_assets = sum(inv.value for inv in self.data.investments)
+                            if total_assets - amt < getattr(self.data, 'financialGoal', 0):
+                                # 부분만 지출
+                                amt = max(0, total_assets - getattr(self.data, 'financialGoal', 0))
+                                discretionary_left = False
+                            # 출금 처리 (현금 부족시 투자 매도 등)
+                            if amt > 0:
+                                cash = 0
+                                for inv in self.data.investments:
+                                    if inv.investmentType == "cash":
+                                        cash = inv.value
+                                        break
+                                withdrawal = amt - cash
+                                if withdrawal > 0:
+                                    capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
+                                for inv in self.data.investments:
+                                    if inv.investmentType == "cash":
+                                        inv.value = max(0, inv.value - amt)
+                                        break
+                            curYearExpense[cat] = curYearExpense.get(cat, 0) + amt
+                        if not discretionary_left:
+                            break
+                if not discretionary_left:
+                    break
 
             # 7. Process investment
             for ev in self.data.eventSeries:
@@ -1007,30 +1036,25 @@ class Simulation:
                         additional_gains = self.rebalanceEventSimul(ev, year)
                         curYearGains += additional_gains
 
-            # Store yearly state
             total_assets = sum(inv.value for inv in self.data.investments)
+            curYearInvest = {}
+            for inv in self.data.investments:
+                category = inv.investmentType
+                curYearInvest[category] = curYearInvest.get(category, 0) + inv.value
+
             self.yearly_data[year] = {
                 "total_assets": total_assets,
                 "income": curYearIncome,
+                "expense": curYearExpense,
                 "social_security": curYearSS,
                 "capital_gains": curYearGains,
-                "income_tax": incomeTax if incomeTax else 0,
-                "capital_gains_tax": cgTax if cgTax else 0,
-                "early_withdrawal_tax": ewTax if ewTax else 0,
+                "tax": curYearTax,
+                "invest": curYearInvest,
                 "investments": {inv.id: inv.value for inv in self.data.investments}
             }
 
             # Store output data
             updated_scenarios.append((int(year), float(total_assets)))
-            
-            if emailNeed and len(updated_scenarios) % 3 == 0:
-                asset_value = total_assets
-                try:
-                    asset_value = int(total_assets)
-                except:
-                    pass
-                if email:
-                    mail.send_mail_for_process(email, (len(updated_scenarios) * 100) // (self.duration - self.year + 1), asset_value)
 
         return updated_scenarios
 

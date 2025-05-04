@@ -97,61 +97,41 @@ class TaxCalculator:
     # Tax Calculator
     def federalTaxCalculator(self, data:dict, amount:int, curYearSS, email=None):
         """
-        This is a function to calculate federal tax amount using progressive tax rates
-        
+        This is a function to calculate federal and state tax amounts separately using progressive tax rates
         Args:
-        ----
             data: Scenario data dictionary
             amount: Total taxable income
             curYearSS: Current year social security income
             email: Optional email for custom tax rates
-        
         Returns:
-        ----
-            Total tax amount including federal and state tax
+            (federal_tax, state_tax): Tuple of federal tax and state tax amounts
         """
         # Get standard deduction based on marital status
         standard_deduction = self.federalTax["standardDeduction"][data.maritalStatus]
-        
         # Calculate taxable income after social security exclusion and standard deduction
         taxable = max(0, amount - 0.15*curYearSS - standard_deduction)
-        
         # Calculate state tax based on income before standard deduction
-        # This is because state tax calculations might have different rules
-        stateTax = self.stateTaxCalculator(data, amount - 0.15*curYearSS, data.residenceState, curYearSS, email)
-        
+        stateTax = self.stateTaxCalculator(data, amount - curYearSS, data.residenceState, curYearSS, email)
         if taxable <= 0:
-            return stateTax  # Return only state tax if no federal taxable income
-            
+            return (0, stateTax)  # No federal tax, only state tax
         # Get tax brackets based on marital status
         brackets = self.federalTax["couple" if data.maritalStatus == "couple" else "individual"]
-        
-        # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
         tax_brackets = [(int(k), v) for k, v in brackets.items() if k != "inf"]
-        tax_brackets.sort()  # Sort by threshold
-        
-        # Add infinity bracket at the end
+        tax_brackets.sort()
         inf_rate = brackets.get("inf", 0)
         tax_brackets.append((float('inf'), inf_rate))
-        
-        total_tax = 0
+        federal_tax = 0
         prev_threshold = 0
-        
-        # Calculate tax for each bracket
         for threshold, rate in tax_brackets:
             if rate is None or threshold is None:
                 continue
             if taxable > prev_threshold:
-                # Calculate income in this bracket
                 bracket_income = min(taxable - prev_threshold, threshold - prev_threshold)
-                total_tax += bracket_income * rate
-                
+                federal_tax += bracket_income * rate
             if taxable <= threshold:
                 break
-                
             prev_threshold = threshold
-        
-        return total_tax + stateTax
+        return (federal_tax, stateTax)
     
     def capitalGainTax(self, data:dict, taxable:int):
         """
@@ -219,13 +199,12 @@ class TaxCalculator:
         if taxable <= 0:
             return 0
 
-        # Determine if social security is taxable in this state
+        # 사회보장급여는 무조건 주 소득세에서 제외
+        taxable = max(0, taxable - curYearSS)
+        # 만약 해당 주가 사회보장급여에 세금을 부과하는 주라면 경고만 출력
         is_ss_taxable = self.socialSecurity(state)
-        
-        # If social security is not taxable in this state, remove it from taxable income
-        if not is_ss_taxable:
-            taxable = max(0, taxable - curYearSS)
-            
+        if is_ss_taxable:
+            print(f"[경고] {state} 주는 사회보장급여에 세금을 부과하지만, 시뮬레이션에서는 이를 무시합니다.")
         try:
             # Get state tax brackets
             if email:
