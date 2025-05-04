@@ -20,7 +20,6 @@ class RMDCalculator:
         yaer = today's year integer value
     """
     def __init__(self):
-        load_dotenv()
         try:
             with open('./LFTTable.yaml') as f:
                 self.LFTTable = yaml.load(f, Loader=yaml.FullLoader).copy()   # scrape or something for the LFT table
@@ -51,23 +50,42 @@ class RMDCalculator:
         with open('./LFTTable.yaml', 'w') as f:
             yaml.dump(result, f, default_flow_style=False, sort_keys=False)
 
-    # RMD Calculator
-    def runRMD(self, data, age):
+    def getLFT(self, age):
+        """
+        Get the Life Expectancy Factor (distribution period) for a given age
         
-        if age < 73:
+        Args:
+        ----
+            age: Age of the account holder
+            
+        Returns:
+        ----
+            float: Distribution period from the Uniform Lifetime Table
+        """
+        if age > 120:
+            return self.LFTTable.get(str(120))
+        else:
+            return self.LFTTable.get(str(age))
+
+    def runRMD(self, age):
+        """
+        Get the distribution period for RMD calculation
+        
+        Args:
+        ----
+            age: Age of the account holder
+            
+        Returns:
+        ----
+            float: Distribution period from the Uniform Lifetime Table, or 0 if age < 73
+        """
+        if age < 73:  # RMD calculation starts at age 73
             return 0
         else:
-            for idn in data.RMDStrategy:
-                for inv in data.investments:
-                    if inv.id == idn:
-                        if age > 120:
-                            return inv.value / self.LFTTable.get(str(120))
-                        else:
-                            return inv.value / self.LFTTable.get(str(age))
+            return self.getLFT(age)
 
 class TaxCalculator:
     def __init__(self):
-        load_dotenv()
         self.year = datetime.date.today().year
         with open('./2024_federal_tax.yaml') as f:
             self.federalTax = yaml.load(f, Loader=yaml.FullLoader)
@@ -79,104 +97,198 @@ class TaxCalculator:
     # Tax Calculator
     def federalTaxCalculator(self, data:dict, amount:int, curYearSS, email=None):
         """
-        This is a function to calculate tax amount
+        This is a function to calculate federal tax amount using progressive tax rates
+        
+        Args:
+        ----
+            data: Scenario data dictionary
+            amount: Total taxable income
+            curYearSS: Current year social security income
+            email: Optional email for custom tax rates
+        
+        Returns:
+        ----
+            Total tax amount including federal and state tax
         """
-        taxable = amount - 0.15*curYearSS
-        stateTax = self.stateTaxCalculator(data, taxable, data.residenceState, email)
-
-        if taxable > 0:
-            if data.maritalStatus == "couple":
-                for key, value in self.federalTax["couple"].items():
-                    if key == "inf":
-                        return (taxable * value + stateTax)
-                    elif taxable < int(key):
-                        return (taxable * value + stateTax)
-
-            elif data.maritalStatus == "individual":
-                for key, value in self.federalTax["individual"].items():
-                    if key == "inf":
-                        return (taxable * value + stateTax)
-                    elif taxable < int(key):
-                        return (taxable * value + stateTax)
-        else:
-            return 0
+        # Get standard deduction based on marital status
+        standard_deduction = self.federalTax["standardDeduction"][data.maritalStatus]
+        
+        # Calculate taxable income after social security exclusion and standard deduction
+        taxable = max(0, amount - 0.15*curYearSS - standard_deduction)
+        
+        # Calculate state tax based on income before standard deduction
+        # This is because state tax calculations might have different rules
+        stateTax = self.stateTaxCalculator(data, amount - 0.15*curYearSS, data.residenceState, curYearSS, email)
+        
+        if taxable <= 0:
+            return stateTax  # Return only state tax if no federal taxable income
+            
+        # Get tax brackets based on marital status
+        brackets = self.federalTax["couple" if data.maritalStatus == "couple" else "individual"]
+        
+        # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
+        tax_brackets = [(int(k), v) for k, v in brackets.items() if k != "inf"]
+        tax_brackets.sort()  # Sort by threshold
+        
+        # Add infinity bracket at the end
+        inf_rate = brackets.get("inf", 0)
+        tax_brackets.append((float('inf'), inf_rate))
+        
+        total_tax = 0
+        prev_threshold = 0
+        
+        # Calculate tax for each bracket
+        for threshold, rate in tax_brackets:
+            if rate is None or threshold is None:
+                continue
+            if taxable > prev_threshold:
+                # Calculate income in this bracket
+                bracket_income = min(taxable - prev_threshold, threshold - prev_threshold)
+                total_tax += bracket_income * rate
+                
+            if taxable <= threshold:
+                break
+                
+            prev_threshold = threshold
+        
+        return total_tax + stateTax
     
     def capitalGainTax(self, data:dict, taxable:int):
         """
-        This is a function to calculate capital gains tax
-
-        consider all taxable investment
+        Calculate capital gains tax using progressive tax rates
+        
+        Args:
+        ----
+            data: Scenario data dictionary
+            taxable: Total taxable capital gains
+        
+        Returns:
+        ----
+            Total capital gains tax amount
         """
-        if taxable > 0:
-            if data.maritalStatus == "couple":
-                for key, value in self.capTax["couple"].items():
-                    if key == "inf":
-                        return taxable * value
-                    elif taxable < int(key):
-                        return taxable * value
-            else:
-                for key, value in self.capTax["individual"].items():
-                    if key == "inf":
-                        return taxable * value
-                    elif taxable < int(key):
-                        return taxable * value
-        else:
+        if taxable <= 0:
             return 0
+            
+        # Get tax brackets based on marital status
+        brackets = self.capTax["couple" if data.maritalStatus == "couple" else "individual"]
         
-    def stateTaxCalculator(self, data:dict, taxable:int, state:str, email):
-        """
-        This is a function to calculate state tax amount
-
-        Args:
-        ----
-            state: a string value of state name such as NJ, NY, etc.
-        """
-        if state not in self.stateTax.keys():
-            return 0, "State Tax Not Found!"
+        # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
+        tax_brackets = [(int(k), v) for k, v in brackets.items() if k != "inf"]
+        tax_brackets.sort()  # Sort by threshold
         
-        if email != None:
-            if taxable > 0:
-                if data.maritalStatus == "couple":
-                    for key, value in self.stateTax[email][state][0]["couple"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-                else:
-                    for key, value in self.stateTax[email][state][0]["individual"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-            else:
-                return 0
-        else:
-            if taxable > 0:
-                if data.maritalStatus == "couple":
-                    for key, value in self.stateTax[state][0]["couple"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-                else:
-                    for key, value in self.stateTax[state][0]["individual"].items():
-                        if key == "inf":
-                            return taxable * value
-                        elif taxable < int(key):
-                            return taxable * value
-            else:
-                return 0
+        # Add infinity bracket at the end
+        inf_rate = brackets.get("inf", 0)
+        tax_brackets.append((float('inf'), inf_rate))
         
-    def earlyWithdrawal(self, data:dict, withdrawal:int):
+        total_tax = 0
+        prev_threshold = 0
+        
+        # Calculate tax for each bracket
+        for threshold, rate in tax_brackets:
+            if rate is None or threshold is None:
+                continue
+            if taxable > prev_threshold:
+                # Calculate capital gains in this bracket
+                bracket_gains = min(taxable - prev_threshold, threshold - prev_threshold)
+                total_tax += bracket_gains * rate
+                
+            if taxable <= threshold:
+                break
+                
+            prev_threshold = threshold
+        
+        return total_tax
+        
+    def stateTaxCalculator(self, data:dict, taxable:int, state:str, curYearSS:int=0, email=None):
         """
-        This is a function to calculate early withdrawal tax
+        Calculate state tax amount with proper handling of missing state data
+        and social security income
         
         Args:
         ----
-            withdrawal: a integer value of withdrawal amount
+            data: Scenario data dictionary
+            taxable: Total taxable income before social security adjustment
+            state: State code (e.g., 'NJ', 'NY')
+            curYearSS: Current year social security income (default: 0)
+            email: Optional email for custom tax rates
+        
+        Returns:
+        ----
+            State tax amount
         """
-        age = data.birthYears[0]-self.year
+        if taxable <= 0:
+            return 0
 
+        # Determine if social security is taxable in this state
+        is_ss_taxable = self.socialSecurity(state)
+        
+        # If social security is not taxable in this state, remove it from taxable income
+        if not is_ss_taxable:
+            taxable = max(0, taxable - curYearSS)
+            
+        try:
+            # Get state tax brackets
+            if email:
+                try:
+                    brackets = self.stateTax[email][0][state][0][data.maritalStatus]
+                except (KeyError, IndexError):
+                    print(f"Warning: No tax data found for state {state} in user profile {email}. Ignoring state tax.")
+                    return 0
+            else:
+                try:
+                    brackets = self.stateTax[state][0][data.maritalStatus]
+                except (KeyError, IndexError):
+                    print(f"Warning: No tax data found for state {state}. Ignoring state tax.")
+                    return 0
+
+            # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
+            tax_brackets = [(int(k), v) for k, v in brackets.items() if k != "inf"]
+            tax_brackets.sort()  # Sort by threshold
+            
+            # Add infinity bracket at the end
+            inf_rate = brackets.get("inf", 0)
+            tax_brackets.append((float('inf'), inf_rate))
+            
+            total_tax = 0
+            prev_threshold = 0
+            
+            # Calculate tax for each bracket
+            for threshold, rate in tax_brackets:
+                if rate is None or threshold is None:
+                    continue
+                if taxable > prev_threshold:
+                    # Calculate income in this bracket
+                    bracket_income = min(taxable - prev_threshold, threshold - prev_threshold)
+                    total_tax += bracket_income * rate
+                    
+                if taxable <= threshold:
+                    break
+                    
+                prev_threshold = threshold
+            
+            return total_tax
+
+        except Exception as e:
+            print(f"Warning: Error calculating state tax for {state}: {str(e)}. Ignoring state tax.")
+            return 0
+
+    def earlyWithdrawal(self, data:dict, withdrawal:int, simYear:int=None):
+        """
+        Calculate early withdrawal penalty tax (10% penalty for withdrawals before age 59)
+        
+        Args:
+        ----
+            data: Scenario data dictionary containing birthYears
+            withdrawal: Amount withdrawn from retirement accounts
+            simYear: Current simulation year (defaults to current calendar year if not provided)
+        
+        Returns:
+        ----
+            Early withdrawal penalty amount (10% of withdrawal if age < 59, otherwise 0)
+        """
+        # Calculate current age (year - birthYear)
+        age = self.year - data.birthYears[0]  # Using first person's birth year for now
+        
         if age < 59:
             return withdrawal * 0.1
         else:
@@ -207,7 +319,7 @@ class TaxCalculator:
         state.update(appending)
 
         with open('./stateTax.yaml', 'w') as f:
-            yaml.dump(state, f, default_flow_style=False, sort_keys=False) 
+            yaml.dump(state, f, default_flow_style=False, sort_keys=False)
 
     def readYaml(file:str):
         """
@@ -228,17 +340,21 @@ class TaxCalculator:
 
     def socialSecurity(self, state:str):
         """
-        This is a function to get social security tax amount
-
+        Check if a state taxes social security income
+        
         Args:
         ----
-            amount: a integer value of amount to calculate tax
-            state: a string value of state name such as NJ, NY, etc.
+            state: State code (e.g., 'NJ', 'NY')
+        
+        Returns:
+        ----
+            bool: True if the state taxes social security, False otherwise
         """
-        if state in self.stateTax["nonsocialsecurity"]:
-            return "We ignore the social security for this state"
-        else:
-            pass
+        try:
+            return state not in self.stateTax.get("nonsocialsecurity", [])
+        except Exception as e:
+            print(f"Warning: Error checking social security taxation for state {state}: {str(e)}. Assuming social security is not taxable.")
+            return False
 
     def updateFederalTax(self):
         """
@@ -337,74 +453,6 @@ class Inflation:
         """
 
         return self.assumption["value"]
-        # result = list()
-        # curYear = datetime.date.today().year
-        # df_es = pd.DataFrame(self.data.eventSeries)
-        # start = 0
-
-        # for idx, row in df_es.iterrows():
-        #     row = row.item()
-        #     values = list()
-
-        #     if row.type == "rebalance" or row.type == "invest":
-        #         continue
-        #     elif row.inflationAdjusted == False:
-        #         continue
-
-        #     else:
-        #         duration = row.duration["value"]
-                
-        #         if row.start["type"] == "fixed":
-        #             start = row.start["value"]
-                    
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-self.assumption["value"]))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-self.assumption["value"])**len(values))
-                        
-        #         elif row.start["type"] == "startWith":
-        #             for id, da in df_es.iterrows():
-        #                 da = da.item()
-        #                 if da.name == row.start["eventSeries"]:
-        #                     start = da.start["value"]
-        #                     break
-
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-self.assumption["value"]))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-self.assumption["value"])**len(values))
-                
-        #         elif row.start["type"] == "startAfter":
-        #             for id, da in df_es.iterrows():
-        #                 da = da.item()
-        #                 if da.name == row.start["eventSeries"]:
-        #                     start = da.start["value"]
-        #                     break
-                
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-self.assumption["value"]))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-self.assumption["value"])**len(values))
-            
-        #     result.append({row.name: values})
-
-        # return result
-
 
     def uniformInflation(self):
         """
@@ -420,79 +468,6 @@ class Inflation:
         
         return np.random.uniform(low, high)
         
-        # result = list()
-        # curYear = datetime.date.today().year
-        # df_es = pd.DataFrame(self.data.eventSeries)
-        # start = 0
-
-        # self.assumption
-        # if self.type == "uniform":
-        #     low = self.assumption["lower"]
-        #     high = self.assumption["upper"]
-
-        # for idx, row in df_es.iterrows():
-        #     row = row.item()
-        #     values = list()
-
-        #     if row.type == "rebalance" or row.type == "invest":
-        #         continue
-        #     elif row.inflationAdjusted == False:
-        #         continue
-
-        #     else:
-        #         duration = row.duration["value"]
-                
-        #         if row.start["type"] == "fixed":
-        #             start = row.start["value"]
-                    
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-np.random.uniform(low, high)))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
-                        
-        #         elif row.start["type"] == "startWith":
-        #             for id, da in df_es.iterrows():
-        #                 da = da.item()
-        #                 if da.name == row.start["eventSeries"]:
-        #                     start = da.start["value"]
-        #                     break
-
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-np.random.uniform(low, high)))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
-                
-        #         elif row.start["type"] == "startAfter":
-        #             for id, da in df_es.iterrows():
-        #                 da = da.item()
-        #                 if da.name == row.start["eventSeries"]:
-        #                     start = da.start["value"]
-        #                     break
-                
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-np.random.uniform(low, high)))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-np.random.uniform(low, high))**len(values))
-            
-        #     result.append({row.name: values})
-
-        # return result
-
     def normalInflation(self):
         """
         This function is for normal inflation assumption
@@ -505,78 +480,6 @@ class Inflation:
             raise ValueError("Invalid Type of Inflation Assumption!")
         
         return np.random.normal(mean, std)
-        # result = list()
-        # curYear = datetime.date.today().year
-        # df_es = pd.DataFrame(self.data.eventSeries)
-        # start = 0
-
-        # self.assumption
-        # if self.type == "normal":
-        #     mean = self.assumption["mean"]
-        #     std = self.assumption["stdev"]
-
-        # for idx, row in df_es.iterrows():
-        #     row = row.item()
-        #     values = list()
-
-        #     if row.type == "rebalance" or row.type == "invest":
-        #         continue
-        #     elif row.inflationAdjusted == False:
-        #         continue
-
-        #     else:
-        #         duration = row.duration["value"]
-                
-        #         if row.start["type"] == "fixed":
-        #             start = row.start["value"]
-                    
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-np.random.normal(mean, std)))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
-                        
-        #         elif row.start["type"] == "startWith":
-        #             for id, da in df_es.iterrows():
-        #                 da = da.item()
-        #                 if da.name == row.start["eventSeries"]:
-        #                     start = da.start["value"]
-        #                     break
-
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-np.random.normal(mean, std)))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
-                
-        #         elif row.start["type"] == "startAfter":
-        #             for id, da in df_es.iterrows():
-        #                 da = da.item()
-        #                 if da.name == row.start["eventSeries"]:
-        #                     start = da.start["value"]
-        #                     break
-                
-        #             if start == curYear:
-        #                 values.append(row.initialAmount * (1-np.random.normal(mean, std)))
-        #             else:
-        #                 if not values:
-        #                     for i in range(start, curYear):
-        #                         values.append(None)
-
-        #                 for i in range(duration):
-        #                     values.append(values[-1]*(1-np.random.normal(mean, std))**len(values))
-            
-        #     result.append({row.name: values})
-
-        # return result
 
     def runInflation(self):
         if self.type == "fixed":

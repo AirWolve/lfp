@@ -253,10 +253,27 @@ app.post("/api/sendJson", async (req, res) => {
 app.post("/api/run-simulation", async (req, res) => {
   try {
     console.log(req.body);
-    const { yamlText } = YAML.stringify(req.body);
+    let yamlText = req.body.yamlText;
+    const userEmail = req.body.userEmail;
+    // If yamlText is an object, convert to YAML string
+    if (typeof yamlText !== 'string') {
+      yamlText = YAML.stringify(yamlText);
+    } else {
+      // If string, check if it's JSON and convert to YAML
+      try {
+        const parsed = JSON.parse(yamlText);
+        yamlText = YAML.stringify(parsed);
+      } catch (e) {
+        // Not JSON, assume already YAML
+      }
+    }
+    console.log('userEmail:', userEmail);
     console.log(yamlText);
     if (!yamlText) {
       return res.status(400).json({ error: "YAML text is required" });
+    }
+    if (!userEmail) {
+      return res.status(400).json({ error: "User email is required" });
     }
 
     // Python 스크립트 경로
@@ -289,8 +306,8 @@ app.post("/api/run-simulation", async (req, res) => {
       }
     });
 
-    // stdin으로 YAML 텍스트 전달
-    pythonProcess.stdin.write(yamlText);
+    // stdin으로 email과 YAML 텍스트 전달 (예: 첫 줄에 email, 그 다음 줄부터 yaml)
+    pythonProcess.stdin.write(userEmail + "\n" + yamlText);
     pythonProcess.stdin.end();
   } catch (error) {
     console.error("Error running simulation:", error);
