@@ -1,6 +1,5 @@
 import sys
 import Simulation
-import yaml
 
 def main():
     # Read all lines from stdin
