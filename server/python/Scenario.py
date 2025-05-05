@@ -351,17 +351,25 @@ def importYAML(file:str):
         
         return Scenario(yaml_data)
 
-def exportYAML(data:Scenario):
+def exportYAML(data:Scenario, userEmail:str, scenarioName:str):
     """
     This is a function for exporting YAML file
 
     Args:
     ----
         data: this is a Scenario object that stores the setting values
+        userEmail: the user's email, used for directory structure
+        scenarioName: the scenario name, used for file naming
     """
-
-    with open('./export_user.yaml', 'w') as f:
+    # 현재 파일의 디렉토리 기준으로 scenario/userEmail 디렉토리 생성
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    user_dir = os.path.join(base_dir, 'scenario', userEmail)
+    os.makedirs(user_dir, exist_ok=True)
+    file_name = f"{userEmail}-{scenarioName}.yaml"
+    file_path = os.path.join(user_dir, file_name)
+    with open(file_path, 'w') as f:
         yaml.dump(data.toDict(), f, default_flow_style=False, sort_keys=False)
+    return file_path
 
 def importYAMLtext(yaml_text: str):
     """
