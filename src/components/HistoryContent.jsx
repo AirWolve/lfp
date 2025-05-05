@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "../css/HistoryContent.module.css";
 
-const HistoryContent = ({ userEmail, selectedHistoryId, onSelectHistory }) => {
+const HistoryContent = ({ userEmail, selectedHistoryId, onSelectHistory = () => {} }) => {
   const [history, setHistory] = useState([]);
   const [openScenario, setOpenScenario] = useState(null);
 
