@@ -243,7 +243,7 @@ const SimulationInfo = () => {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ yamlText: combinedData, userEmail: emailAddr }),
+          body: JSON.stringify({ yamlText: combinedData, userEmail: emailAddr, scenarioName: basicSettingData.name }),
         }
       );
 
