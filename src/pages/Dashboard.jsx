@@ -94,9 +94,7 @@ const Dashboard = () => {
                     <FileImport />
 
                   ) : (
-                    <FileExport exportData={{
-                      userEmail: user?.email
-                    }} />
+                    <FileExport userEmail={user?.email} />
                   )}
                 </div>
               </div>
