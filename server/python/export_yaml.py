@@ -14,6 +14,10 @@ def main():
             print(json.dumps({"error": "userEmail and scenarioData are both required."}))
             sys.exit(1)
 
+        # scenarioData가 string이면 dict로 변환
+        if isinstance(scenarioData, str):
+            scenarioData = json.loads(scenarioData)
+
         # Scenario 객체 생성
         scenario = Scenario.Scenario(scenarioData)
         # 사용자별 디렉토리 생성
