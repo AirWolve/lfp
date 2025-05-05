@@ -179,7 +179,7 @@ app.post("/api/export-scenario", async (req, res) => {
   try {
     let objectId;
     try {
-      objectId = mongoose.Types.ObjectId(historyId);
+      objectId = new mongoose.Types.ObjectId(historyId);
     } catch (e) {
       console.error("[export-scenario] historyId ObjectId 변환 실패:", e);
       return res.status(400).json({ error: "historyId 형식이 올바르지 않습니다." });
