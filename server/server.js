@@ -8,6 +8,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { initDatabase, Models } = require("./mongo");
 const { spawn } = require('child_process');
+const { v4: uuidv4 } = require('uuid');
 require("dotenv").config();
 
 let homeUrl = "";
@@ -165,88 +166,93 @@ app.get("/auth/failure", (req, res) => {
 /* # Oauth2 Google Login End */
 
 // Save scenario data as YAML
-app.post("/api/save-scenario", async (req, res) => {
-  const idToken = req.cookies.idToken;
-  if (!idToken) {
-    return res.status(401).json({ error: "Not authenticated" });
+app.post("/api/export-scenario", async (req, res) => {
+  // 1. historyId, userEmail 확인
+  const historyId = req.body.historyId;
+  const userEmail = req.body.userEmail;
+  if (!historyId || !userEmail) {
+    return res.status(400).json({ error: "historyId와 userEmail이 모두 필요합니다." });
   }
 
   try {
-    const decoded = jwt.decode(idToken);
-    const scenarioData = req.body;
-
-    if (!scenarioData.name) {
-      return res.status(400).json({ error: "Scenario name is required" });
+    // 2. DB에서 scenario 데이터 조회 (userEmail도 조건에 포함)
+    const scenarioDoc = await Models.Scenario.findOne({ history_id: historyId, user: userEmail });
+    if (!scenarioDoc) {
+      return res.status(404).json({ error: "해당 historyId와 userEmail에 대한 시나리오를 찾을 수 없습니다." });
+    }
+    const scenarioData = scenarioDoc.scenarioData;
+    if (!scenarioData) {
+      return res.status(500).json({ error: "Scenario data가 DB에 없습니다." });
     }
 
-    // Set the directory path of python
-    const pythonDir = path.join(__dirname, "python");
-    const userDir = path.join(pythonDir, "scenario", decoded.email);
-    await fs.ensureDir(userDir);
-
-    // Generate file name
-    const fileName = `${decoded.email}-${scenarioData.name}.yaml`;
-    const filePath = path.join(userDir, fileName);
-
-    // Save scenario as YAML
-    const yamlStr = YAML.stringify(scenarioData);
-    await fs.writeFile(filePath, yamlStr, 'utf8');
-
-    // Comment Debug log line
-    // console.log('Scenario saved to:', filePath);
-
-    const isSameNameExist = await Models.User.findOne({
-      scenarioPath: filePath,
+    // 3. Python child process로 exportYAML 실행
+    const pythonScriptPath = path.join(__dirname, 'python', 'export_yaml.py');
+    const pythonProcess = spawn('python', [pythonScriptPath], {
+      cwd: path.join(__dirname, 'python')
     });
 
-    // If scenario doesn't exist, then create data and insert it to Database
-    if (!isSameNameExist) {
-      const scenarioInfo = new Models.Scenario({
-        email: decoded.email,
-        scenarioPath: filePath,
-        createdAt: new Date()
-      });
-  
-      await scenarioInfo.save();
-      console.log('Scenario info saved to database');
-    }
-
-
-    res.json({
-      message: "Scenario saved successfully",
-      filePath: filePath,
-      email: decoded.email,
-      scenarioName: scenarioData.name
+    let pythonOutput = '';
+    let pythonError = '';
+    pythonProcess.stdout.on('data', (data) => {
+      pythonOutput += data.toString();
     });
-
+    pythonProcess.stderr.on('data', (data) => {
+      pythonError += data.toString();
+    });
+    pythonProcess.on('close', async (code) => {
+      if (code === 0) {
+        let result;
+        try {
+          result = JSON.parse(pythonOutput);
+        } catch (e) {
+          return res.status(500).json({ error: "Invalid response from Python", details: pythonOutput });
+        }
+        const filePath = result.filePath;
+        if (!filePath) {
+          return res.status(500).json({ error: "No filePath returned from Python" });
+        }
+        const downloadToken = uuidv4();
+        if (!global.downloadMap) global.downloadMap = {};
+        global.downloadMap[downloadToken] = filePath;
+        res.json({
+          message: "Scenario exported successfully",
+          downloadUrl: `/api/download-scenario/${downloadToken}`
+        });
+      } else {
+        res.status(500).json({ error: pythonError || 'Python process failed' });
+      }
+    });
+    // stdin으로 userEmail과 시나리오 데이터 전달 (JSON)
+    pythonProcess.stdin.write(JSON.stringify({ userEmail, scenarioData }));
+    pythonProcess.stdin.end();
   } catch (error) {
-    console.error("Error saving scenario:", error);
-    res.status(500).json({ error: "Failed to save scenario", details: error.message });
+    console.error("Error exporting scenario:", error);
+    res.status(500).json({ error: "Failed to export scenario", details: error.message });
   }
 });
 
-app.post("/api/sendJson", async (req, res) => {
-  try {
-    const scenarioData = req.body;
-
-    if (!scenarioData.name) {
-      return res.status(400).json({ error: "Scenario name is required" });
-    }
-
-    // Save scenario as YAML
-    const yamlStr = YAML.stringify(scenarioData);
-
-    res.json({
-      message: "Scenario saved successfully",
-      toYaml: yamlStr,
-      fromJson: scenarioData,
-      scenarioName: scenarioData.name
-    });
-
-  } catch (error) {
-    console.error("Error sending scenario:", error);
-    res.status(500).json({ error: "Failed to send scenario", details: error.message });
+// 다운로드 엔드포인트 구현
+app.get("/api/download-scenario/:token", (req, res) => {
+  const token = req.params.token;
+  if (!global.downloadMap || !global.downloadMap[token]) {
+    return res.status(404).json({ error: "Invalid or expired download token" });
   }
+  const filePath = global.downloadMap[token];
+  // 다운로드 후 토큰 삭제(1회성)
+  delete global.downloadMap[token];
+  res.download(filePath, (err) => {
+    // 다운로드가 끝나면 파일 삭제
+    const fs = require('fs');
+    fs.unlink(filePath, (unlinkErr) => {
+      if (unlinkErr) {
+        // 파일 삭제 실패 시 로그만 남김
+        console.error('파일 삭제 실패:', unlinkErr);
+      }
+    });
+    if (err) {
+      return res.status(500).json({ error: "Failed to download file" });
+    }
+  });
 });
 
 // Run Python simulation
@@ -255,6 +261,7 @@ app.post("/api/run-simulation", async (req, res) => {
     console.log(req.body);
     let yamlText = req.body.yamlText;
     const userEmail = req.body.userEmail;
+    const scenarioName = req.body.scenarioName;
     // If yamlText is an object, convert to YAML string
     if (typeof yamlText !== 'string') {
       yamlText = YAML.stringify(yamlText);
@@ -298,9 +305,27 @@ app.post("/api/run-simulation", async (req, res) => {
       pythonError += data.toString();
     });
 
-    pythonProcess.on('close', (code) => {
+    pythonProcess.on('close', async (code) => {
       if (code === 0) {
-        res.json({ result: pythonOutput });
+        const simResult = JSON.parse(pythonOutput);
+        res.json({ result: simResult });
+        
+        const history = new Models.History({
+          user: userEmail,
+          scenarioName: scenarioName,
+          simResult: simResult,
+          createdAt: new Date()
+        });
+        await history.save();
+
+        const scenario = new Models.Scenario({
+          name: scenarioName,
+          user: userEmail,
+          scenarioData: simResult,
+          history_id: history._id,
+          createdAt: new Date()
+        });
+        await scenario.save();
       } else {
         res.status(500).json({ error: pythonError || 'Python process failed' });
       }
@@ -312,6 +337,20 @@ app.post("/api/run-simulation", async (req, res) => {
   } catch (error) {
     console.error("Error running simulation:", error);
     res.status(500).json({ error: "Failed to run simulation", details: error.message });
+  }
+});
+
+// History 전체 조회 API (userEmail로 필터)
+app.get("/api/history", async (req, res) => {
+  const userEmail = req.query.userEmail;
+  if (!userEmail) {
+    return res.status(400).json({ error: "userEmail이 필요합니다." });
+  }
+  try {
+    const historyList = await Models.History.find({ user: userEmail }).sort({ createdAt: -1 });
+    res.json({ history: historyList });
+  } catch (error) {
+    res.status(500).json({ error: "History 조회 실패", details: error.message });
   }
 });
 

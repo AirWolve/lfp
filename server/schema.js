@@ -17,6 +17,7 @@ const scenarioSchema = new mongoose.Schema({
 
 const historySchema = new mongoose.Schema({
   user: { type: String, required: true },
+  scenarioName: { type: String, required: true },
   simResult: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
