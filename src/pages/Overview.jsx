@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Overview.css";
 import BasicInfoBox from "../components/BasicInfoBox.jsx";
@@ -12,8 +12,8 @@ import testResult from "../test_result.json";
 import {
   ResponsiveContainer,
   LineChart,
-  ComposedChart,
-  Area,
+  // AreaChart,
+  // Area,
   Line,
   XAxis,
   YAxis,
@@ -22,25 +22,21 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ReferenceLine,
+  // ReferenceLine,
 } from "recharts";
 
 const Overview = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("chanceOfSuccess");
   const [selectedMetric, setSelectedMetric] = useState("total_investments");
+  const [metric, setMetric] = useState("average");
+  // aggregation threshold
+  const [threshold, setThreshold] = useState(1000);
 
   const handleMakePlan = (e) => {
     e.preventDefault();
     navigate(`${constPath.SimulationInfo}`);
   };
-
-  // 성공확률 선형 그래프를 위한 연도, 수입, 순수익 데이터
-  const barChartData = testResult.cashFlow.map((item) => ({
-    year: item.year,
-    income: item.income,
-    net: item.net,
-  }));
 
   // 성공 확률 데이터 변환
   const successRateData = Object.entries(testResult.chanceOfSuccess)
@@ -50,22 +46,78 @@ const Overview = () => {
     }))
     .filter((item) => item.successRate >= 0 && item.successRate <= 300);
 
-  const rangeOfRateData = Object.entries(
-    testResult.quantileStats[selectedMetric]
-  ).map(([year, stats]) => ({
-    year: parseInt(year, 10), // 연도를 숫자로 변환
-    median: stats.median,
-    p10: stats.p10,
-    p20: stats.p20,
-    p30: stats.p30,
-    p40: stats.p40,
-    p60: stats.p60,
-    p70: stats.p70,
-    p80: stats.p80,
-    p90: stats.p90,
-  }));
+  // RangeOfRate 데이터
+  // const rangeOfRateData = useMemo(
+  //   () =>
+  //     Object.entries(testResult.quantileStats[selectedMetric]).map(
+  //       ([year, stats]) => ({ year: +year, ...stats })
+  //     ),
+  //   [selectedMetric]
+  // );
 
-  console.log("rangeOfRateData", rangeOfRateData);
+  // // fanData: p10 base + diff series
+  // const fanData = useMemo(
+  //   () =>
+  //     rangeOfRateData.map((d) => ({
+  //       year: d.year,
+  //       base: d.p10,
+  //       diff10_90: d.p90 - d.p10,
+  //       diff20_80: d.p80 - d.p20,
+  //       diff30_70: d.p70 - d.p30,
+  //       diff40_60: d.p60 - d.p40,
+  //       median: d.median,
+  //     })),
+  //   [rangeOfRateData]
+  // );
+
+  const [stackedBarData, setStackedBarData] = useState([]);
+  const [barChartData, setBarChartData] = useState([]);
+
+  useEffect(() => {
+    if (testResult.stackedBar) {
+      setStackedBarData(testResult.stackedBar);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (stackedBarData?.investments && stackedBarData?.expenses) {
+      const combinedData = Object.entries(stackedBarData.investments).map(
+        ([year, investmentData]) => {
+          const expenseData = stackedBarData.expenses[year] || {};
+
+          const result = {
+            year: parseInt(year, 10),
+            cash: investmentData[metric]?.cash || 0,
+            sp500: investmentData[metric]?.["S&P 500"] || 0,
+            taxExemptBonds: investmentData[metric]?.["tax-exempt bonds"] || 0,
+            food: expenseData[metric]?.food || 0,
+            vacation: expenseData[metric]?.vacation || 0,
+            streamingServices: expenseData[metric]?.["streaming services"] || 0,
+            taxFederal: expenseData[metric]?.tax_federal || 0,
+            taxState: expenseData[metric]?.tax_state || 0,
+            taxCapitalGains: expenseData[metric]?.tax_capital_gains || 0,
+            taxEarlyWithdrawal: expenseData[metric]?.tax_early_withdrawal || 0,
+          };
+
+          const other = Object.entries(result)
+            .filter(([key, value]) => key !== "year" && value < threshold)
+            .reduce((sum, [, value]) => sum + value, 0);
+
+          const filteredResult = Object.fromEntries(
+            Object.entries(result).map(([key, value]) =>
+              key !== "year" && value < threshold ? [key, 0] : [key, value]
+            )
+          );
+
+          return { ...filteredResult, other };
+        }
+      );
+
+      console.log("Combined Data with Threshold:", combinedData);
+      setBarChartData(combinedData);
+    }
+  }, [metric, threshold, stackedBarData]);
+
   return (
     <MenuLayout>
       <div className="overviewScreen">
@@ -104,6 +156,7 @@ const Overview = () => {
           </div>
 
           <div className="charts">
+            {/* 성공확률 차트 */}
             {activeTab === "chanceToSuccess" && (
               <div className="linear-graph">
                 <h3>Chance to Success</h3>
@@ -132,6 +185,8 @@ const Overview = () => {
                 </ResponsiveContainer>
               </div>
             )}
+
+            {/* Range of Rate 차트 */}
             {activeTab === "rangeOfRate" && (
               <div className="linear-graph">
                 <h3>Range of Rate</h3>
@@ -160,86 +215,71 @@ const Overview = () => {
                   </h4>
                 </div>
                 {/* Range of Rate 차트 추가 (예시로 LineChart 사용) */}
-                <ResponsiveContainer height={300}>
-                  <ComposedChart data={rangeOfRateData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="year" />
-                    <YAxis
-                      width={80}
-                      label={{
-                        value: "Value",
-                        angle: -90,
-                        position: "insideLeft",
-                        style: { textAnchor: "middle", fill: "#666" },
-                      }}
-                    />
-                    <Tooltip />
-                    <Legend />
-                    {/* 확률 범위 음영 처리 */}
-                    <Area
-                      type="monotone"
-                      dataKey="p10"
-                      stackId="1"
-                      stroke="none"
-                      fill="#8884d8"
-                      fillOpacity={0.3} // 10%-90% 범위
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="p20"
-                      stackId="1"
-                      stroke="none"
-                      fill="#82ca9d"
-                      fillOpacity={0.4} // 20%-80% 범위
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="p30"
-                      stackId="1"
-                      stroke="none"
-                      fill="#ffc658"
-                      fillOpacity={0.5} // 30%-70% 범위
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="p40"
-                      stackId="1"
-                      stroke="none"
-                      fill="#ff7300"
-                      fillOpacity={0.6} // 40%-60% 범위
-                    />
-                    {/* 중간값 선 */}
-                    <Line
-                      type="monotone"
-                      dataKey="median"
-                      stroke="black"
-                      dot={false}
-                    />
-                    {/* 재정 목표 수평선 */}
-                    {selectedMetric === "total_investments" && (
-                      <ReferenceLine
-                        y={1000000}
-                        label="Goal"
-                        stroke="red"
-                        strokeDasharray="3 3"
-                      />
-                    )}
-                  </ComposedChart>
-                </ResponsiveContainer>
               </div>
             )}
+
+            {/* Bar Chart */}
             {activeTab === "bar" && (
-              <div className="bar-graph">
+              <div className="linear-graph">
                 <h3>Bar Chart</h3>
-                <ResponsiveContainer height={300}>
-                  <BarChart data={barChartData}>
+                <div className="options">
+                  <label>
+                    Metric:
+                    <select
+                      value={metric}
+                      onChange={(e) => setMetric(e.target.value)}
+                      style={{ marginBottom: "10px", padding: "5px", width: "100px" }}
+                    >
+                      <option value="average">Average</option>
+                      <option value="median">Median</option>
+                    </select>
+                  </label>
+                  <label style={{ marginLeft: "20px" }}>
+                    Threshold:
+                    <input
+                      type="number"
+                      value={threshold}
+                      onChange={(e) => setThreshold(Number(e.target.value))}
+                      style={{
+                        marginLeft: "10px",
+                        padding: "5px",
+                        width: "80px",
+                      }}
+                    />
+                  </label>
+                </div>
+
+                {/* 4.3 투자 항목별 누적 막대 차트 */}
+                <h3>Investment Breakdown by {metric}</h3>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={barChartData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="year" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip formatter={(val) => val.toLocaleString()} />
                     <Legend />
-                    <Bar dataKey="income" fill="#8884d8" />
-                    <Bar dataKey="net" fill="#82ca9d" />
+                    <Bar dataKey="cash" stackId="a" fill="#8884d8" />
+                    <Bar dataKey="sp500" stackId="a" fill="#82ca9d" />
+                    <Bar dataKey="taxExemptBonds" stackId="a" fill="#ffc658" />
+                    <Bar dataKey="food" stackId="b" fill="#ff8042" />
+                    <Bar dataKey="vacation" stackId="b" fill="#8dd1e1" />
+                    <Bar
+                      dataKey="streamingServices"
+                      stackId="b"
+                      fill="#a4de6c"
+                    />
+                    <Bar dataKey="taxFederal" stackId="b" fill="#d0ed57" />
+                    <Bar dataKey="taxState" stackId="b" fill="#ffc658" />
+                    <Bar dataKey="taxCapitalGains" stackId="b" fill="#8884d8" />
+                    <Bar
+                      dataKey="taxEarlyWithdrawal"
+                      stackId="b"
+                      fill="#82ca9d"
+                    />
+                    <Bar dataKey="other" stackId="b" fill="#cccccc" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
