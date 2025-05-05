@@ -3,40 +3,12 @@ import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";
 import "../css/MenuLayout.css";
+import HistoryContent from "./HistoryContent";
 
 const MenuLayout = ({ children }) => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
-  const SenarioHistory = [
-    {
-      name: "Retirement Plan",
-      createdAt: "2024-10-31T13:13:00",
-    },
-    {
-      name: "Education Plan",
-      createdAt: "2024-10-31T15:13:00",
-    },
-  ];
-  // Example data to populate SenarioHistory
-  const exampleData = [
-    {
-      name: "Vacation Plan",
-      createdAt: "2024-11-01T10:00:00",
-    },
-    {
-      name: "Emergency Fund",
-      createdAt: "2024-11-02T14:30:00",
-    },
-  ];
-
-  // Merge example data with existing SenarioHistory
-  SenarioHistory.push(...exampleData);
-  const handleEditScenario = (index) => {
-    console.log("Editing scenario at index:", index);
-    // TODO: 원하는 방식으로 시나리오 불러오기/이동 구현
-  };
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
@@ -47,6 +19,7 @@ const MenuLayout = ({ children }) => {
   };
 
   const userImg = sessionStorage.getItem("userImg");
+  const userEmail = sessionStorage.getItem("userEmail");
   // const basicInfo = JSON.parse(localStorage.getItem("basicInfo")) || null;
   // const currentTime = new Date();
   // const formattedDate = currentTime.toLocaleDateString();
@@ -76,43 +49,9 @@ const MenuLayout = ({ children }) => {
                         X
                       </button>
                     </div>
-                    <div style={{ color: "black" }}>
-                      <div style={{ border: "none" }}>
-                        {SenarioHistory.length > 0 ? (
-                          <div>
-                            {SenarioHistory.map((scenario, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  display: "flex",
-                                  gap: "10px",
-                                  alignItems: "center",
-                                  padding: "8px",
-                                  margin: "4px 0",
-                                }}
-                              >
-                                <span>{scenario.name}&nbsp; &nbsp;</span>
-                                <span>
-                                  {new Date(scenario.createdAt).toLocaleString(
-                                    "en-US"
-                                  )}
-                                </span>
-                                <button style={{ backgroundColor: "#526673" }}>
-                                  <span
-                                    style={{ color: "white", cursor: "pointer" }}
-                                    onClick={() => handleEditScenario(index)}
-                                  >
-                                    Edit
-                                  </span>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p>No scenarios available.</p>
-                        )}
-                      </div>
-                    </div>
+                    <HistoryContent
+                      userEmail={userEmail}
+                    />
                   </div>
                 </div>
               )}

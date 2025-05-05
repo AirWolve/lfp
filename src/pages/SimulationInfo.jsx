@@ -243,7 +243,7 @@ const SimulationInfo = () => {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({ yamlText: combinedData, userEmail: emailAddr }),
+          body: JSON.stringify({ yamlText: combinedData, userEmail: emailAddr, scenarioName: basicSettingData.name }),
         }
       );
 
@@ -265,6 +265,7 @@ const SimulationInfo = () => {
       }
 
       console.log("Parsed response:", result);
+      localStorage.setItem("simResult", JSON.stringify(result));
 
       if (!response.ok) {
         throw new Error(

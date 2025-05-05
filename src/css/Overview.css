@@ -5,198 +5,233 @@
 
 /* layout */
 .dashboard-container {
-    display: flex;
-    background-color: #efefef;
-    min-height: 100vh;
-    font-family: sans-serif;
-  }
-  
-  /* Sidebar */
-  .sidebar {
-    background-color: #47606f;
-    color: white;
-    padding: 20px;
-    width: 200px;
-    transition: all 0.3s ease;
-  }
-  
-  .sidebar h2 {
-    font-size: 18px;
-    margin-bottom: 30px;
-  }
-  
-  .sidebar ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .sidebar ul li {
-    font-size: 15px;
-    margin-bottom: 30px;
-    cursor: pointer;
-  }
-  
-  /* Main */
-  .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background-color: #f9f9f9;
-  }
-  
-  /* Topbar */
-  .topbar {
-    height: 60px;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .menu-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-right: auto;
-  }
-  
-  .menuIcon {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-  }
-  
-  /* Make Plan button */
-  .make-plan-btn {
-    padding: 8px 16px;
-    background-color: #3f545c;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
-    cursor: pointer;
-    font-size: 14px;
-    height: 30px;
-  }
-  
-  /* profile */
-  .profile-section {
-    position: relative;
-  }
-  
-  .profile-img {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    cursor: pointer;
-  }
-  
-  .profile-dropdown {
-    position: absolute;
-    top: 45px;
-    right: 0;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 180px;
-    display: flex;
-    flex-direction: column;
-    padding: 8px 0;
-    z-index: 1000;
-  }
-  
-  .profile-dropdown a {
-    color: #333;
-    text-decoration: none;
-    padding: 10px 16px;
-    font-size: 14px;
-    transition: background 0.2s;
-  }
-  
-  .profile-dropdown a:hover {
-    background-color: #f0f0f0;
-  }
-  
-  /* main content */
-  .main-content {
-    align-items: center;
-    justify-content: center;
-    margin: 30px;
-  }
-  
-  /* chart */
-  .charts {
-    display: flex;
-    flex-direction: column;
-    width: auto 0;
-  }
-  
-  .line-chart-box {
-    background-color: white;
-    padding-top: 30px;
-    padding-bottom: 30px;
-    padding-left: 40px;
-    padding-right: 30px;
-    border-radius: 12px;
-    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
-  }
-  
-  /* Summary box */
-.summary-box-grid {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  background-color: #efefef;
+  min-height: 100vh;
+  font-family: sans-serif;
 }
 
-  .summary-box {
-    width: 260px;
-    background-color: white;
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    font-size: 16px;
-    display: flex;
+/* Sidebar */
+.sidebar {
+  background-color: #47606f;
+  color: white;
+  padding: 20px;
+  width: 200px;
+  transition: all 0.3s ease;
+}
+
+.sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  font-size: 15px;
+  margin-bottom: 30px;
+  cursor: pointer;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+}
+
+/* Topbar */
+.topbar {
+  height: 60px;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid #ccc;
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: auto;
+}
+
+.menuIcon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* Make Plan button */
+.make-plan-btn {
+  padding: 8px 16px;
+  background-color: #3f545c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  font-size: 14px;
+  height: 30px;
+}
+
+/* profile */
+.profile-section {
+  position: relative;
+}
+
+.profile-img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  z-index: 1000;
+}
+
+.profile-dropdown a {
+  color: #333;
+  text-decoration: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.profile-dropdown a:hover {
+  background-color: #f0f0f0;
+}
+
+/* main content */
+.main-content {
+  align-items: center;
+  justify-content: center;
+  margin: 30px;
+}
+
+/* chart */
+.charts {
+  margin-right: 40px;
+}
+
+.line-chart-box {
+  background-color: white;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  padding-right: 30px;
+  border-radius: 12px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Summary box */
+.summary-box-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-box {
+  width: 260px;
+  background-color: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 30px;
+}
+
+.summary-box p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+}
+@media (max-width: 1024px) {
+  .main-content {
     flex-direction: column;
-    gap: 18px;
-    margin: 30px;
-  }
-  
-  .summary-box p {
-    display: flex;
-    justify-content: space-between;
-    margin: 0;
-  }
-  @media (max-width: 1024px) {
-    .main-content {
-      flex-direction: column;
-    }
-  
-    .summary-box {
-      align-self: center;
-      width: 100%;
-      max-width: 400px;
-    }
   }
 
-  .one-dimensional-graph {
-    margin-top: 30px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  .summary-box {
+    align-self: center;
+    width: 100%;
+    max-width: 400px;
   }
+}
 
-  .boxButton {
-    background-color: white;
-    border: none;
-    padding: -10px;
-  }
+.one-dimensional-graph {
+  margin-top: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
 
-  .editIcon {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-    display: inline-block;
-  }
+.linear-graph {
+  margin-top: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
+
+.boxButton {
+  background-color: white;
+  border: none;
+  padding: -10px;
+}
+
+.editIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: inline-block;
+}
+
+/* 탭 버튼 스타일 */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.tab-button:hover {
+  background-color: #e6e6e6;
+}
+
+.tab-button.active {
+  background-color: #8884d8;
+  color: white;
+  border-color: #8884d8;
+}
