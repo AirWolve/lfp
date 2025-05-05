@@ -120,7 +120,8 @@ class Simulation:
                     self.prev_standard_deduction[k] = std[k]
             self.tax.federalTax["standardDeduction"] = std
         except Exception as e:
-            raise
+            # raise Exception(f"Error while updating tax inflation: {e}. Using current values.")
+            pass
 
     def limitInflation(self, year:int, curInflation:float):
         if self.data.inflationAssumption["type"] == kFixed:
@@ -267,12 +268,12 @@ class Simulation:
             
             if target_inv is None:
                 # Create new non-retirement account
-                target_inv = sc.Investment(
-                    id=f"{source_inv.id}_nonret",
-                    investmentType=source_inv.investmentType,
-                    taxStatus="non-retirement",
-                    value=0
-                )
+                target_inv = sc.Investments({
+                    "id": f"{source_inv.id}_nonret",
+                    "investmentType": source_inv.investmentType,
+                    "taxStatus": "non-retirement",
+                    "value": 0
+                })
                 self.data.investments.append(target_inv)
                 self.purchaseDict[target_inv.id] = 0
                 self.initialInvestmentValue[target_inv.id] = 0
@@ -341,12 +342,12 @@ class Simulation:
             
             if target_inv is None:
                 # Create new non-retirement account
-                target_inv = sc.Investment(
-                    id=f"{source_inv.id}_nonret",
-                    investmentType=source_inv.investmentType,
-                    taxStatus="non-retirement",
-                    value=0
-                )
+                target_inv = sc.Investments({
+                    "id": f"{source_inv.id}_nonret",
+                    "investmentType": source_inv.investmentType,
+                    "taxStatus": "non-retirement",
+                    "value": 0
+                })
                 self.data.investments.append(target_inv)
             
             # Transfer funds
@@ -525,12 +526,12 @@ class Simulation:
             
             if target_inv is None:
                 # Create new after-tax account
-                target_inv = sc.Investment(
-                    id=f"{source_inv.id}_aftertax",
-                    investmentType=source_inv.investmentType,
-                    taxStatus="after-tax",
-                    value=0
-                )
+                target_inv = sc.Investments({
+                    "investmentType": source_inv.investmentType,
+                    "value": 0,
+                    "taxStatus": "after-tax",
+                    "id": f"{source_inv.id} after-tax"
+                })
                 self.data.investments.append(target_inv)
                 self.purchaseDict[target_inv.id] = 0
                 self.initialInvestmentValue[target_inv.id] = 0
@@ -673,7 +674,7 @@ class Simulation:
                 if total_amount_sold >= w:
                     break
             if sold_this_round == 0:
-                print(f"[Warning] Insufficient balance in priority account for {w - total_amount_sold} withdrawal.")
+                # raise Warning(f"[Warning] Insufficient balance in priority account for {w - total_amount_sold} withdrawal.")
                 break
         return capitalgain, curYearIncome, curYearEarlyWithdrawals
 
@@ -688,16 +689,16 @@ class Simulation:
         ewTax = self.tax.earlyWithdrawal(self.data, curYearEarlyWithdrawals)
 
         if federalTax is None:
-            print("federal tax is None, using 0 instead")
+            # raise Warning("federal tax is None, using 0 instead")
             federalTax = 0
         if stateTax is None:
-            print("state tax is None, using 0 instead")
+            # raise Warning("state tax is None, using 0 instead")
             stateTax = 0
         if cgTax is None:
-            print("capital gains tax is None, using 0 instead")
+            # raise Warning("capital gains tax is None, using 0 instead")
             cgTax = 0
         if ewTax is None:
-            print("early withdrawal tax is None, using 0 instead")
+            # raise Warning("early withdrawal tax is None, using 0 instead")
             ewTax = 0
 
         # 현금 차감은 여기서 하지 않음 (중복 방지)
@@ -985,6 +986,7 @@ class Simulation:
             withdrawal = total_payment - cash
             if withdrawal > 0:
                 capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
+                curYearGains += capitalGain
             for inv in self.data.investments:
                 if inv.investmentType == "cash":
                     inv.value = max(0, inv.value - total_payment)
@@ -1013,6 +1015,7 @@ class Simulation:
                                 withdrawal = amt - cash
                                 if withdrawal > 0:
                                     capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
+                                    curYearGains += capitalGain
                                 for inv in self.data.investments:
                                     if inv.investmentType == "cash":
                                         inv.value = max(0, inv.value - amt)
@@ -1133,7 +1136,7 @@ class Simulation:
                 if duration <= 0:
                     duration = 1
         except Exception as e:
-            print(f"이벤트 연도 확인 중 오류: {e}. 현재 연도를 사용합니다.")
+            # raise Exception(f"Error while checking event year: {e}. Using current year.")
             # 오류 발생 시 현재 연도만 활성화 (안전장치)
             return current_year == start_year
             

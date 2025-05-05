@@ -365,13 +365,13 @@ def exportYAML(data:Scenario):
 
 def importYAMLtext(yaml_text: str):
     """
-    문자열 형태의 YAML 데이터를 받아 Scenario 객체로 변환하는 함수
+    Function to convert YAML string to Scenario object
 
     Args:
     ----
-        yaml_text: YAML 형식의 문자열 데이터
+        yaml_text: YAML formatted string data
     Returns:
-        Scenario 객체
+        Scenario object
     """
     yaml_data = yaml.load(yaml_text, Loader=yaml.FullLoader)
     return Scenario(yaml_data)
