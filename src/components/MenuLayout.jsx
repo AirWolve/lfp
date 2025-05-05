@@ -3,6 +3,7 @@ import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";
 import "../css/MenuLayout.css";
+import HistoryContent from "./HistoryContent";
 
 const MenuLayout = ({ children }) => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -76,43 +77,10 @@ const MenuLayout = ({ children }) => {
                         X
                       </button>
                     </div>
-                    <div style={{ color: "black" }}>
-                      <div style={{ border: "none" }}>
-                        {SenarioHistory.length > 0 ? (
-                          <div>
-                            {SenarioHistory.map((scenario, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  display: "flex",
-                                  gap: "10px",
-                                  alignItems: "center",
-                                  padding: "8px",
-                                  margin: "4px 0",
-                                }}
-                              >
-                                <span>{scenario.name}&nbsp; &nbsp;</span>
-                                <span>
-                                  {new Date(scenario.createdAt).toLocaleString(
-                                    "en-US"
-                                  )}
-                                </span>
-                                <button style={{ backgroundColor: "#526673" }}>
-                                  <span
-                                    style={{ color: "white", cursor: "pointer" }}
-                                    onClick={() => handleEditScenario(index)}
-                                  >
-                                    Edit
-                                  </span>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p>No scenarios available.</p>
-                        )}
-                      </div>
-                    </div>
+                    <HistoryContent
+                      SenarioHistory={SenarioHistory}
+                      handleEditScenario={handleEditScenario}
+                    />
                   </div>
                 </div>
               )}
