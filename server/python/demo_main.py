@@ -23,6 +23,7 @@ def main():
 
     financial_goal = yaml_data.get("financialGoal", 0)
     aggregation_threshold = yaml_data.get("aggregationThreshold", 0)  # threshold for stacked bar aggregation
+    discretionary_categories = set(yaml_data.get("spendingStrategy", []))
 
     all_runs = []  # List of [{year: {income, expense, tax, net, ...}}, ...]
     final_assets = []
@@ -52,20 +53,16 @@ def main():
             net = income - sum(expense_dict.values()) - tax
             total_assets = data.get('total_assets', 0)
             invest_dict = data.get('invest', {}) or {}
-            # early withdrawal tax
             ew_tax = tax_dict.get('early_withdrawal', 0)
-            # discretionary expense pct
+            # discretionary expense (sum of spendingStrategy categories)
             discretionary_total = 0
-            discretionary_possible = 0
             for cat, val in expense_dict.items():
-                if 'discretionary' in cat.lower():
+                if cat in discretionary_categories:
                     discretionary_total += val
-                discretionary_possible += val
-            discr_exp_pct = (discretionary_total / discretionary_possible) if discretionary_possible > 0 else 0
-            # breakdowns
-            # investment breakdown: invest_dict (by category)
-            # income breakdown: only total income exists for now (can be extended later)
-            # expense breakdown: expense_dict (by category), tax_dict (taxes)
+            discr_exp_pct = discretionary_total
+            # capital gains and capital gain tax
+            capital_gains = data.get('capital_gains', 0)
+            capital_gain_tax = tax_dict.get('capital_gains', 0)
             # accumulate by year
             all_years.add(year)
             yearly_assets.setdefault(year, []).append(total_assets)
@@ -74,6 +71,15 @@ def main():
             yearly_tax.setdefault(year, []).append(tax)
             yearly_ewtax.setdefault(year, []).append(ew_tax)
             yearly_discr_exp_pct.setdefault(year, []).append(discr_exp_pct)
+            # capital gains/tax
+            yearly_capital_gains = yearly_invest_breakdown.setdefault('capital_gains', {})
+            yearly_capital_gains.setdefault(year, []).append(capital_gains)
+            yearly_capital_gain_tax = yearly_invest_breakdown.setdefault('capital_gain_tax', {})
+            yearly_capital_gain_tax.setdefault(year, []).append(capital_gain_tax)
+            # breakdowns
+            # investment breakdown: invest_dict (by category)
+            # income breakdown: only total income exists for now (can be extended later)
+            # expense breakdown: expense_dict (by category), tax_dict (taxes)
             # accumulate breakdowns
             for k, v in invest_dict.items():
                 yearly_invest_breakdown.setdefault(year, {}).setdefault(k, []).append(v)
@@ -88,7 +94,9 @@ def main():
                 'tax': tax_dict,
                 'net': net,
                 'total_assets': total_assets,
-                'invest': invest_dict
+                'invest': invest_dict,
+                'capital_gains': capital_gains,
+                'capital_gain_tax': capital_gain_tax
             }
             all_expense_categories.update(expense_dict.keys())
         all_runs.append(run_result)
@@ -120,6 +128,9 @@ def main():
         expense_avg = {cat: float(np.mean(vals)) for cat, vals in expense_dict.items()}
         tax_avg = {ttype: float(np.mean(vals)) for ttype, vals in tax_dict.items()}
         invest_avg = {cat: float(np.mean(vals)) for cat, vals in invest_dict.items()}
+        # capital gains/tax
+        capital_gains_list = [run[year].get('capital_gains', 0) for run in all_runs if year in run]
+        capital_gain_tax_list = [run[year].get('capital_gain_tax', 0) for run in all_runs if year in run]
         cashflow_summary.append({
             'year': year,
             'income': float(np.mean(income_list)) if income_list else 0,
@@ -127,7 +138,9 @@ def main():
             'net': float(np.mean(net_list)) if net_list else 0,
             'assets': float(np.mean(assets_list)) if assets_list else 0,
             'expense': expense_avg,
-            'invest': invest_avg
+            'invest': invest_avg,
+            'capital_gains': float(np.mean(capital_gains_list)) if capital_gains_list else 0,
+            'capital_gain_tax': float(np.mean(capital_gain_tax_list)) if capital_gain_tax_list else 0
         })
 
     # 4.1: 연도별 성공확률
@@ -155,7 +168,9 @@ def main():
         'total_income': {year: quantiles(yearly_income[year]) for year in years},
         'total_expenses': {year: quantiles(yearly_expense[year]) for year in years},
         'early_withdrawal_tax': {year: quantiles(yearly_ewtax[year]) for year in years},
-        'discretionary_expense_pct': {year: quantiles(yearly_discr_exp_pct[year]) for year in years}
+        'discretionary_expense_pct': {year: quantiles(yearly_discr_exp_pct[year]) for year in years},
+        'capital_gains': {year: quantiles([run[year].get('capital_gains', 0) for run in all_runs if year in run]) for year in years},
+        'capital_gain_tax': {year: quantiles([run[year].get('capital_gain_tax', 0) for run in all_runs if year in run]) for year in years}
     }
 
     # 4.3: stacked bar breakdown (average/median, apply aggregation threshold)
