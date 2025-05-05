@@ -10,15 +10,15 @@ const userSchema = new mongoose.Schema({
 const scenarioSchema = new mongoose.Schema({
   name: { type: String, required: true },
   user: { type: String, required: true },
-  scenarioData: { type: String, required: true },
-  history_id: { type: Object, required: true},
+  scenarioData: { type: mongoose.Schema.Types.Mixed, required: true },
+  history_id: { type: mongoose.Schema.Types.ObjectId, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
 const historySchema = new mongoose.Schema({
   user: { type: String, required: true },
   scenarioName: { type: String, required: true },
-  simResult: { type: String, required: true },
+  simResult: { type: mongoose.Schema.Types.Mixed, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 
