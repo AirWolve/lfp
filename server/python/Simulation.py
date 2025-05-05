@@ -526,10 +526,10 @@ class Simulation:
             if target_inv is None:
                 # Create new after-tax account
                 target_inv = sc.Investments(
-                    id=f"{source_inv.id}_aftertax",
                     investmentType=source_inv.investmentType,
+                    value=0,
                     taxStatus="after-tax",
-                    value=0
+                    id=f"{source_inv.id} after-tax"
                 )
                 self.data.investments.append(target_inv)
                 self.purchaseDict[target_inv.id] = 0
