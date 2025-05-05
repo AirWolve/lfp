@@ -5,6 +5,7 @@ const { SchemaModels } = require('./schema');
 const MongoUri = process.env.LFP_MONGO_URI;
 const User = mongoose.model("User", SchemaModels.userSchema);
 const Scenario = mongoose.model("Scenario", SchemaModels.scenarioSchema);
+const History = mongoose.model("History", SchemaModels.historySchema);
 
 async function initDatabase() {
   try {
@@ -17,11 +18,12 @@ async function initDatabase() {
     await Promise.all([
       User.init(),
       Scenario.init(),
+      History.init(),
       // example: Product.init(), Order.init(), ...
     ]);
     console.log("Indexes ensured");
 
-    return { User, Scenario };
+    return { User, Scenario, History };
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
     throw error;
@@ -30,7 +32,8 @@ async function initDatabase() {
 
 const Models = {
     User,
-    Scenario
+    Scenario,
+    History
 };
 
 module.exports = { initDatabase, Models };
