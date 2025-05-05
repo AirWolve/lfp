@@ -2,6 +2,7 @@ import sys
 import Simulation
 import yaml
 import numpy as np
+import json
 
 def main():
     # Read all lines from stdin
@@ -12,9 +13,9 @@ def main():
 
     # Prompt for simulation count in English
     try:
-        n = int(input("Enter the number of Monte Carlo simulation runs (default 10): ") or 10)
+        n = int(input("Enter the number of Monte Carlo simulation runs (default 1): ") or 1)
     except Exception:
-        n = 10
+        n = 1
 
     yaml_text = """
 name: Scenario Name
@@ -216,51 +217,161 @@ residenceState: NY
 
     all_runs = []
     final_assets = []
+    all_years = set()
+    yearly_assets = {}
+    yearly_income = {}
+    yearly_expense = {}
+    yearly_tax = {}
+    yearly_ewtax = {}
+    yearly_discr_exp_pct = {}
+    yearly_invest_breakdown = {}
+    yearly_expense_breakdown = {}
+
+    discretionary_categories = set(yaml_data.get("spendingStrategy", []))
     for i in range(n):
         sim = Simulation.Simulation(yaml_text)
         sim.simulation(None, emailNeed=False)
         yearly = getattr(sim, 'yearly_data', {})
-        all_runs.append(yearly)
+        run_result = {}
+        for year, data in yearly.items():
+            income = data.get('income', 0)
+            expense_dict = data.get('expense', {}) or {}
+            tax_dict = data.get('tax', {}) or {}
+            tax = sum(tax_dict.values())
+            net = income - sum(expense_dict.values()) - tax
+            total_assets = data.get('total_assets', 0)
+            invest_dict = data.get('invest', {}) or {}
+            ew_tax = tax_dict.get('early_withdrawal', 0)
+            discretionary_total = 0
+            for cat, val in expense_dict.items():
+                if cat in discretionary_categories:
+                    discretionary_total += val
+            discr_exp_pct = discretionary_total
+            all_years.add(year)
+            yearly_assets.setdefault(year, []).append(total_assets)
+            yearly_income.setdefault(year, []).append(income)
+            yearly_expense.setdefault(year, []).append(sum(expense_dict.values()))
+            yearly_tax.setdefault(year, []).append(tax)
+            yearly_ewtax.setdefault(year, []).append(ew_tax)
+            yearly_discr_exp_pct.setdefault(year, []).append(discr_exp_pct)
+            for k, v in invest_dict.items():
+                yearly_invest_breakdown.setdefault(year, {}).setdefault(k, []).append(v)
+            for k, v in expense_dict.items():
+                yearly_expense_breakdown.setdefault(year, {}).setdefault(k, []).append(v)
+            for k, v in tax_dict.items():
+                yearly_expense_breakdown.setdefault(year, {}).setdefault(f"tax_{k}", []).append(v)
+            run_result[year] = {
+                'income': income,
+                'expense': expense_dict,
+                'tax': tax_dict,
+                'net': net,
+                'total_assets': total_assets,
+                'invest': invest_dict
+            }
+        all_runs.append(run_result)
         if yearly:
             last_year = max(yearly.keys())
             final_assets.append(yearly[last_year].get('total_assets', 0))
 
-    # Aggregate by year
-    years = sorted(all_runs[0].keys())
-    print(f"\n===== Monte Carlo Simulation Summary ({n} runs) =====\n")
+    years = sorted(list(all_years))
+    cashflow_summary = []
     for year in years:
-        assets_list = [run[year].get('total_assets', 0) for run in all_runs if year in run]
-        income_list = [run[year].get('income', 0) for run in all_runs if year in run]
-        # tax, expense, invest: dict averages
-        tax_dict = {}
+        income_list = yearly_income.get(year, [])
+        assets_list = yearly_assets.get(year, [])
+        net_list = [run[year].get('net', 0) for run in all_runs if year in run]
         expense_dict = {}
+        for run in all_runs:
+            if year in run and 'expense' in run[year]:
+                for cat, val in run[year]['expense'].items():
+                    expense_dict.setdefault(cat, []).append(val)
+        tax_dict = {}
+        for run in all_runs:
+            if year in run and 'tax' in run[year]:
+                for ttype, val in run[year]['tax'].items():
+                    tax_dict.setdefault(ttype, []).append(val)
         invest_dict = {}
         for run in all_runs:
-            if year in run:
-                for t, v in run[year].get('tax', {}).items():
-                    tax_dict.setdefault(t, []).append(v)
-                for c, v in run[year].get('expense', {}).items():
-                    expense_dict.setdefault(c, []).append(v)
-                for inv, v in run[year].get('invest', {}).items():
-                    invest_dict.setdefault(inv, []).append(v)
-        tax_avg = {k: float(np.mean(v)) for k, v in tax_dict.items()}
-        expense_avg = {k: float(np.mean(v)) for k, v in expense_dict.items()}
-        invest_avg = {k: float(np.mean(v)) for k, v in invest_dict.items()}
-        tax_med = {k: float(np.median(v)) for k, v in tax_dict.items()}
-        expense_med = {k: float(np.median(v)) for k, v in expense_dict.items()}
-        invest_med = {k: float(np.median(v)) for k, v in invest_dict.items()}
-        print(f"--- Year: {year} ---")
-        print(f"  Avg Total Assets: ${np.mean(assets_list):,.2f}")
-        print(f"  Med Total Assets: ${np.median(assets_list):,.2f}")
-        print(f"  Avg Income: ${np.mean(income_list):,.2f}")
-        print(f"  Med Income: ${np.median(income_list):,.2f}")
-        print(f"  Avg Tax: {tax_avg}")
-        print(f"  Avg Expense: {expense_avg}")
-        print(f"  Avg Invest: {invest_avg}\n")
-        print(f"  Med Tax: {tax_med}")
-        print(f"  Med Expense: {expense_med}")
-        print(f"  Med Invest: {invest_med}\n")
-    print("\nSimulation completed successfully.")
+            if year in run and 'invest' in run[year]:
+                for cat, val in run[year]['invest'].items():
+                    invest_dict.setdefault(cat, []).append(val)
+        expense_avg = {cat: float(np.mean(vals)) for cat, vals in expense_dict.items()}
+        tax_avg = {ttype: float(np.mean(vals)) for ttype, vals in tax_dict.items()}
+        invest_avg = {cat: float(np.mean(vals)) for cat, vals in invest_dict.items()}
+        cashflow_summary.append({
+            'year': year,
+            'income': float(np.mean(income_list)) if income_list else 0,
+            'tax': tax_avg,
+            'net': float(np.mean(net_list)) if net_list else 0,
+            'assets': float(np.mean(assets_list)) if assets_list else 0,
+            'expense': expense_avg,
+            'invest': invest_avg
+        })
+
+    # 연도별 달성 금액 / 목표 금액의 평균값(0~1)
+    chanceOfSuccess = {}
+    for year in years:
+        ratios = [run[year].get('total_assets', 0) / yaml_data.get("financialGoal", 0) if yaml_data.get("financialGoal", 0) > 0 else 0 for run in all_runs if year in run]
+        chanceOfSuccess[year] = float(np.mean(ratios)) if ratios else 0
+
+    # 전체 연도에 대한 평균값
+    AvgChanceOfSuccess = float(np.mean(list(chanceOfSuccess.values()))) if chanceOfSuccess else 0
+
+    def quantiles(arr):
+        arr = np.array(arr)
+        return {
+            'median': float(np.percentile(arr, 50)),
+            'p10': float(np.percentile(arr, 10)),
+            'p20': float(np.percentile(arr, 20)),
+            'p30': float(np.percentile(arr, 30)),
+            'p40': float(np.percentile(arr, 40)),
+            'p60': float(np.percentile(arr, 60)),
+            'p70': float(np.percentile(arr, 70)),
+            'p80': float(np.percentile(arr, 80)),
+            'p90': float(np.percentile(arr, 90)),
+        }
+    quantileStats = {
+        'total_investments': {year: quantiles(yearly_assets[year]) for year in years},
+        'total_income': {year: quantiles(yearly_income[year]) for year in years},
+        'total_expenses': {year: quantiles(yearly_expense[year]) for year in years},
+        'early_withdrawal_tax': {year: quantiles(yearly_ewtax[year]) for year in years},
+        'discretionary_expense_pct': {year: quantiles(yearly_discr_exp_pct[year]) for year in years}
+    }
+
+    def aggregate_breakdown(breakdown_dict, year):
+        avg = {}
+        med = {}
+        other_avg = 0
+        other_med = 0
+        for k, vals in breakdown_dict.items():
+            mean_v = float(np.mean(vals))
+            med_v = float(np.median(vals))
+            if mean_v < yaml_data.get("aggregationThreshold", 0) and med_v < yaml_data.get("aggregationThreshold", 0):
+                other_avg += mean_v
+                other_med += med_v
+            else:
+                avg[k] = mean_v
+                med[k] = med_v
+        if other_avg > 0:
+            avg['Other'] = other_avg
+        if other_med > 0:
+            med['Other'] = other_med
+        return {'average': avg, 'median': med}
+
+    stackedBar = {
+        'investments': {year: aggregate_breakdown(yearly_invest_breakdown.get(year, {}), year) for year in years},
+        'expenses': {year: aggregate_breakdown(yearly_expense_breakdown.get(year, {}), year) for year in years},
+    }
+
+    result = {
+        'cashFlow': cashflow_summary,
+        'chanceOfSuccess': chanceOfSuccess,
+        'AvgChanceOfSuccess': AvgChanceOfSuccess,
+        'quantileStats': quantileStats,
+        'stackedBar': stackedBar
+    }
+    # 결과를 파일로 저장
+    with open('test_result.json', 'w', encoding='utf-8') as f:
+        json.dump(result, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
     main()
