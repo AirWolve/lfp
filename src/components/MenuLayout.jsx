@@ -10,35 +10,6 @@ const MenuLayout = ({ children }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const SenarioHistory = [
-    {
-      name: "Retirement Plan",
-      createdAt: "2024-10-31T13:13:00",
-    },
-    {
-      name: "Education Plan",
-      createdAt: "2024-10-31T15:13:00",
-    },
-  ];
-  // Example data to populate SenarioHistory
-  const exampleData = [
-    {
-      name: "Vacation Plan",
-      createdAt: "2024-11-01T10:00:00",
-    },
-    {
-      name: "Emergency Fund",
-      createdAt: "2024-11-02T14:30:00",
-    },
-  ];
-
-  // Merge example data with existing SenarioHistory
-  SenarioHistory.push(...exampleData);
-  const handleEditScenario = (index) => {
-    console.log("Editing scenario at index:", index);
-    // TODO: 원하는 방식으로 시나리오 불러오기/이동 구현
-  };
-
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
@@ -48,6 +19,7 @@ const MenuLayout = ({ children }) => {
   };
 
   const userImg = sessionStorage.getItem("userImg");
+  const userEmail = sessionStorage.getItem("userEmail");
   // const basicInfo = JSON.parse(localStorage.getItem("basicInfo")) || null;
   // const currentTime = new Date();
   // const formattedDate = currentTime.toLocaleDateString();
@@ -78,8 +50,7 @@ const MenuLayout = ({ children }) => {
                       </button>
                     </div>
                     <HistoryContent
-                      SenarioHistory={SenarioHistory}
-                      handleEditScenario={handleEditScenario}
+                      userEmail={userEmail}
                     />
                   </div>
                 </div>
