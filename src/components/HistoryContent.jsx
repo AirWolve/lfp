@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import styles from "../css/HistoryContent.module.css";
 
 const HistoryContent = ({ userEmail }) => {
   const [history, setHistory] = useState([]);
@@ -26,31 +27,37 @@ const HistoryContent = ({ userEmail }) => {
         <p>No scenarios available.</p>
       ) : (
         Object.entries(grouped).map(([scenarioName, items]) => (
-          <div key={scenarioName} style={{ marginBottom: 12, border: "1px solid #ccc", borderRadius: 6 }}>
+          <div key={scenarioName} className={styles.accordionItem}>
             <div
-              style={{ cursor: "pointer", padding: 8, background: "#f5f5f5", fontWeight: "bold" }}
+              className={styles.accordionHeader}
               onClick={() => setOpenScenario(openScenario === scenarioName ? null : scenarioName)}
             >
               {scenarioName}
             </div>
-            {openScenario === scenarioName && (
-              <div style={{ padding: 8, background: "#fff" }}>
-                {items.map((item, idx) => {
+            <div
+              className={styles.accordionPanel}
+              style={{
+                maxHeight: openScenario === scenarioName ? 500 : 0,
+                padding: openScenario === scenarioName ? 8 : 0
+              }}
+            >
+              {openScenario === scenarioName && (
+                items.map((item, idx) => {
                   let avgChance = "-";
                   try {
                     const simResult = typeof item.simResult === "string" ? JSON.parse(item.simResult) : item.simResult;
                     avgChance = simResult.AvgChanceOfSuccess !== undefined ? simResult.AvgChanceOfSuccess : "-";
                   } catch (e) {}
                   return (
-                    <div key={item._id} style={{ borderBottom: "1px solid #eee", padding: "6px 0" }}>
+                    <div key={item._id} className={styles.panelItem}>
                       <div>index: {idx + 1}</div>
                       <div>createdAt: {new Date(item.createdAt).toLocaleString()}</div>
                       <div>AvgChanceOfSuccess: {avgChance}</div>
                     </div>
                   );
-                })}
-              </div>
-            )}
+                })
+              )}
+            </div>
           </div>
         ))
       )}
