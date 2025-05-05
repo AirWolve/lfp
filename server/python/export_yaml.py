@@ -32,7 +32,7 @@ def main():
         file_name = f"{userEmail}-{scenarioData['name']}.yaml"
         file_path = os.path.join(user_dir, file_name)
         # YAML로 저장
-        Scenario.exportYAML(scenario)
+        Scenario.exportYAML(scenario, userEmail, scenarioData['name'])
         # 실제 저장 경로 반환
         print(json.dumps({"filePath": os.path.abspath(file_path)}))
     except Exception as e:
