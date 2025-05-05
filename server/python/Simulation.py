@@ -267,12 +267,12 @@ class Simulation:
             
             if target_inv is None:
                 # Create new non-retirement account
-                target_inv = sc.Investments(
-                    id=f"{source_inv.id}_nonret",
-                    investmentType=source_inv.investmentType,
-                    taxStatus="non-retirement",
-                    value=0
-                )
+                target_inv = sc.Investments({
+                    "id": f"{source_inv.id}_nonret",
+                    "investmentType": source_inv.investmentType,
+                    "taxStatus": "non-retirement",
+                    "value": 0
+                })
                 self.data.investments.append(target_inv)
                 self.purchaseDict[target_inv.id] = 0
                 self.initialInvestmentValue[target_inv.id] = 0
@@ -341,12 +341,12 @@ class Simulation:
             
             if target_inv is None:
                 # Create new non-retirement account
-                target_inv = sc.Investments(
-                    id=f"{source_inv.id}_nonret",
-                    investmentType=source_inv.investmentType,
-                    taxStatus="non-retirement",
-                    value=0
-                )
+                target_inv = sc.Investments({
+                    "id": f"{source_inv.id}_nonret",
+                    "investmentType": source_inv.investmentType,
+                    "taxStatus": "non-retirement",
+                    "value": 0
+                })
                 self.data.investments.append(target_inv)
             
             # Transfer funds
@@ -525,12 +525,12 @@ class Simulation:
             
             if target_inv is None:
                 # Create new after-tax account
-                target_inv = sc.Investments(
-                    investmentType=source_inv.investmentType,
-                    value=0,
-                    taxStatus="after-tax",
-                    id=f"{source_inv.id} after-tax"
-                )
+                target_inv = sc.Investments({
+                    "investmentType": source_inv.investmentType,
+                    "value": 0,
+                    "taxStatus": "after-tax",
+                    "id": f"{source_inv.id} after-tax"
+                })
                 self.data.investments.append(target_inv)
                 self.purchaseDict[target_inv.id] = 0
                 self.initialInvestmentValue[target_inv.id] = 0
