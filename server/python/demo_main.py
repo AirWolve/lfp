@@ -11,15 +11,11 @@ def main():
         print(json.dumps({"error": "No input provided via stdin"}))
         sys.exit(1)
 
-    # First line: simulation count (n), Second line: YAML
-    n = 1000  # default
-    yaml_text = None
-    if len(lines) >= 2 and lines[0].strip().isdigit():
-        n = int(lines[0].strip())
-        yaml_text = "".join(lines[1:])
-    else:
-        yaml_text = "".join(lines)
-
+    # 첫 줄: email, 두 번째 줄부터: YAML
+    n = 100  # 고정
+    yaml_text = "".join(lines[0:])
+    email = lines[1].strip()
+    
     yaml_data = yaml.safe_load(yaml_text)
     if not yaml_data:
         print(json.dumps({"error": "No YAML text provided"}))
