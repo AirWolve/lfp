@@ -120,7 +120,8 @@ class Simulation:
                     self.prev_standard_deduction[k] = std[k]
             self.tax.federalTax["standardDeduction"] = std
         except Exception as e:
-            raise
+            # raise Exception(f"Error while updating tax inflation: {e}. Using current values.")
+            pass
 
     def limitInflation(self, year:int, curInflation:float):
         if self.data.inflationAssumption["type"] == kFixed:
@@ -673,7 +674,7 @@ class Simulation:
                 if total_amount_sold >= w:
                     break
             if sold_this_round == 0:
-                raise Warning(f"[Warning] Insufficient balance in priority account for {w - total_amount_sold} withdrawal.")
+                # raise Warning(f"[Warning] Insufficient balance in priority account for {w - total_amount_sold} withdrawal.")
                 break
         return capitalgain, curYearIncome, curYearEarlyWithdrawals
 
@@ -688,16 +689,16 @@ class Simulation:
         ewTax = self.tax.earlyWithdrawal(self.data, curYearEarlyWithdrawals)
 
         if federalTax is None:
-            raise Warning("federal tax is None, using 0 instead")
+            # raise Warning("federal tax is None, using 0 instead")
             federalTax = 0
         if stateTax is None:
-            raise Warning("state tax is None, using 0 instead")
+            # raise Warning("state tax is None, using 0 instead")
             stateTax = 0
         if cgTax is None:
-            raise Warning("capital gains tax is None, using 0 instead")
+            # raise Warning("capital gains tax is None, using 0 instead")
             cgTax = 0
         if ewTax is None:
-            raise Warning("early withdrawal tax is None, using 0 instead")
+            # raise Warning("early withdrawal tax is None, using 0 instead")
             ewTax = 0
 
         # 현금 차감은 여기서 하지 않음 (중복 방지)
@@ -1133,7 +1134,7 @@ class Simulation:
                 if duration <= 0:
                     duration = 1
         except Exception as e:
-            raise Exception(f"이벤트 연도 확인 중 오류: {e}. 현재 연도를 사용합니다.")
+            # raise Exception(f"Error while checking event year: {e}. Using current year.")
             # 오류 발생 시 현재 연도만 활성화 (안전장치)
             return current_year == start_year
             

@@ -204,20 +204,21 @@ class TaxCalculator:
         # If the state taxes social security, raise a warning
         is_ss_taxable = self.socialSecurity(state)
         if is_ss_taxable:
-            raise Warning(f"[Warning] {state} taxes social security benefits, but this is ignored in the simulation.")
+            # raise Warning(f"[Warning] {state} taxes social security benefits, but this is ignored in the simulation.")
+            pass
         try:
             # Get state tax brackets
             if email:
                 try:
                     brackets = self.stateTax[email][0][state][0][data.maritalStatus]
                 except (KeyError, IndexError):
-                    raise Exception(f"Warning: No tax data found for state {state} in user profile {email}. Ignoring state tax.")
+                    # raise Exception(f"Warning: No tax data found for state {state} in user profile {email}. Ignoring state tax.")
                     return 0
             else:
                 try:
                     brackets = self.stateTax[state][0][data.maritalStatus]
                 except (KeyError, IndexError):
-                    raise Exception(f"Warning: No tax data found for state {state}. Ignoring state tax.")
+                    # raise Exception(f"Warning: No tax data found for state {state}. Ignoring state tax.")
                     return 0
 
             # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
@@ -248,7 +249,7 @@ class TaxCalculator:
             return total_tax
 
         except Exception as e:
-            raise Exception(f"Warning: Error calculating state tax for {state}: {str(e)}. Ignoring state tax.")
+            # raise Exception(f"Warning: Error calculating state tax for {state}: {str(e)}. Ignoring state tax.")
             return 0
 
     def earlyWithdrawal(self, data:dict, withdrawal:int, simYear:int=None):
@@ -332,7 +333,7 @@ class TaxCalculator:
         try:
             return state not in self.stateTax.get("nonsocialsecurity", [])
         except Exception as e:
-            raise Exception(f"Warning: Error checking social security taxation for state {state}: {str(e)}. Assuming social security is not taxable.")
+            # raise Exception(f"Warning: Error checking social security taxation for state {state}: {str(e)}. Assuming social security is not taxable.")
             return False
 
     def updateFederalTax(self):
