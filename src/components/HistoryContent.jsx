@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "../css/HistoryContent.module.css";
 
-const HistoryContent = ({ userEmail }) => {
+const HistoryContent = ({ userEmail, selectedHistoryId, onSelectHistory = () => {} }) => {
   const [history, setHistory] = useState([]);
   const [openScenario, setOpenScenario] = useState(null);
 
@@ -45,6 +45,7 @@ const HistoryContent = ({ userEmail }) => {
                 <table className={styles.historyTable}>
                   <thead>
                     <tr>
+                      <th></th>
                       <th>Index</th>
                       <th>Created At</th>
                       <th>AvgChanceOfSuccess</th>
@@ -57,8 +58,22 @@ const HistoryContent = ({ userEmail }) => {
                         const simResult = typeof item.simResult === "string" ? JSON.parse(item.simResult) : item.simResult;
                         avgChance = simResult.AvgChanceOfSuccess !== undefined ? simResult.AvgChanceOfSuccess : "-";
                       } catch (e) {}
+                      const isSelected = selectedHistoryId === item._id;
                       return (
-                        <tr key={item._id}>
+                        <tr
+                          key={item._id}
+                          className={isSelected ? styles.selectedRow : ""}
+                          onClick={() => onSelectHistory(item._id)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td>
+                            <input
+                              type="radio"
+                              checked={isSelected}
+                              onChange={() => onSelectHistory(item._id)}
+                              onClick={e => e.stopPropagation()}
+                            />
+                          </td>
                           <td>{idx + 1}</td>
                           <td>{new Date(item.createdAt).toLocaleString()}</td>
                           <td>{avgChance}</td>
