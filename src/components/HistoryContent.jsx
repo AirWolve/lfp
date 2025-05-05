@@ -42,20 +42,31 @@ const HistoryContent = ({ userEmail }) => {
               }}
             >
               {openScenario === scenarioName && (
-                items.map((item, idx) => {
-                  let avgChance = "-";
-                  try {
-                    const simResult = typeof item.simResult === "string" ? JSON.parse(item.simResult) : item.simResult;
-                    avgChance = simResult.AvgChanceOfSuccess !== undefined ? simResult.AvgChanceOfSuccess : "-";
-                  } catch (e) {}
-                  return (
-                    <div key={item._id} className={styles.panelItem}>
-                      <div>index: {idx + 1}</div>
-                      <div>createdAt: {new Date(item.createdAt).toLocaleString()}</div>
-                      <div>AvgChanceOfSuccess: {avgChance}</div>
-                    </div>
-                  );
-                })
+                <table className={styles.historyTable}>
+                  <thead>
+                    <tr>
+                      <th>Index</th>
+                      <th>Created At</th>
+                      <th>AvgChanceOfSuccess</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, idx) => {
+                      let avgChance = "-";
+                      try {
+                        const simResult = typeof item.simResult === "string" ? JSON.parse(item.simResult) : item.simResult;
+                        avgChance = simResult.AvgChanceOfSuccess !== undefined ? simResult.AvgChanceOfSuccess : "-";
+                      } catch (e) {}
+                      return (
+                        <tr key={item._id}>
+                          <td>{idx + 1}</td>
+                          <td>{new Date(item.createdAt).toLocaleString()}</td>
+                          <td>{avgChance}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               )}
             </div>
           </div>

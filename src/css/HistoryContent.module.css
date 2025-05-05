@@ -36,4 +36,21 @@
 }
 .panelItem:last-child {
   border-bottom: none;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  background: #fff;
+}
+.historyTable th, .historyTable td {
+  border: 1px solid #eee;
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 14px;
+}
+.historyTable th {
+  background: #f5f5f5;
+  font-weight: bold;
 } 
