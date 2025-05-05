@@ -321,7 +321,7 @@ app.post("/api/run-simulation", async (req, res) => {
         const scenario = new Models.Scenario({
           name: scenarioName,
           user: userEmail,
-          scenarioData: simResult,
+          scenarioData: yamlText,
           history_id: history._id,
           createdAt: new Date()
         });
