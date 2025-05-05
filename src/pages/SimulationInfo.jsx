@@ -265,6 +265,7 @@ const SimulationInfo = () => {
       }
 
       console.log("Parsed response:", result);
+      localStorage.setItem("simResult", JSON.stringify(result));
 
       if (!response.ok) {
         throw new Error(
