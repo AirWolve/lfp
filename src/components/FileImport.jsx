@@ -58,6 +58,7 @@ const FileImport = () => {
                     }, 700);
                 } catch (err) {
                     toast.error('YAML 파싱 실패 또는 구조 오류');
+                    console.error(err);
                     if (importRef.current) importRef.current.value = "";
                 }
             };
