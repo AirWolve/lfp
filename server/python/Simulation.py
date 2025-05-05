@@ -267,7 +267,7 @@ class Simulation:
             
             if target_inv is None:
                 # Create new non-retirement account
-                target_inv = sc.Investment(
+                target_inv = sc.Investments(
                     id=f"{source_inv.id}_nonret",
                     investmentType=source_inv.investmentType,
                     taxStatus="non-retirement",
@@ -341,7 +341,7 @@ class Simulation:
             
             if target_inv is None:
                 # Create new non-retirement account
-                target_inv = sc.Investment(
+                target_inv = sc.Investments(
                     id=f"{source_inv.id}_nonret",
                     investmentType=source_inv.investmentType,
                     taxStatus="non-retirement",
@@ -525,7 +525,7 @@ class Simulation:
             
             if target_inv is None:
                 # Create new after-tax account
-                target_inv = sc.Investment(
+                target_inv = sc.Investments(
                     id=f"{source_inv.id}_aftertax",
                     investmentType=source_inv.investmentType,
                     taxStatus="after-tax",
