@@ -11,7 +11,7 @@ def main():
         userEmail = data.get('userEmail')
         scenarioData = data.get('scenarioData')
         if not userEmail or not scenarioData:
-            print(json.dumps({"error": "userEmail과 scenarioData가 모두 필요합니다."}))
+            print(json.dumps({"error": "userEmail and scenarioData are both required."}))
             sys.exit(1)
 
         # Scenario 객체 생성

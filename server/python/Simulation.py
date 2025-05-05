@@ -673,7 +673,7 @@ class Simulation:
                 if total_amount_sold >= w:
                     break
             if sold_this_round == 0:
-                print(f"[Warning] Insufficient balance in priority account for {w - total_amount_sold} withdrawal.")
+                raise Warning(f"[Warning] Insufficient balance in priority account for {w - total_amount_sold} withdrawal.")
                 break
         return capitalgain, curYearIncome, curYearEarlyWithdrawals
 
@@ -688,16 +688,16 @@ class Simulation:
         ewTax = self.tax.earlyWithdrawal(self.data, curYearEarlyWithdrawals)
 
         if federalTax is None:
-            print("federal tax is None, using 0 instead")
+            raise Warning("federal tax is None, using 0 instead")
             federalTax = 0
         if stateTax is None:
-            print("state tax is None, using 0 instead")
+            raise Warning("state tax is None, using 0 instead")
             stateTax = 0
         if cgTax is None:
-            print("capital gains tax is None, using 0 instead")
+            raise Warning("capital gains tax is None, using 0 instead")
             cgTax = 0
         if ewTax is None:
-            print("early withdrawal tax is None, using 0 instead")
+            raise Warning("early withdrawal tax is None, using 0 instead")
             ewTax = 0
 
         # 현금 차감은 여기서 하지 않음 (중복 방지)
@@ -1133,7 +1133,7 @@ class Simulation:
                 if duration <= 0:
                     duration = 1
         except Exception as e:
-            print(f"이벤트 연도 확인 중 오류: {e}. 현재 연도를 사용합니다.")
+            raise Exception(f"이벤트 연도 확인 중 오류: {e}. 현재 연도를 사용합니다.")
             # 오류 발생 시 현재 연도만 활성화 (안전장치)
             return current_year == start_year
             

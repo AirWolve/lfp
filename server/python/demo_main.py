@@ -11,8 +11,8 @@ def main():
         print(json.dumps({"error": "No input provided via stdin"}))
         sys.exit(1)
 
-    # 첫 줄: email, 두 번째 줄부터: YAML
-    n = 100  # 고정
+    # First line: email, from the second line: YAML
+    n = 100  # fixed
     email = lines[0].strip()
     yaml_text = "".join(lines[1:])
     
@@ -29,7 +29,7 @@ def main():
     all_expense_categories = set()
     all_years = set()
 
-    # 추가: 연도별 값 누적용 dicts
+    # Additional: dicts for accumulating values by year
     yearly_assets = {}
     yearly_income = {}
     yearly_expense = {}
@@ -63,10 +63,10 @@ def main():
                 discretionary_possible += val
             discr_exp_pct = (discretionary_total / discretionary_possible) if discretionary_possible > 0 else 0
             # breakdowns
-            # 투자 breakdown: invest_dict (카테고리별)
-            # 소득 breakdown: income은 event series별 breakdown이 필요하나, 현재 구조상 income 전체만 있음(추후 확장)
-            # 지출 breakdown: expense_dict (카테고리별), tax_dict (세금)
-            # 연도별 누적
+            # investment breakdown: invest_dict (by category)
+            # income breakdown: only total income exists for now (can be extended later)
+            # expense breakdown: expense_dict (by category), tax_dict (taxes)
+            # accumulate by year
             all_years.add(year)
             yearly_assets.setdefault(year, []).append(total_assets)
             yearly_income.setdefault(year, []).append(income)
@@ -74,14 +74,14 @@ def main():
             yearly_tax.setdefault(year, []).append(tax)
             yearly_ewtax.setdefault(year, []).append(ew_tax)
             yearly_discr_exp_pct.setdefault(year, []).append(discr_exp_pct)
-            # breakdown 누적
+            # accumulate breakdowns
             for k, v in invest_dict.items():
                 yearly_invest_breakdown.setdefault(year, {}).setdefault(k, []).append(v)
             for k, v in expense_dict.items():
                 yearly_expense_breakdown.setdefault(year, {}).setdefault(k, []).append(v)
             for k, v in tax_dict.items():
                 yearly_expense_breakdown.setdefault(year, {}).setdefault(f"tax_{k}", []).append(v)
-            # income breakdown은 구조상 생략(추후 event series별로 확장 가능)
+            # income breakdown is omitted for now (can be extended later)
             run_result[year] = {
                 'income': income,
                 'expense': expense_dict,
@@ -136,7 +136,7 @@ def main():
         count = sum(run[year].get('total_assets', 0) >= financial_goal for run in all_runs if year in run)
         successProbabilityByYear[year] = float(count) / len(all_runs) if all_runs else 0
 
-    # 4.2: 분위수 통계량
+    # 4.2: Quantile statistics
     def quantiles(arr):
         arr = np.array(arr)
         return {
@@ -158,10 +158,10 @@ def main():
         'discretionary_expense_pct': {year: quantiles(yearly_discr_exp_pct[year]) for year in years}
     }
 
-    # 4.3: stacked bar breakdown (평균/중앙값, aggregation threshold 적용)
+    # 4.3: stacked bar breakdown (average/median, apply aggregation threshold)
     def aggregate_breakdown(breakdown_dict, year):
-        # breakdown_dict: {카테고리: [값, ...]}
-        # 평균/중앙값 계산, threshold 이하 카테고리는 Other로 묶음
+        # breakdown_dict: {category: [values, ...]}
+        # Calculate average/median, group categories below threshold as 'Other'
         avg = {}
         med = {}
         other_avg = 0
@@ -184,7 +184,7 @@ def main():
     stackedBar = {
         'investments': {year: aggregate_breakdown(yearly_invest_breakdown.get(year, {}), year) for year in years},
         'expenses': {year: aggregate_breakdown(yearly_expense_breakdown.get(year, {}), year) for year in years},
-        # income breakdown은 구조상 생략(추후 event series별로 확장 가능)
+        # income breakdown is omitted for now (can be extended later)
     }
 
     # 연도별 평균 달성률

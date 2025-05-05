@@ -199,25 +199,25 @@ class TaxCalculator:
         if taxable <= 0:
             return 0
 
-        # 사회보장급여는 무조건 주 소득세에서 제외
+        # Social security benefits are always excluded from state income tax
         taxable = max(0, taxable - curYearSS)
-        # 만약 해당 주가 사회보장급여에 세금을 부과하는 주라면 경고만 출력
+        # If the state taxes social security, raise a warning
         is_ss_taxable = self.socialSecurity(state)
         if is_ss_taxable:
-            print(f"[경고] {state} 주는 사회보장급여에 세금을 부과하지만, 시뮬레이션에서는 이를 무시합니다.")
+            raise Warning(f"[Warning] {state} taxes social security benefits, but this is ignored in the simulation.")
         try:
             # Get state tax brackets
             if email:
                 try:
                     brackets = self.stateTax[email][0][state][0][data.maritalStatus]
                 except (KeyError, IndexError):
-                    print(f"Warning: No tax data found for state {state} in user profile {email}. Ignoring state tax.")
+                    raise Exception(f"Warning: No tax data found for state {state} in user profile {email}. Ignoring state tax.")
                     return 0
             else:
                 try:
                     brackets = self.stateTax[state][0][data.maritalStatus]
                 except (KeyError, IndexError):
-                    print(f"Warning: No tax data found for state {state}. Ignoring state tax.")
+                    raise Exception(f"Warning: No tax data found for state {state}. Ignoring state tax.")
                     return 0
 
             # Convert brackets to sorted list of (threshold, rate) pairs, excluding 'inf'
@@ -248,7 +248,7 @@ class TaxCalculator:
             return total_tax
 
         except Exception as e:
-            print(f"Warning: Error calculating state tax for {state}: {str(e)}. Ignoring state tax.")
+            raise Exception(f"Warning: Error calculating state tax for {state}: {str(e)}. Ignoring state tax.")
             return 0
 
     def earlyWithdrawal(self, data:dict, withdrawal:int, simYear:int=None):
@@ -332,7 +332,7 @@ class TaxCalculator:
         try:
             return state not in self.stateTax.get("nonsocialsecurity", [])
         except Exception as e:
-            print(f"Warning: Error checking social security taxation for state {state}: {str(e)}. Assuming social security is not taxable.")
+            raise Exception(f"Warning: Error checking social security taxation for state {state}: {str(e)}. Assuming social security is not taxable.")
             return False
 
     def updateFederalTax(self):
