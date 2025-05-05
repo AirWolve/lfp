@@ -986,6 +986,7 @@ class Simulation:
             withdrawal = total_payment - cash
             if withdrawal > 0:
                 capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
+                curYearGains += capitalGain
             for inv in self.data.investments:
                 if inv.investmentType == "cash":
                     inv.value = max(0, inv.value - total_payment)
@@ -1014,6 +1015,7 @@ class Simulation:
                                 withdrawal = amt - cash
                                 if withdrawal > 0:
                                     capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
+                                    curYearGains += capitalGain
                                 for inv in self.data.investments:
                                     if inv.investmentType == "cash":
                                         inv.value = max(0, inv.value - amt)
