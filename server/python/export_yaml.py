@@ -19,6 +19,10 @@ def main():
         if isinstance(scenarioData, str):
             scenarioData = yaml.safe_load(scenarioData)
 
+        # 디버깅: 실제 scenarioData를 파일로 저장
+        with open("debug_scenario_input.yaml", "w") as f:
+            f.write(yaml.dump(scenarioData))
+
         # Scenario 객체 생성
         scenario = Scenario.Scenario(scenarioData)
         # 사용자별 디렉토리 생성
