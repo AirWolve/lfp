@@ -13,7 +13,7 @@ import {
   ResponsiveContainer,
   LineChart,
   // AreaChart,
-  // Area,
+  Area,
   Line,
   XAxis,
   YAxis,
@@ -23,12 +23,13 @@ import {
   Tooltip,
   Legend,
   // ReferenceLine,
+  ComposedChart,
 } from "recharts";
 
 const Overview = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("chanceOfSuccess");
-  const [selectedMetric, setSelectedMetric] = useState("total_investments");
+
   const [metric, setMetric] = useState("average");
   // aggregation threshold
   const [threshold, setThreshold] = useState(1000);
@@ -47,29 +48,45 @@ const Overview = () => {
     .filter((item) => item.successRate >= 0 && item.successRate <= 300);
 
   // RangeOfRate 데이터
-  // const rangeOfRateData = useMemo(
-  //   () =>
-  //     Object.entries(testResult.quantileStats[selectedMetric]).map(
-  //       ([year, stats]) => ({ year: +year, ...stats })
-  //     ),
-  //   [selectedMetric]
-  // );
+  const [quantileStats, setQuantileStats] = useState({});
+  const [selectedStat, setSelectedStat] = useState("total_investments");
+  // const [goal, setGoal] = useState(10000);
 
-  // // fanData: p10 base + diff series
-  // const fanData = useMemo(
-  //   () =>
-  //     rangeOfRateData.map((d) => ({
-  //       year: d.year,
-  //       base: d.p10,
-  //       diff10_90: d.p90 - d.p10,
-  //       diff20_80: d.p80 - d.p20,
-  //       diff30_70: d.p70 - d.p30,
-  //       diff40_60: d.p60 - d.p40,
-  //       median: d.median,
-  //     })),
-  //   [rangeOfRateData]
-  // );
+  useEffect(() => {
+    if (testResult?.quantileStats) {
+      setQuantileStats(testResult.quantileStats);
+      console.log("Loaded quantileStats:", testResult.quantileStats); // 디버깅용
+    }
+  }, []);
 
+  const filteredData = Object.entries(quantileStats[selectedStat] || {}).map(
+    ([year, data]) => ({
+      year: parseInt(year, 10), // 연도를 숫자로 변환
+      median: data.median || 0, // 중간값
+      p10: data.p10 || 0, // 10% 확률 값
+      p90: data.p90 || 0, // 90% 확률 값
+      p20: data.p20 || 0, // 20% 확률 값
+      p80: data.p80 || 0, // 80% 확률 값
+      p30: data.p30 || 0, // 30% 확률 값
+      p70: data.p70 || 0, // 70% 확률 값
+      p40: data.p40 || 0, // 40% 확률 값
+      p60: data.p60 || 0, // 60% 확률 값
+    })
+  );
+
+  const fanData = filteredData.map((d) => ({
+    year: d.year,
+    base: d.p10, // p10을 baseline으로 설정
+    diff10_90: d.p90 - d.p10, // p10-p90 범위
+    diff20_80: d.p80 - d.p20, // p20-p80 범위
+    diff30_70: d.p70 - d.p30, // p30-p70 범위
+    diff40_60: d.p60 - d.p40, // p40-p60 범위
+    median: d.median, // 중간값
+  }));
+
+  console.log("hello", fanData);
+
+  // bar chart 데이터
   const [stackedBarData, setStackedBarData] = useState([]);
   const [barChartData, setBarChartData] = useState([]);
 
@@ -192,29 +209,109 @@ const Overview = () => {
                 <h3>Range of Rate</h3>
                 {/* 선택 가능한 항목 */}
                 <div className="metric-selector">
-                  <h4>
-                    Select Metric: &nbsp;
+                  <label>
+                    Select Stat:
                     <select
-                      id="metric"
-                      value={selectedMetric}
-                      onChange={(e) => setSelectedMetric(e.target.value)}
-                      style={{ width: "400px", marginBottom: "30px" }}
+                      value={selectedStat}
+                      onChange={(e) => setSelectedStat(e.target.value)}
+                      style={{
+                        marginBottom: "10px",
+                        padding: "5px",
+                        width: "200px",
+                      }}
                     >
                       <option value="total_investments">
                         Total Investments
                       </option>
-                      <option value="total_income">Total Income</option>
-                      <option value="total_expenses">Total expense</option>
+                      <option value="total_income">Total Incomes</option>
+                      <option value="total_expenses">Total Expenses</option>
                       <option value="early_withdrawal_tax">
-                        early withdrawal tax
+                        Early Withdrawal Tax
                       </option>
                       <option value="discretionary_expense_pct">
-                        Discretionary Spending Percentage
+                        Discretionary Expense
                       </option>
                     </select>
-                  </h4>
+                  </label>
                 </div>
                 {/* Range of Rate 차트 추가 (예시로 LineChart 사용) */}
+                <ResponsiveContainer width="100%" height={400}>
+                  <ComposedChart
+                    data={fanData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="year" />
+                    <YAxis />
+                    <Tooltip formatter={(val) => val.toLocaleString()} />
+                    <Legend />
+
+                    {/* p10을 baseline으로 설정 */}
+                    <Area
+                      type="monotone"
+                      dataKey="base"
+                      stackId="1"
+                      stroke="none"
+                      fill="#ffffff"
+                      fillOpacity={0}
+                      name="Baseline (p10)"
+                    />
+
+                    {/* 바깥 10–90% */}
+                    <Area
+                      type="monotone"
+                      dataKey="diff10_90"
+                      stackId="1"
+                      stroke="none"
+                      fill="#4e79a7"
+                      fillOpacity={0.15}
+                      name="10%-90%"
+                    />
+
+                    {/* 20–80% */}
+                    <Area
+                      type="monotone"
+                      dataKey="diff20_80"
+                      stackId="1"
+                      stroke="none"
+                      fill="#76b7b2"
+                      fillOpacity={0.25}
+                      name="20%-80%"
+                    />
+
+                    {/* 30–70% */}
+                    <Area
+                      type="monotone"
+                      dataKey="diff30_70"
+                      stackId="1"
+                      stroke="none"
+                      fill="#e15759"
+                      fillOpacity={0.35}
+                      name="30%-70%"
+                    />
+
+                    {/* 40–60% */}
+                    <Area
+                      type="monotone"
+                      dataKey="diff40_60"
+                      stackId="1"
+                      stroke="none"
+                      fill="#f28e2b"
+                      fillOpacity={0.45}
+                      name="40%-60%"
+                    />
+
+                    {/* 중간값 선 */}
+                    <Line
+                      type="monotone"
+                      dataKey="median"
+                      stroke="red"
+                      strokeWidth={1}
+                      dot={false}
+                      name="Median"
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
               </div>
             )}
 
@@ -228,7 +325,11 @@ const Overview = () => {
                     <select
                       value={metric}
                       onChange={(e) => setMetric(e.target.value)}
-                      style={{ marginBottom: "10px", padding: "5px", width: "100px" }}
+                      style={{
+                        marginBottom: "10px",
+                        padding: "5px",
+                        width: "100px",
+                      }}
                     >
                       <option value="average">Average</option>
                       <option value="median">Median</option>
