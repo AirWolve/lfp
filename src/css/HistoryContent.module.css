@@ -1,0 +1,56 @@
+/* 아코디언 전체 아이템 */
+.accordionItem {
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fafbfc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+/* 헤더(시나리오 이름) */
+.accordionHeader {
+  cursor: pointer;
+  padding: 12px 16px;
+  background: #f5f5f5;
+  font-weight: bold;
+  user-select: none;
+  transition: background 0.2s;
+}
+.accordionHeader:hover {
+  background: #e0e0e0;
+}
+
+/* 패널(펼쳐지는 영역) */
+.accordionPanel {
+  background: #fff;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s;
+}
+
+/* 패널 내부 아이템 */
+.panelItem {
+  border-bottom: 1px solid #eee;
+  padding: 8px 0;
+  font-size: 14px;
+}
+.panelItem:last-child {
+  border-bottom: none;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  background: #fff;
+}
+.historyTable th, .historyTable td {
+  border: 1px solid #eee;
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 14px;
+}
+.historyTable th {
+  background: #f5f5f5;
+  font-weight: bold;
+} 
