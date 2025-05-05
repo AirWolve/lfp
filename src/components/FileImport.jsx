@@ -29,7 +29,7 @@ const FileImport = () => {
             reader.onload = (e) => {
                 try {
                     const content = e.target.result;
-                    const parsed = yaml.load(content);
+                    const parsed = yaml.parse(content);
                     const hasAllFields = REQUIRED_FIELDS.every(field => field in parsed);
                     if (!hasAllFields) {
                         toast.error('Invalid scenario YAML structure.');
