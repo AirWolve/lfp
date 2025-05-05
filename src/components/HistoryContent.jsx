@@ -6,7 +6,7 @@ const HistoryContent = ({ userEmail }) => {
 
   useEffect(() => {
     if (!userEmail) return;
-    fetch(`/api/history?userEmail=${encodeURIComponent(userEmail)}`)
+    fetch(`${process.env.REACT_APP_LFP_API_URL}/api/history?userEmail=${encodeURIComponent(userEmail)}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.history) setHistory(data.history);
