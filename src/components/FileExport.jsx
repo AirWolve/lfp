@@ -1,41 +1,41 @@
 // src/components/FileExport.jsx
-import React from "react";
-import "../css/FileImport.css"; // FileImportExport와 동일한 스타일을 쓸 수 있습니다
-import downloadIcon from '../assets/upload.svg';
+import React, { useState } from "react";
+import "../css/FileImport.css";
+import HistoryContent from "./HistoryContent";
 
-const FileExport = ({ exportData, fileName = "exported_data.json" }) => {
-  const handleExport = () => {
-    // 1) prop으로 전달된 데이터가 없으면 로컬 스토리지에서 읽어오기
-    const data =
-      exportData ||
-      JSON.parse(localStorage.getItem("InvestmentTypes")) ||
-      {};
+const FileExport = ({ userEmail }) => {
+  const [selectedHistoryId, setSelectedHistoryId] = useState(null);
 
-    // 2) JSON → Blob
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
+  const handleExport = async () => {
+    if (!selectedHistoryId || !userEmail) {
+      alert("History를 선택하세요.");
+      return;
+    }
+    const res = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/export-scenario`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ historyId: selectedHistoryId, userEmail }),
+      credentials: "include"
     });
-
-    // 3) Blob URL 생성
-    const url = URL.createObjectURL(blob);
-
-    // 4) 임시 a 태그로 다운로드 트리거
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-
-    // 5) 정리
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const data = await res.json();
+    if (data.downloadUrl) {
+      window.location.href = `${process.env.REACT_APP_LFP_API_URL}${data.downloadUrl}`;
+    } else {
+      alert("Export 실패: " + (data.error || "Unknown error"));
+    }
   };
 
   return (
-    <button className="export-btn" onClick={handleExport}>
-      <img src={downloadIcon} alt="download" style={{ width: 22, height: 22, marginRight: 8 }} />
-      Export File
-    </button>
+    <div>
+      <HistoryContent
+        userEmail={userEmail}
+        selectedHistoryId={selectedHistoryId}
+        onSelectHistory={setSelectedHistoryId}
+      />
+      <button className="export-btn" onClick={handleExport} disabled={!selectedHistoryId}>
+        Export Selected Scenario
+      </button>
+    </div>
   );
 };
 

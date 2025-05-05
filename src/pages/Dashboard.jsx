@@ -94,11 +94,7 @@ const Dashboard = () => {
                     <FileImport />
 
                   ) : (
-                    <FileExport exportData={{
-                      message: "Exported data from the app",
-                      timestamp: new Date().toISOString(),
-                      item: [1, 2, 3]
-                    }} fileName="my_plan.json" />
+                    <FileExport userEmail={user?.email} />
                   )}
                 </div>
               </div>
