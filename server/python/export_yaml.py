@@ -2,6 +2,7 @@ import sys
 import json
 import Scenario
 import os
+import yaml
 
 def main():
     try:
@@ -14,9 +15,9 @@ def main():
             print(json.dumps({"error": "userEmail and scenarioData are both required."}))
             sys.exit(1)
 
-        # scenarioData가 string이면 dict로 변환
+        # scenarioData가 string이면 YAML로 파싱
         if isinstance(scenarioData, str):
-            scenarioData = json.loads(scenarioData)
+            scenarioData = yaml.safe_load(scenarioData)
 
         # Scenario 객체 생성
         scenario = Scenario.Scenario(scenarioData)
