@@ -3,7 +3,7 @@ import '../css/FileImport.css';
 import deleteIcon from '../assets/delete.svg';
 import { ReactComponent as UploadIcon } from '../assets/upload.svg';
 import { toast } from 'react-toastify';
-import yaml from 'js-yaml';
+import yaml from 'yaml';
 import { useNavigate } from 'react-router-dom';
 
 const REQUIRED_FIELDS = [
