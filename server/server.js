@@ -9,6 +9,7 @@ const path = require('path');
 const { initDatabase, Models } = require("./mongo");
 const { spawn } = require('child_process');
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 require("dotenv").config();
 
 let homeUrl = "";
@@ -170,13 +171,23 @@ app.post("/api/export-scenario", async (req, res) => {
   // 1. historyId, userEmail 확인
   const historyId = req.body.historyId;
   const userEmail = req.body.userEmail;
+  console.log("[export-scenario] 요청:", { historyId, userEmail });
   if (!historyId || !userEmail) {
     return res.status(400).json({ error: "historyId와 userEmail이 모두 필요합니다." });
   }
 
   try {
+    let objectId;
+    try {
+      objectId = mongoose.Types.ObjectId(historyId);
+    } catch (e) {
+      console.error("[export-scenario] historyId ObjectId 변환 실패:", e);
+      return res.status(400).json({ error: "historyId 형식이 올바르지 않습니다." });
+    }
+
     // 2. DB에서 scenario 데이터 조회 (userEmail도 조건에 포함)
-    const scenarioDoc = await Models.Scenario.findOne({ history_id: historyId, user: userEmail });
+    const scenarioDoc = await Models.Scenario.findOne({ history_id: objectId, user: userEmail });
+    console.log("[export-scenario] scenarioDoc:", scenarioDoc);
     if (!scenarioDoc) {
       return res.status(404).json({ error: "해당 historyId와 userEmail에 대한 시나리오를 찾을 수 없습니다." });
     }
@@ -195,9 +206,11 @@ app.post("/api/export-scenario", async (req, res) => {
     let pythonError = '';
     pythonProcess.stdout.on('data', (data) => {
       pythonOutput += data.toString();
+      console.log("[export-scenario] Python stdout:", data.toString());
     });
     pythonProcess.stderr.on('data', (data) => {
       pythonError += data.toString();
+      console.error("[export-scenario] Python stderr:", data.toString());
     });
     pythonProcess.on('close', async (code) => {
       if (code === 0) {
