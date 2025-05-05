@@ -13,8 +13,8 @@ def main():
 
     # 첫 줄: email, 두 번째 줄부터: YAML
     n = 100  # 고정
-    yaml_text = "".join(lines[0:])
-    email = lines[1].strip()
+    email = lines[0].strip()
+    yaml_text = "".join(lines[1:])
     
     yaml_data = yaml.safe_load(yaml_text)
     if not yaml_data:
