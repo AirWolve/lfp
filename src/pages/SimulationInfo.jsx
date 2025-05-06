@@ -214,7 +214,7 @@ const SimulationInfo = () => {
       return;
     }
 
-    if (rothOpt && (rothStart !== null || rothEnd === null)) {
+    if (rothOpt && (rothStart === null || rothEnd === null)) {
       toast.error("Please enter the Roth conversion years");
       return;
     }
