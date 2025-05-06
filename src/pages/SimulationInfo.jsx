@@ -84,35 +84,35 @@ const SimulationInfo = () => {
     () => scenarioData.RothConversionStrategy ?? []
   );
 
-  // spending modal 상태
+  // spending modal state
   const [showSpendingModal, setShowSpendingModal] = useState(false);
   const [modalSpendingSelect, setModalSpendingSelect] = useState(
     discreteEvents.length ? discreteEvents[0] : ""
   );
   const [modalSpendingList, setModalSpendingList] = useState([]);
 
-  // withdrawal modal 상태
+  // withdrawal modal state
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [modalWithdrawalSelect, setModalWithdrawalSelect] = useState(
     allInvestments.length ? allInvestments[0] : ""
   );
   const [modalWithdrawalList, setModalWithdrawalList] = useState([]);
 
-  // RMD modal 상태
+  // RMD modal state
   const [showRMDModal, setShowRMDModal] = useState(false);
   const [modalRMDSelect, setModalRMDSelect] = useState(
     preTaxInvestments.length ? preTaxInvestments[0] : ""
   );
   const [modalRMDList, setModalRMDList] = useState([]);
 
-  // Roth Conversion Strategy modal 상태
+  // Roth Conversion Strategy modal state
   const [showRothModal, setShowRothModal] = useState(false);
   const [modalRothSelect, setModalRothSelect] = useState(
     preTaxInvestments.length ? preTaxInvestments[0] : ""
   );
   const [modalRothList, setModalRothList] = useState([]);
 
-  // Modal 핸들러
+  // Modal handler
   const openSpendingModal = () => {
     setModalSpendingList(spendingStrategy);
     setModalSpendingSelect(spendingStrategy[0] || discreteEvents[0] || "");
@@ -334,11 +334,9 @@ const SimulationInfo = () => {
         </section>
         <section title="Spending & Withdrawal">
           <section className="Spending">
-            {/* 이전에 유저가 작성했던 eventSeries에서 데이터를 불러올 것 
-                        이 부분을 Add 버튼을 생성해서 모달 팝업을 띄운 뒤, 모달 팝업 내에서
-                        유저가 입력한 데이터를 띄우고 선택해서 배열에 저장이 되게 하고,
-                        이후에 confirm 버튼을 누르면 그 데이터가 저장이 되고 add버튼 옆에
-                        체크 표시가 되게 설계 */}
+            {/* Load the data from the previous eventSeries written by the user
+                Create an Add button to pop up a modal, then display the user's input data in the modal,
+                and select the data to save it in the array, and then create a checkmark next to the add button when the confirm button is clicked. */}
             <label>
               Spending Strategy
               {spendingStrategy.length > 0 ? (
@@ -398,10 +396,9 @@ const SimulationInfo = () => {
             )}
           </section>
           <section className="Withdrawal">
-            {/* Add 버튼을 생성해서 모달 팝업을 띄운 뒤, 모달 팝업 내에서
-                        유저가 입력한 데이터를 띄우고 선택해서 배열에 저장이 되게 하고,
-                        이후에 confirm 버튼을 누르면 그 데이터가 저장이 되고 add버튼 옆에
-                        체크 표시가 되게 설계 */}
+            {/* Create an Add button to pop up a modal, then display the user's input data in the modal,
+                and select the data to save it in the array, and then create a checkmark next to the add 
+                button when the confirm button is clicked. */}
             <label>
               Withdrawal Strategy
               {withdrawalStrategy.length > 0 ? (
@@ -465,10 +462,10 @@ const SimulationInfo = () => {
           className="RothOpt"
         >
           <section className="RMDRoth">
-            {/* Add 버튼을 생성해서 모달 팝업을 띄운 뒤, 모달 팝업 내에서
-                        유저가 입력한 데이터를 띄우고 선택해서 배열에 저장이 되게 하고,
-                        이후에 confirm 버튼을 누르면 그 데이터가 저장이 되고 add버튼 옆에
-                        체크 표시가 되게 설계 */}
+            {/* Create an Add button to pop up a modal, then display the user's input data in the modal,
+                and select the data to save it in the array, and then create a checkmark next to the add 
+                button when the confirm button is clicked. */}
+
             <label>
               Source for Required Minimum Distributions (RMDs)
               {RMDStrategy.length > 0 ? (
@@ -553,8 +550,8 @@ const SimulationInfo = () => {
           </label>
         </section>
         <section title="Roth Conversion Strategy" className="RothStrategy">
-          {/* Investments에서 데이터 불러올 것 
-                    이후, 유저가 선택하는데로 배열에 저장이 되게끔 설계 */}
+          {/* Load data from Investments, and then create a checkmark next to the add 
+              button when the confirm button is clicked. */}
           <label>
             Roth Conversion Strategy
             {rothStrategy.length > 0 ? (

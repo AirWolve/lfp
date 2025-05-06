@@ -94,7 +94,7 @@ const InvestmentType = () => {
           add
         </button>
 
-        {/* 카드형 리스트로 리팩토링 */}
+        {/* Refactor card-type list */}
         <div className="events-list">
           {investmentTypes.map((inv, idx) => (
             <div key={idx} className="event-item">

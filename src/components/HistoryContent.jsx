@@ -7,14 +7,16 @@ const HistoryContent = ({ userEmail, selectedHistoryId, onSelectHistory = () => 
 
   useEffect(() => {
     if (!userEmail) return;
+    // Fetch the history from the server
     fetch(`${process.env.REACT_APP_LFP_API_URL}/api/history?userEmail=${encodeURIComponent(userEmail)}`)
       .then((res) => res.json())
       .then((data) => {
+        // Set the history
         if (data.history) setHistory(data.history);
       });
   }, [userEmail]);
 
-  // scenarioName별로 그룹화
+  // Group the history by scenarioName
   const grouped = history.reduce((acc, item) => {
     if (!acc[item.scenarioName]) acc[item.scenarioName] = [];
     acc[item.scenarioName].push(item);
@@ -22,6 +24,7 @@ const HistoryContent = ({ userEmail, selectedHistoryId, onSelectHistory = () => 
   }, {});
 
   return (
+    // Show the history list
     <div style={{ color: "black" }}>
       {Object.keys(grouped).length === 0 ? (
         <p>No scenarios available.</p>
@@ -55,9 +58,11 @@ const HistoryContent = ({ userEmail, selectedHistoryId, onSelectHistory = () => 
                     {items.map((item, idx) => {
                       let avgChance = "-";
                       try {
+                        // Parse the simResult
                         const simResult = typeof item.simResult === "string" ? JSON.parse(item.simResult) : item.simResult;
                         avgChance = simResult.AvgChanceOfSuccess !== undefined ? simResult.AvgChanceOfSuccess : "-";
                       } catch (e) {}
+                      // Check if the item is selected
                       const isSelected = selectedHistoryId === item._id;
                       return (
                         <tr

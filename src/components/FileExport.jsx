@@ -1,16 +1,22 @@
-// src/components/FileExport.jsx
 import React, { useState } from "react";
 import "../css/FileImport.css";
 import HistoryContent from "./HistoryContent";
+
+/* 
+    Export the selected scenario
+    Use HistoryContent to show the history list
+    Use handleExport to export the selected scenario
+*/
 
 const FileExport = ({ userEmail }) => {
   const [selectedHistoryId, setSelectedHistoryId] = useState(null);
 
   const handleExport = async () => {
     if (!selectedHistoryId || !userEmail) {
-      alert("History를 선택하세요.");
+      alert("Please select a history.");
       return;
     }
+    // Send the selected historyId and userEmail to the server
     const res = await fetch(`${process.env.REACT_APP_LFP_API_URL}/api/export-scenario`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -19,9 +25,10 @@ const FileExport = ({ userEmail }) => {
     });
     const data = await res.json();
     if (data.downloadUrl) {
+      // Redirect to the download URL
       window.location.href = `${process.env.REACT_APP_LFP_API_URL}${data.downloadUrl}`;
     } else {
-      alert("Export 실패: " + (data.error || "Unknown error"));
+      alert("Failed to export: " + (data.error || "Unknown error"));
     }
   };
 

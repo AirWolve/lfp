@@ -186,7 +186,7 @@ const Overview = () => {
           </div>
 
           <div className="charts">
-            {/* Chance of success Chart */}
+            {/* Chance to Success chart */}
             {activeTab === "chanceToSuccess" && (
               <div className="linear-graph">
                 <h3>Chance to Success</h3>
@@ -197,10 +197,10 @@ const Overview = () => {
                     <YAxis
                       domain={[0, 400]}
                       label={{
-                        value: "Success Rate (%)",
-                        angle: -90,
-                        position: "insideLeft",
-                        style: { textAnchor: "middle", fill: "#666" },
+                        value: "Success Rate (%)", // Label text
+                        angle: -90, // Label angle (vertical direction)
+                        position: "insideLeft", // Label position
+                        style: { textAnchor: "middle", fill: "#666" }, // Style
                       }}
                     />
                     <Tooltip formatter={(value) => `${value.toFixed(2)}%`} />
@@ -216,11 +216,11 @@ const Overview = () => {
               </div>
             )}
 
-            {/* Range of Rate Chart */}
+            {/* Range of Rate chart */}
             {activeTab === "rangeOfRate" && (
               <div className="linear-graph">
                 <h3>Range of Rate</h3>
-                {/* 선택 가능한 항목 */}
+                {/* Selectable items */}
                 <div className="metric-selector">
                   <label>
                     Select Stat:
@@ -247,7 +247,7 @@ const Overview = () => {
                     </select>
                   </label>
                 </div>
-                {/*  Add Range of Rate */}
+                {/* Add Range of Rate chart (using LineChart as an example) */}
                 <ResponsiveContainer width="100%" height={400}>
                   <ComposedChart
                     data={fanData}
@@ -259,7 +259,7 @@ const Overview = () => {
                     <Tooltip formatter={(val) => val.toLocaleString()} />
                     <Legend />
 
-                    {/* set p10 to baseline */}
+                    {/* Set p10 as baseline */}
                     <Area
                       type="monotone"
                       dataKey="base"
@@ -270,7 +270,7 @@ const Overview = () => {
                       name="Baseline (p10)"
                     />
 
-                    {/* 10–90% */}
+                    {/* Outer 10–90% */}
                     <Area
                       type="monotone"
                       dataKey="diff10_90"
@@ -314,7 +314,7 @@ const Overview = () => {
                       name="40%-60%"
                     />
 
-                    {/* median line */}
+                    {/* Median line */}
                     <Line
                       type="monotone"
                       dataKey="median"

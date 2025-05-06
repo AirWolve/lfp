@@ -15,8 +15,14 @@ export const initialBasicSetting = {
   },
 };
 
+/* 
+    Basic setting form
+    Use the updateLifeExpectancy to update the life expectancy
+    Use the renderLifeExpectancyInputs to render the life expectancy inputs
+*/
+
 const BasicSettingForm = ({ settings, setSettings }) => {
-  // Life expectancy 업데이트 함수
+  // Life expectancy update function
   const updateLifeExpectancy = (person, type, updates = {}) => {
     const newExpectancy = { type };
     Object.entries(updates).forEach(([key, value]) => {
@@ -31,6 +37,7 @@ const BasicSettingForm = ({ settings, setSettings }) => {
     });
   };
 
+  // Render the life expectancy inputs
   const renderLifeExpectancyInputs = (person, expectancy) => {
     switch (expectancy.type) {
       case "fixed":
@@ -51,6 +58,7 @@ const BasicSettingForm = ({ settings, setSettings }) => {
           </div>
         );
       case "normal":
+        // Render the normal distribution inputs
         return (
           <>
             <div className={formStyles.formGroup}>
@@ -86,6 +94,7 @@ const BasicSettingForm = ({ settings, setSettings }) => {
           </>
         );
       case "uniform":
+        // Render the uniform distribution inputs
         return (
           <>
             <div className={formStyles.formGroup}>

@@ -1,6 +1,11 @@
 import React from "react";
 import formStyles from "../css/FormStyles.module.css";
 
+/* 
+    Initial income event
+    Use the initialIncomeEvent to initialize the income event
+*/
+
 export const initialIncomeEvent = {
   name: "",
   type: "income",
@@ -38,7 +43,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
     });
   };
 
-  // Start type과 값 업데이트 함수
+  // Start type and value update function
   const updateStart = (type, updates = {}) => {
     const newStart = { type };
     Object.entries(updates).forEach(([key, value]) => {
@@ -84,7 +89,7 @@ const IncomeEventForm = ({ newEvent, setNewEvent }) => {
               <option value="uniform">Uniform</option>
             </select>
           </div>
-          {/* type별 입력 필드 */}
+          {/* type-specific input fields */}
           {newEvent.start.type === "fixed" && (
             <div className={`${formStyles.formGroup} ${formStyles.flex1}`}> 
               <label>Start Year</label>

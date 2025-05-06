@@ -307,13 +307,13 @@ residenceState: NY
             'invest': invest_avg
         })
 
-    # 연도별 달성 금액 / 목표 금액의 평균값(0~1)
+    # Yearly success rate (0~1)
     chanceOfSuccess = {}
     for year in years:
         ratios = [run[year].get('total_assets', 0) / yaml_data.get("financialGoal", 0) if yaml_data.get("financialGoal", 0) > 0 else 0 for run in all_runs if year in run]
         chanceOfSuccess[year] = float(np.mean(ratios)) if ratios else 0
 
-    # 전체 연도에 대한 평균값
+    # Average value for all years
     AvgChanceOfSuccess = float(np.mean(list(chanceOfSuccess.values()))) if chanceOfSuccess else 0
 
     def quantiles(arr):
@@ -369,7 +369,7 @@ residenceState: NY
         'quantileStats': quantileStats,
         'stackedBar': stackedBar
     }
-    # 결과를 파일로 저장
+    # Save the result to a file
     with open('test_result.json', 'w', encoding='utf-8') as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 

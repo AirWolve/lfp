@@ -1,27 +1,16 @@
 import Calculator as ca
 import Scenario as sc
 import numpy as np
+import os
+from datetime import datetime
 
 kFixed = "fixed"
 kUniform = "uniform"
 kNormal = "normal"
 
-class Simulation:
-    # def __init__(self, path:str):
-    #     self.data = sc.importYAML(path)
-    #     self.tax = ca.TaxCalculator()
-    #     self.rmd = ca.RMDCalculator()
-    #     self.inf = ca.Inflation(self.data)
-    #     self.initialInvestmentValue = {inv.id:inv.value for inv in self.data.investments}
-    #     self.purchaseDict = {inv.id: 0 for inv in self.data.investments}
-    #     for ev in self.data.eventSeries:
-    #         if ev.type == "income":
-    #             self.year = ev.start["value"]
-    #             self.duration = self.year + ev.duration["value"]
-    #             break
-    
+class Simulation:    
     def __init__(self, dataStr:str):
-        self.data = sc.importYAMLtext(dataStr)
+        self.data = sc.importYAMLtext(dataStr) # Import the scenario data from the YAML text from API
         self.tax = ca.TaxCalculator()
         self.rmd = ca.RMDCalculator()
         self.inf = ca.Inflation(self.data)
@@ -32,11 +21,21 @@ class Simulation:
                 self.year = ev.start["value"]
                 self.duration = self.year + ev.duration["value"]
                 break
+        # For logging: store yearly investment values and event logs (only for the first simulation)
+        self.log_events = []  # List of event log entries
+        self.log_investments = []  # List of yearly investment value snapshots
 
     # start 1
     def taxInflation(self, year:int, curInflation:float):
         try:
             # Store base values if not already stored
+            # Add and manage dictionaries to handle previous year's tax brackets
+            """
+                individual : Individual tax brackets
+                couple : Couple tax brackets
+                cap_individual : Individual capital gains tax brackets
+                cap_couple : Couple capital gains tax brackets
+            """
             if not hasattr(self, 'base_brackets'):
                 self.base_brackets = {
                     'individual': {int(k) if k != 'inf' else k: int(k) if k != 'inf' else k for k, v in self.tax.federalTax['individual'].items()},
@@ -50,7 +49,7 @@ class Simulation:
                     'cap_individual': self.base_brackets['cap_individual'].copy(),
                     'cap_couple': self.base_brackets['cap_couple'].copy()
                 }
-                # 표준공제 base 값도 저장
+                # Store the base standard deduction values
                 self.base_standard_deduction = self.tax.federalTax["standardDeduction"].copy()
                 self.prev_standard_deduction = self.base_standard_deduction.copy()
 
@@ -110,7 +109,7 @@ class Simulation:
             self.tax.capTax["individual"] = ind_tax
             self.tax.capTax["couple"] = cou_tax
 
-            # 표준공제도 인플레이션 반영하여 갱신
+            # Update standard deduction with inflation
             std = {}
             for k in self.base_standard_deduction:
                 if self.data.inflationAssumption["type"] == kFixed:
@@ -120,6 +119,8 @@ class Simulation:
                     self.prev_standard_deduction[k] = std[k]
             self.tax.federalTax["standardDeduction"] = std
         except Exception as e:
+            # If an error occurs, print the error message.
+            # In case, it raise the error to interupt the program, so we need to commenting it and pass.
             # raise Exception(f"Error while updating tax inflation: {e}. Using current values.")
             pass
 
@@ -140,62 +141,94 @@ class Simulation:
 
         # 1. Sample annual change
         if ev.changeAmtOrPct == "amount":
+            # If the changeDistribution is fixed, directly add the value to the amount
             if ev.changeDistribution["type"] == kFixed:
                 new_amount = amount + ev.changeDistribution["value"]
+            # If the changeDistribution is uniform, randomly sample a value from the uniform distribution
             elif ev.changeDistribution["type"] == kUniform:
                 new_amount = amount + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"])
+            # If the changeDistribution is normal, randomly sample a value from the normal distribution
             elif ev.changeDistribution["type"] == kNormal:
                 new_amount = amount + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"])
             else:
+                # If the changeDistribution is not recognized, use the amount as is
                 new_amount = amount
         else:  # percent
-            if ev.changeDistribution["type"] == kFixed:
+            # If the changeDistribution is fixed, multiply the amount by the value
+            if ev.changeDistribution["type"] == kFixed: 
                 new_amount = amount * (1 + ev.changeDistribution["value"])
+            # If the changeDistribution is uniform, randomly sample a value from the uniform distribution
             elif ev.changeDistribution["type"] == kUniform:
                 new_amount = amount * (1 + np.random.uniform(ev.changeDistribution["lower"], ev.changeDistribution["upper"]))
+            # If the changeDistribution is normal, randomly sample a value from the normal distribution
             elif ev.changeDistribution["type"] == kNormal:
                 new_amount = amount * (1 + np.random.normal(ev.changeDistribution["mean"], ev.changeDistribution["stdev"]))
             else:
+                # If the changeDistribution is not recognized, use the amount as is
                 new_amount = amount
 
         # 2. Apply inflation
         if ev.inflationAdjusted:
             infAdj = self.inf.runInflation()
+            # If the inflationAssumption is fixed, multiply the amount by the inflation rate
             if self.data.inflationAssumption["type"] == kFixed:
                 new_amount += new_amount * (1 + infAdj) ** (year - self.year)
+            # If the inflationAssumption is not fixed, multiply the amount by the inflation rate
             else:
-                new_amount += new_amount * (np.prod(1 + np.clip(infAdj, -0.99, None)))
+                new_amount += new_amount * (np.prod(1 + np.clip(infAdj, -0.99, None))) 
 
-        # 3. Mortality adjustment (userFraction)
-        user_alive = True
-        spouse_alive = True
+        # 3. Adjustment for mortality (userFraction)
+        # If the user or spouse is dead, the amount will be adjusted by the userFraction
+        user_alive = True # Whether the user is alive
+        spouse_alive = True # Whether the spouse is alive
         if len(self.data.birthYears) > 0 and len(self.data.lifeExpectancy) > 0:
-            user_death_year = self.data.birthYears[0] + (self.data.lifeExpectancy[0]["value"] if self.data.lifeExpectancy[0]["type"] == "fixed" else self.data.lifeExpectancy[0]["mean"])
+            user_death_year = self.data.birthYears[0] 
+            if self.data.lifeExpectancy[0]["type"] == kFixed:
+                user_death_year += self.data.lifeExpectancy[0]["value"]
+            elif self.data.lifeExpectancy[0]["type"] == kNormal:
+                user_death_year += np.random.normal(self.data.lifeExpectancy[0]["mean"], self.data.lifeExpectancy[0]["stdev"])
+            else:
+                user_death_year += np.random.uniform(self.data.lifeExpectancy[0]["lower"], self.data.lifeExpectancy[0]["upper"])
+            # If the user is dead, set the user_alive to False
             if year >= user_death_year:
                 user_alive = False
         if self.data.maritalStatus == "couple" and len(self.data.birthYears) > 1 and len(self.data.lifeExpectancy) > 1:
-            spouse_death_year = self.data.birthYears[1] + (self.data.lifeExpectancy[1]["value"] if self.data.lifeExpectancy[1]["type"] == "fixed" else self.data.lifeExpectancy[1]["mean"])
+            spouse_death_year = self.data.birthYears[1] 
+            if self.data.lifeExpectancy[1]["type"] == kFixed:
+                spouse_death_year += self.data.lifeExpectancy[1]["value"]
+            elif self.data.lifeExpectancy[1]["type"] == kNormal:
+                spouse_death_year += np.random.normal(self.data.lifeExpectancy[1]["mean"], self.data.lifeExpectancy[1]["stdev"])
+            else:
+                spouse_death_year += np.random.uniform(self.data.lifeExpectancy[1]["lower"], self.data.lifeExpectancy[1]["upper"])
+            # If the spouse is dead, set the spouse_alive to False
             if year >= spouse_death_year:
                 spouse_alive = False
-        fraction = 1.0
+        fraction = 1.0 # The fraction of the amount that is alive
         if not user_alive:
+            # If the user is dead, subtract the userFraction from the fraction
             fraction -= ev.userFraction
         if self.data.maritalStatus == "couple" and not spouse_alive:
+            # If the spouse is dead, subtract the (1.0 - userFraction) from the fraction
             fraction -= (1.0 - ev.userFraction)
+            # If the fraction is less than 0, set the fraction to 0
             fraction = max(0, fraction)
         new_amount *= fraction
 
         # 4. Update only cash-type investments with income
+        # If the investment type is cash, update the value of the investment
         for inv in self.data.investments:
             if inv.investmentType == "cash":
                 inv.updateValue(inv.value + new_amount)
 
         # 5. Separate return values
+        # If the social security is true, set the curYearSS to the new amount
         curYearSS = 0
+        # If the social security is false, set the curYearIncome to the new amount
         curYearIncome = 0
         if hasattr(ev, "socialSecurity") and ev.socialSecurity:
             curYearSS = new_amount
         else:
+            # If the social security is false, set the curYearIncome to the new amount
             curYearIncome = new_amount
         return curYearSS, curYearIncome
 
@@ -246,18 +279,20 @@ class Simulation:
                 break
                 
             # Find source investment
+            # If the investment id is the same as the rmd_inv_id and the tax status is pre-tax, then set the source investment
             source_inv = None
             for inv in self.data.investments:
                 if inv.id == rmd_inv_id and inv.taxStatus == "pre-tax":
                     source_inv = inv
                     break
             
+            # If the source investment is not found or the value is 0, then continue
             if source_inv is None or source_inv.value <= 0:
                 continue
                 
             # Calculate withdrawal amount from this account
             withdrawal = min(remaining_rmd, source_inv.value)
-            
+            # If the withdrawal amount is 0, then continue
             # Find or create corresponding non-retirement account of the same investment type
             target_inv = None
             for inv in self.data.investments:
@@ -265,7 +300,8 @@ class Simulation:
                     inv.taxStatus == "non-retirement"):
                     target_inv = inv
                     break
-            
+
+            # If the target investment is not found, then create a new non-retirement account
             if target_inv is None:
                 # Create new non-retirement account
                 target_inv = sc.Investments({
@@ -274,8 +310,11 @@ class Simulation:
                     "taxStatus": "non-retirement",
                     "value": 0
                 })
+                # Add the new non-retirement account to the investments list
                 self.data.investments.append(target_inv)
+                # Add the new non-retirement account to the purchase dictionary
                 self.purchaseDict[target_inv.id] = 0
+                # Add the new non-retirement account to the initial investment value dictionary
                 self.initialInvestmentValue[target_inv.id] = 0
             
             # Transfer funds
@@ -548,22 +587,6 @@ class Simulation:
         return total_converted, updated_income
 
     # start 6, 7
-    def sumNonDiscretionary(self):
-        sum_amount = 0
-        for env in self.data.eventSeries:
-            if env.type == "expense":
-                if env.discretionary == False:
-                    sum_amount += env.initialAmount
-        return sum_amount
-
-    def sumDiscretionary(self):
-        sum_amount = 0
-        for env in self.data.eventSeries:
-            if env.type == "expense":
-                if env.discretionary == True:
-                    sum_amount += env.initialAmount
-        return sum_amount
-
     def expenseSimul(self, ev, amount:int, year:int):
         """
         Process expense event and return amount.
@@ -610,11 +633,25 @@ class Simulation:
             user_alive = True
             spouse_alive = True
             if len(self.data.birthYears) > 0 and len(self.data.lifeExpectancy) > 0:
-                user_death_year = self.data.birthYears[0] + (self.data.lifeExpectancy[0]["value"] if self.data.lifeExpectancy[0]["type"] == "fixed" else self.data.lifeExpectancy[0]["mean"])
+                user_death_year = self.data.birthYears[0] 
+                if  self.data.lifeExpectancy[0]["type"] == kFixed:
+                    user_death_year += self.data.lifeExpectancy[0]["value"]
+                elif self.data.lifeExpectancy[0]["type"] == kNormal:
+                    user_death_year += np.random.normal(self.data.lifeExpectancy[0]["mean"], self.data.lifeExpectancy[0]["stdev"])
+                else:
+                    user_death_year += np.random.uniform(self.data.lifeExpectancy[0]["lower"], self.data.lifeExpectancy[0]["upper"])
+
                 if year >= user_death_year:
                     user_alive = False
             if self.data.maritalStatus == "couple" and len(self.data.birthYears) > 1 and len(self.data.lifeExpectancy) > 1:
-                spouse_death_year = self.data.birthYears[1] + (self.data.lifeExpectancy[1]["value"] if self.data.lifeExpectancy[1]["type"] == "fixed" else self.data.lifeExpectancy[1]["mean"])
+                spouse_death_year = self.data.birthYears[1] 
+                if self.data.lifeExpectancy[1]["type"] == kFixed:
+                    spouse_death_year += self.data.lifeExpectancy[1]["value"]
+                elif self.data.lifeExpectancy[1]["type"] == kNormal:
+                    spouse_death_year += np.random.normal(self.data.lifeExpectancy[1]["mean"], self.data.lifeExpectancy[1]["stdev"])
+                else:
+                    spouse_death_year += np.random.uniform(self.data.lifeExpectancy[1]["lower"], self.data.lifeExpectancy[1]["upper"])
+
                 if year >= spouse_death_year:
                     spouse_alive = False
             fraction = 1.0
@@ -625,14 +662,14 @@ class Simulation:
                 fraction = max(0, fraction)
             inf_amount *= fraction
 
-        # 현금 차감은 여기서 하지 않음 (중복 방지)
+        # Cash is not affected by mortality (avoid duplication)
         return inf_amount
 
     def sellInvestment(self, inv, purchaseDict: dict, full=True, f=0.0):
         """
         Calculate capital gain/income gain when selling an investment, handle partial sale, manage purchaseDict
         """
-        # 현금성 투자(capitalGain 무시)
+        # Cash investment (ignore capital gain)
         if inv.investmentType == "cash":
             return 0
         purchase = purchaseDict[inv.id] + self.initialInvestmentValue[inv.id]
@@ -701,7 +738,7 @@ class Simulation:
             # raise Warning("early withdrawal tax is None, using 0 instead")
             ewTax = 0
 
-        # 현금 차감은 여기서 하지 않음 (중복 방지)
+        # Cash deduction is not done here (avoid duplication)
         return federalTax, stateTax, cgTax, ewTax
 
     def buyInvestment(self, curYear):
@@ -909,6 +946,28 @@ class Simulation:
                 
         return capital_gains
 
+    def log_investment_snapshot(self, year):
+        """
+        Save a snapshot of all investment values for the given year.
+        This is used for the CSV log file.
+        """
+        row = {'year': year}
+        for inv in self.data.investments:
+            row[inv.id] = inv.value
+        self.log_investments.append(row)
+
+    def log_event(self, year, event_type, amount, details):
+        """
+        Save a human-readable log entry for a financial event.
+        This is used for the .log file.
+        """
+        self.log_events.append({
+            'year': year,
+            'type': event_type,
+            'amount': amount,
+            'details': details
+        })
+
     def simulation(self, email, emailNeed = False):
         """
         Implement full year-by-year simulation flow according to algorithm requirements
@@ -921,7 +980,6 @@ class Simulation:
             curInflation = self.inf.runInflation()
             self.taxInflation(year, curInflation)
             curLimit = self.limitInflation(year, curInflation)
-            
             prev_year_pretax_values = [inv.value for inv in self.data.investments if inv.taxStatus == "pre-tax"]
 
             curYearIncome = 0
@@ -932,6 +990,9 @@ class Simulation:
             curYearExpense = {}  # category: amount
             curYearInvest = {}
 
+            # --- LOG: Save investment snapshot at the start of the year ---
+            self.log_investment_snapshot(year)
+
             # 1. Process income event
             for ev in self.data.eventSeries:
                 if ev.type == "income":
@@ -939,6 +1000,13 @@ class Simulation:
                         evt_ss, evt_income = self.incomeEventSimul(ev, ev.initialAmount, year)
                         curYearSS += evt_ss
                         curYearIncome += evt_income
+                        # --- LOG: Income event (log both regular and social security income) ---
+                        self.log_event(
+                            year,
+                            "income",
+                            evt_income + evt_ss,
+                            f"event: {getattr(ev, 'name', 'unknown')}, income: {evt_income}, social_security: {evt_ss}"
+                        )
 
             # 2. Process RMD (73 years and above, based on previous year's pre-tax account)
             current_age = year - self.data.birthYears[0]
@@ -946,11 +1014,16 @@ class Simulation:
                 rmd_amount, remaining_rmd = self.calculateRMD(year, current_age, prev_year_pretax_values)
                 processed_rmd = self.processRMD(rmd_amount, remaining_rmd)
                 curYearIncome += processed_rmd
+                # --- LOG: RMD event ---
+                self.log_event(year, "RMD", processed_rmd, f"amount: {rmd_amount}, remaining: {remaining_rmd}")
 
             # 3. Process investment income/expenses
             year_investment_results = self.investmentsSimul(year, curYearIncome)
             curYearIncome = year_investment_results["income"]
             curYearGains += year_investment_results["gains"]
+            # --- LOG: Investment income/gains ---
+            self.log_event(year, "investment_income", year_investment_results["income"], "annual investment income")
+            self.log_event(year, "capital_gains", year_investment_results["gains"], "annual capital gains")
 
             # 4. Process Roth conversion
             rc_amount = 0
@@ -958,6 +1031,8 @@ class Simulation:
                 if hasattr(self.data, 'RothConversionStart') and hasattr(self.data, 'RothConversionEnd'):
                     if self.data.RothConversionStart <= year <= self.data.RothConversionEnd:
                         rc_amount, curYearIncome = self.RCOptimizer(curYearIncome, curYearSS, year)
+                        # --- LOG: Roth conversion ---
+                        self.log_event(year, "Roth conversion", rc_amount, f"Roth conversion in year {year}")
 
             # 5. Process non-discretionary expenses and previous year's taxes
             nondis_expense_total = 0
@@ -968,7 +1043,9 @@ class Simulation:
                         category = getattr(ev, "name", "unknown")
                         curYearExpense[category] = curYearExpense.get(category, 0) + amt
                         nondis_expense_total += amt
-            # 세금 계산
+                        # --- LOG: Non-discretionary expense ---
+                        self.log_event(year, "expense", amt, f"event: {category} (non-discretionary)")
+            # Calculate taxes
             federalTax, stateTax, cgTax, ewTax = self.payTax(curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
             curYearTax = {
                 'federal': federalTax,
@@ -976,7 +1053,12 @@ class Simulation:
                 'capital_gains': cgTax,
                 'early_withdrawal': ewTax
             }
-            # 비재량지출+세금 총합 출금 (현금 부족시 투자 매도)
+            # --- LOG: Taxes ---
+            self.log_event(year, "tax", federalTax, "type: federal")
+            self.log_event(year, "tax", stateTax, "type: state")
+            self.log_event(year, "tax", cgTax, "type: capital_gains")
+            self.log_event(year, "tax", ewTax, "type: early_withdrawal")
+            # Total non-discretionary expenses + taxes (sell investment if cash is insufficient)
             total_payment = nondis_expense_total + federalTax + stateTax + cgTax + ewTax
             cash = 0
             for inv in self.data.investments:
@@ -987,6 +1069,8 @@ class Simulation:
             if withdrawal > 0:
                 capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
                 curYearGains += capitalGain
+                # --- LOG: Withdrawal for payment ---
+                self.log_event(year, "withdrawal", withdrawal, "withdrawal to cover non-discretionary expenses and taxes")
             for inv in self.data.investments:
                 if inv.investmentType == "cash":
                     inv.value = max(0, inv.value - total_payment)
@@ -999,13 +1083,13 @@ class Simulation:
                     if ev.type == "expense" and hasattr(ev, 'discretionary') and ev.discretionary and getattr(ev, 'name', None) == cat:
                         if self.checkYear(ev, year):
                             amt = self.expenseSimul(ev, ev.initialAmount, year)
-                            # 재량지출은 자산이 financialGoal 아래로 떨어지지 않는 한만 지출
+                            # Discretionary expenses are only spent if the assets are not below financialGoal
                             total_assets = sum(inv.value for inv in self.data.investments)
                             if total_assets - amt < getattr(self.data, 'financialGoal', 0):
-                                # 부분만 지출
+                                # Only spend a portion
                                 amt = max(0, total_assets - getattr(self.data, 'financialGoal', 0))
                                 discretionary_left = False
-                            # 출금 처리 (현금 부족시 투자 매도 등)
+                            # Process withdrawal (sell investment if cash is insufficient)
                             if amt > 0:
                                 cash = 0
                                 for inv in self.data.investments:
@@ -1016,11 +1100,15 @@ class Simulation:
                                 if withdrawal > 0:
                                     capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
                                     curYearGains += capitalGain
+                                    # --- LOG: Withdrawal for discretionary expense ---
+                                    self.log_event(year, "withdrawal", withdrawal, f"withdrawal for discretionary expense: {cat}")
                                 for inv in self.data.investments:
                                     if inv.investmentType == "cash":
                                         inv.value = max(0, inv.value - amt)
                                         break
                             curYearExpense[cat] = curYearExpense.get(cat, 0) + amt
+                            # --- LOG: Discretionary expense ---
+                            self.log_event(year, "expense", amt, f"event: {cat} (discretionary)")
                         if not discretionary_left:
                             break
                 if not discretionary_left:
@@ -1031,6 +1119,8 @@ class Simulation:
                 if ev.type == "invest":
                     if self.checkYear(ev, year):
                         self.buyInvestment(year)
+                        # --- LOG: Invest event ---
+                        self.log_event(year, "invest", 0, f"invest event: {getattr(ev, 'name', 'unknown')}")
 
             # 8. Process rebalancing
             for ev in self.data.eventSeries:
@@ -1038,6 +1128,8 @@ class Simulation:
                     if self.checkYear(ev, year):
                         additional_gains = self.rebalanceEventSimul(ev, year)
                         curYearGains += additional_gains
+                        # --- LOG: Rebalance event ---
+                        self.log_event(year, "rebalance", additional_gains, f"rebalance event: {getattr(ev, 'name', 'unknown')}")
 
             total_assets = sum(inv.value for inv in self.data.investments)
             curYearInvest = {}
@@ -1070,21 +1162,11 @@ class Simulation:
         Returns:
             bool: True if event is active in current year
         """
-        # Scenario data structure check to determine if event is active in current year
-        
-        # YAML structure assumed to be interpreted as follows:
-        # Example: 
-        # eventSeries:
-        # - name: salary
-        #   type: income
-        #   start: {"type": "fixed", "value": 2025}
-        #   duration: {"type": "fixed", "value": 40}
         
         # Default to start year and duration
         start_year = self.year  # Default to simulation start year
         duration = 1  # Default duration period is 1 year
         
-        # Defensive programming: use default value if attribute is missing
         try:
             if hasattr(ev, 'start'):
                 start_info = ev.start
@@ -1129,18 +1211,18 @@ class Simulation:
                             ev.sampled_duration = round(np.random.uniform(duration_info['lower'], duration_info['upper']))
                         duration = ev.sampled_duration
                 elif isinstance(duration_info, (int, float)):
-                    # 직접 숫자가 제공된 경우
+                    # If a direct number is provided
                     duration = duration_info
                 
-                # 지속 기간이 0 이하일 경우 기본값 1 사용
+                # If the duration is 0 or less, use the default value 1
                 if duration <= 0:
                     duration = 1
         except Exception as e:
             # raise Exception(f"Error while checking event year: {e}. Using current year.")
-            # 오류 발생 시 현재 연도만 활성화 (안전장치)
+            # If an error occurs, use the current year (safety net)
             return current_year == start_year
             
-        # 현재 연도가 시작~종료 범위에 있는지 확인
+        # Check if the current year is within the start~end range
         return start_year <= current_year <= start_year + duration - 1
 
     def getStandardDeduction(self, data):

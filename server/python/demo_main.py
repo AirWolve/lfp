@@ -3,6 +3,9 @@ import Simulation
 import yaml
 import numpy as np
 import json
+import csv
+from datetime import datetime
+import os
 
 def main():
     # Read all lines from stdin
@@ -32,35 +35,46 @@ def main():
 
     # Additional: dicts for accumulating values by year
     yearly_assets = {}
+    # To show yearly income, expense, tax, etc.
     yearly_income = {}
     yearly_expense = {}
     yearly_tax = {}
     yearly_ewtax = {}
+    # To show discretionary expense percentile for chart
     yearly_discr_exp_pct = {}
+    # To show investment breakdown by category
     yearly_invest_breakdown = {}
+    # To show expense breakdown by category
     yearly_expense_breakdown = {}
 
     for i in range(n):
         sim = Simulation.Simulation(yaml_text)
-        sim.simulation(None, emailNeed=False)
+        sim.simulation(email, emailNeed=False)
         yearly = getattr(sim, 'yearly_data', {})
         run_result = {}
         for year, data in yearly.items():
             income = data.get('income', 0)
+            # To show expense breakdown by category
             expense_dict = data.get('expense', {}) or {}
+            # To show tax breakdown by category
             tax_dict = data.get('tax', {}) or {}
+            # To show total tax
             tax = sum(tax_dict.values())
+            # To show net income
             net = income - sum(expense_dict.values()) - tax
+            # To show total assets
             total_assets = data.get('total_assets', 0)
+            # To show investment breakdown by category
             invest_dict = data.get('invest', {}) or {}
+            # To show early withdrawal tax
             ew_tax = tax_dict.get('early_withdrawal', 0)
-            # discretionary expense (sum of spendingStrategy categories)
+            # To show discretionary expense (sum of spendingStrategy categories)
             discretionary_total = 0
             for cat, val in expense_dict.items():
                 if cat in discretionary_categories:
                     discretionary_total += val
             discr_exp_pct = discretionary_total
-            # capital gains and capital gain tax
+            # To show capital gains and capital gain tax
             capital_gains = data.get('capital_gains', 0)
             capital_gain_tax = tax_dict.get('capital_gains', 0)
             # accumulate by year
@@ -71,23 +85,19 @@ def main():
             yearly_tax.setdefault(year, []).append(tax)
             yearly_ewtax.setdefault(year, []).append(ew_tax)
             yearly_discr_exp_pct.setdefault(year, []).append(discr_exp_pct)
-            # capital gains/tax
+            # To show capital gains and capital gain tax
             yearly_capital_gains = yearly_invest_breakdown.setdefault('capital_gains', {})
             yearly_capital_gains.setdefault(year, []).append(capital_gains)
             yearly_capital_gain_tax = yearly_invest_breakdown.setdefault('capital_gain_tax', {})
             yearly_capital_gain_tax.setdefault(year, []).append(capital_gain_tax)
-            # breakdowns
-            # investment breakdown: invest_dict (by category)
-            # income breakdown: only total income exists for now (can be extended later)
-            # expense breakdown: expense_dict (by category), tax_dict (taxes)
-            # accumulate breakdowns
+
             for k, v in invest_dict.items():
                 yearly_invest_breakdown.setdefault(year, {}).setdefault(k, []).append(v)
             for k, v in expense_dict.items():
                 yearly_expense_breakdown.setdefault(year, {}).setdefault(k, []).append(v)
             for k, v in tax_dict.items():
                 yearly_expense_breakdown.setdefault(year, {}).setdefault(f"tax_{k}", []).append(v)
-            # income breakdown is omitted for now (can be extended later)
+            # To show income breakdown (can be extended later)
             run_result[year] = {
                 'income': income,
                 'expense': expense_dict,
@@ -103,6 +113,27 @@ def main():
         if yearly:
             last_year = max(yearly.keys())
             final_assets.append(yearly[last_year].get('total_assets', 0))
+
+        # --- LOGGING: Save logs for the first simulation run only ---
+        if i == 0:
+            # Create logs directory if it does not exist
+            os.makedirs("logs", exist_ok=True)
+            now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+            user = email.split("@")[0] if email else "user"
+            csv_path = f"logs/{user}_{now_str}.csv"
+            log_path = f"logs/{user}_{now_str}.log"
+            # Save yearly investment values as CSV
+            if hasattr(sim, "log_investments") and sim.log_investments:
+                with open(csv_path, "w", newline="") as f:
+                    writer = csv.DictWriter(f, fieldnames=sim.log_investments[0].keys())
+                    writer.writeheader()
+                    writer.writerows(sim.log_investments)
+            # Save event logs as a human-readable log file
+            if hasattr(sim, "log_events") and sim.log_events:
+                with open(log_path, "w") as f:
+                    for entry in sim.log_events:
+                        # Format: year | type | amount | details
+                        f.write(f"{entry['year']} | {entry['type']} | {entry['amount']} | {entry['details']}\n")
 
     years = sorted(list(all_years))
     cashflow_summary = []
@@ -143,13 +174,13 @@ def main():
             'capital_gain_tax': float(np.mean(capital_gain_tax_list)) if capital_gain_tax_list else 0
         })
 
-    # 4.1: 연도별 성공확률
+    # Yearly success rate
     successProbabilityByYear = {}
     for year in years:
         count = sum(run[year].get('total_assets', 0) >= financial_goal for run in all_runs if year in run)
         successProbabilityByYear[year] = float(count) / len(all_runs) if all_runs else 0
 
-    # 4.2: Quantile statistics
+    # Quantile statistics
     def quantiles(arr):
         arr = np.array(arr)
         return {
@@ -173,10 +204,8 @@ def main():
         'capital_gain_tax': {year: quantiles([run[year].get('capital_gain_tax', 0) for run in all_runs if year in run]) for year in years}
     }
 
-    # 4.3: stacked bar breakdown (average/median, apply aggregation threshold)
+    # stacked bar breakdown (average/median, apply aggregation threshold)
     def aggregate_breakdown(breakdown_dict, year):
-        # breakdown_dict: {category: [values, ...]}
-        # Calculate average/median, group categories below threshold as 'Other'
         avg = {}
         med = {}
         other_avg = 0
@@ -202,13 +231,13 @@ def main():
         # income breakdown is omitted for now (can be extended later)
     }
 
-    # 연도별 평균 달성률
+    # Yearly average success rate
     chanceOfSuccess = {}
     for year in years:
         ratios = [run[year].get('total_assets', 0) / financial_goal if financial_goal > 0 else 0 for run in all_runs if year in run]
         chanceOfSuccess[year] = float(np.mean(ratios)) if ratios else 0
 
-    # 전체 연도 평균 달성률
+    # Average success rate for all years
     AvgChanceOfSuccess = float(np.mean(list(chanceOfSuccess.values()))) if chanceOfSuccess else 0
 
     result = {
