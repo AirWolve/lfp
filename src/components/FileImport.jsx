@@ -3,10 +3,17 @@ import '../css/FileImport.css';
 import deleteIcon from '../assets/delete.svg';
 import { ReactComponent as UploadIcon } from '../assets/upload.svg';
 import { toast } from 'react-toastify';
+import yaml from 'yaml';
+import { useNavigate } from 'react-router-dom';
+
+const REQUIRED_FIELDS = [
+  'name', 'maritalStatus', 'birthYears', 'investmentTypes', 'investments', 'eventSeries'
+];
 
 const FileImport = () => {
     const importRef = useRef();
     const [selectedFile, setSelectedFile] = useState(null);
+    const navigate = useNavigate();
     
     const handleOnChange = (event) => {
         if (event.target.files && event.target.files.length > 0) {
@@ -18,7 +25,44 @@ const FileImport = () => {
                 }
                 return;
             }
-            setSelectedFile(file);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    const parsed = yaml.parse(content);
+                    const hasAllFields = REQUIRED_FIELDS.every(field => field in parsed);
+                    if (!hasAllFields) {
+                        toast.error('Invalid scenario YAML structure.');
+                        if (importRef.current) importRef.current.value = "";
+                        return;
+                    }
+                    const basicInfo = {
+                        name: parsed.name,
+                        maritalStatus: parsed.maritalStatus,
+                        birthYears: parsed.birthYears,
+                        lifeExpectancy: parsed.lifeExpectancy,
+                    };
+                    localStorage.setItem("basicInfo", JSON.stringify(basicInfo));
+                    if (parsed.investmentTypes)
+                        localStorage.setItem("InvestmentTypes", JSON.stringify(parsed.investmentTypes));
+                    if (parsed.investments)
+                        localStorage.setItem("Investments", JSON.stringify(parsed.investments));
+                    if (parsed.eventSeries)
+                        localStorage.setItem("EventSeries", JSON.stringify(parsed.eventSeries));
+                    localStorage.setItem("ScenarioData", JSON.stringify(parsed));
+                    localStorage.setItem("BasicSettings", JSON.stringify(parsed));
+                    setSelectedFile(file);
+                    toast.success('YAML import 및 데이터 반영 완료!');
+                    setTimeout(() => {
+                        navigate('/basicsetting');
+                    }, 700);
+                } catch (err) {
+                    toast.error('YAML 파싱 실패 또는 구조 오류');
+                    console.error(err);
+                    if (importRef.current) importRef.current.value = "";
+                }
+            };
+            reader.readAsText(file);
         }
     };
 
