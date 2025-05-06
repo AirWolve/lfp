@@ -3,6 +3,9 @@ import Simulation
 import yaml
 import numpy as np
 import json
+import csv
+from datetime import datetime
+import os
 
 def main():
     # Read all lines from stdin
@@ -46,7 +49,7 @@ def main():
 
     for i in range(n):
         sim = Simulation.Simulation(yaml_text)
-        sim.simulation(None, emailNeed=False)
+        sim.simulation(email, emailNeed=False)
         yearly = getattr(sim, 'yearly_data', {})
         run_result = {}
         for year, data in yearly.items():
@@ -110,6 +113,27 @@ def main():
         if yearly:
             last_year = max(yearly.keys())
             final_assets.append(yearly[last_year].get('total_assets', 0))
+
+        # --- LOGGING: Save logs for the first simulation run only ---
+        if i == 0:
+            # Create logs directory if it does not exist
+            os.makedirs("logs", exist_ok=True)
+            now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+            user = email.split("@")[0] if email else "user"
+            csv_path = f"logs/{user}_{now_str}.csv"
+            log_path = f"logs/{user}_{now_str}.log"
+            # Save yearly investment values as CSV
+            if hasattr(sim, "log_investments") and sim.log_investments:
+                with open(csv_path, "w", newline="") as f:
+                    writer = csv.DictWriter(f, fieldnames=sim.log_investments[0].keys())
+                    writer.writeheader()
+                    writer.writerows(sim.log_investments)
+            # Save event logs as a human-readable log file
+            if hasattr(sim, "log_events") and sim.log_events:
+                with open(log_path, "w") as f:
+                    for entry in sim.log_events:
+                        # Format: year | type | amount | details
+                        f.write(f"{entry['year']} | {entry['type']} | {entry['amount']} | {entry['details']}\n")
 
     years = sorted(list(all_years))
     cashflow_summary = []
