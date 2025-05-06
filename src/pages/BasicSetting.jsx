@@ -37,13 +37,13 @@ const BasicSetting = () => {
     if (savedUserInfoData) {
       const parsed = JSON.parse(savedUserInfoData);
       setScenarioName(parsed.name ?? "Scenario Name");
-      
+
       setSettings({
         isCouple: parsed.maritalStatus === "couple",
         userBirthYear: parsed.birthYears?.[0] ?? null,
         spouseBirthYear: parsed.maritalStatus === "couple" ? parsed.birthYears?.[1] : null,
         userLifeExpectancy: parsed.lifeExpectancy?.[0] ?? { type: "fixed", value: null },
-        spouseLifeExpectancy: parsed.maritalStatus === "couple" 
+        spouseLifeExpectancy: parsed.maritalStatus === "couple"
           ? (parsed.lifeExpectancy?.[1] ?? { type: "fixed", value: null })
           : { type: "fixed", value: null },
       });
@@ -53,24 +53,30 @@ const BasicSetting = () => {
   // Control the buttons
   const handleNext = (e) => {
     e.preventDefault();
-    
-    // Validation
+
+    // Check validation of life expectancy
     const validateLifeExpectancy = (expectancy) => {
       switch (expectancy.type) {
         case "fixed":
-          return expectancy.value !== null;
+          // Check if the value is not null and is greater than 0
+          return expectancy.value !== null || expectancy.value > 0;
         case "normal":
-          return expectancy.mean !== null && expectancy.stdev !== null;
+          // Check if the mean and standard deviation are not null and are greater than 0
+          return (expectancy.mean !== null && expectancy.stdev !== null) || (expectancy.mean > 0 && expectancy.stdev > 0);
         case "uniform":
-          return expectancy.lower !== null && expectancy.upper !== null;
+          // Check if the lower and upper bounds are not null and are greater than 0
+          return (expectancy.lower !== null && expectancy.lower > 0) && (expectancy.upper !== null && expectancy.upper > 0);
         default:
+          // Return false if the type is not recognized
           return false;
       }
     };
 
+    // Check if the information is filled in or checked
+    // If not, show the warning message
     if (!scenarioName || !settings.userBirthYear || !validateLifeExpectancy(settings.userLifeExpectancy) ||
-        (settings.isCouple && (!settings.spouseBirthYear || !validateLifeExpectancy(settings.spouseLifeExpectancy)))) {
-      toast.warning("Please fill in all fields");
+      (settings.isCouple && (!settings.spouseBirthYear || !validateLifeExpectancy(settings.spouseLifeExpectancy)))) {
+      toast.warning("Please Fill in or Check your information");
       return;
     }
 
@@ -80,15 +86,15 @@ const BasicSetting = () => {
       JSON.stringify({
         name: scenarioName,
         maritalStatus: settings.isCouple ? "couple" : "individual",
-        birthYears: settings.isCouple 
-          ? [settings.userBirthYear, settings.spouseBirthYear] 
+        birthYears: settings.isCouple
+          ? [settings.userBirthYear, settings.spouseBirthYear]
           : [settings.userBirthYear],
         lifeExpectancy: settings.isCouple
           ? [settings.userLifeExpectancy, settings.spouseLifeExpectancy]
           : [settings.userLifeExpectancy]
       })
     );
-    
+
     navigate(constPath.investmentType);
   };
 
@@ -131,7 +137,7 @@ const BasicSetting = () => {
         </p>
 
         <BasicSettingForm settings={settings} setSettings={setSettings} />
-        
+
         <div className="form-buttons">
           <button className="back" onClick={handleBack}>
             Back

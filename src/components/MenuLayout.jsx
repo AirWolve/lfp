@@ -1,9 +1,15 @@
+import "../css/MenuLayout.css";
 import React, { useState } from "react";
 import profileImg from "../assets/profile.png";
 import menuIcon from "../assets/menu.svg";
 import { constPath } from "../config.js";
-import "../css/MenuLayout.css";
 import HistoryContent from "./HistoryContent";
+
+/* 
+This component is the layout of the menu displayed on the left side of the screen.
+It contains the sidebar, the topbar, and the content.
+Displayed in the dashboard and the overview page.
+*/
 
 const MenuLayout = ({ children }) => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -20,9 +26,6 @@ const MenuLayout = ({ children }) => {
 
   const userImg = sessionStorage.getItem("userImg");
   const userEmail = sessionStorage.getItem("userEmail");
-  // const basicInfo = JSON.parse(localStorage.getItem("basicInfo")) || null;
-  // const currentTime = new Date();
-  // const formattedDate = currentTime.toLocaleDateString();
 
   return (
     <div className="dashboard-container">
@@ -31,8 +34,8 @@ const MenuLayout = ({ children }) => {
         <div className="sidebar">
           <h2>Life Financial Planning</h2>
           <ul>
-            <li>Dashboard</li>
-            <li>Simulation</li>
+            <li><a href={constPath.dashboard}>Dashboard</a></li>
+            <li><a href={constPath.overview}>Overview</a></li>
             <li>
               <button
                 style={{ border: "none", background: "none", color: "white" }}
@@ -45,7 +48,7 @@ const MenuLayout = ({ children }) => {
                   <div className="popup-content" onMouseDown={(e) => e.stopPropagation()}>
                     <div style={{ display: "flex", justifyContent: "space-between" }} >
                       <h3 style={{ color: "black" }}>History</h3>
-                      <button className="close-button" style={{color: "black"}} onClick={() => setShowModal(false)}>
+                      <button className="close-button" style={{ color: "black" }} onClick={() => setShowModal(false)}>
                         X
                       </button>
                     </div>
@@ -73,7 +76,9 @@ const MenuLayout = ({ children }) => {
             />
             {isProfileMenuOpen && (
               <div className="profile-dropdown">
+                {/* Go to the profile page */}
                 <a href={`${constPath.profile}`}>View your profile</a>
+                {/* Call the logout API to eliminate the session */}
                 <a
                   href={`${process.env.REACT_APP_LFP_API_URL}/auth/oauth/logout`}
                 >

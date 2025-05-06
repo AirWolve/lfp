@@ -28,13 +28,8 @@ const Dashboard = () => {
       })
       .catch((error) => {
         console.error("User info fetch error:", error);
-        //navigate(`${constPath.signIn}`);
       });
   }, [navigate]);
-
-  // if (!user) {
-  //   return <div>Loading...</div>;
-  // }
 
   return (
     <MenuLayout>
@@ -42,7 +37,10 @@ const Dashboard = () => {
         <h2>
           Good to see you again!
           <br />
-          {user?.name}
+          {/* Handle the case whether the user is not null, then show the user's name 
+              otherwise, show nothing.*/
+          user?.name
+          }
         </h2>
         <div className="button-grid">
           <button onClick={() => navigate(constPath.basicSetting)} className="plan-button">Create New Plan</button>
