@@ -7,7 +7,6 @@ import InvestmentsBox from "../components/InvestmentsBox.jsx";
 import EventSeriesBox from "../components/EventSeriesBox.jsx";
 import { constPath } from "../config.js";
 import MenuLayout from "../components/MenuLayout.jsx";
-import testResult from "../test_result.json";
 
 import {
   ResponsiveContainer,
@@ -43,69 +42,94 @@ const Overview = () => {
   const [chartData, setChartData] = useState([]);
   useEffect(() => {
     const storedData = localStorage.getItem("simResult");
-  if (storedData) {
-    try {
-      const parsedData = JSON.parse(storedData);
-      if (parsedData?.chanceOfSuccess) {
-        const formattedData = Object.entries(parsedData.chanceOfSuccess).map(([id, value]) => ({
-          id: parseInt(id, 10),
-          value,
-        }));
-        setChartData(formattedData);
-      } else {
-        console.warn("No chanceOfSuccess data.");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        if (parsedData?.chanceOfSuccess) {
+          const formattedData = Object.entries(parsedData.chanceOfSuccess).map(
+            ([id, value]) => ({
+              id: parseInt(id, 10),
+              value,
+            })
+          );
+          setChartData(formattedData);
+        } else {
+          console.warn("No chanceOfSuccess data.");
+        }
+      } catch (error) {
+        console.error("Error parsing simResult from localStorage:", error);
       }
-    } catch (error) {
-      console.error("Error parsing simResult from localStorage:", error);
+    } else {
+      console.warn("No simResult data in localStorage.");
     }
-  } else {
-    console.warn("No simResult data in localStorage.");
-  }
-}, []);
+  }, []);
 
-  // RangeOfRate 데이터
+  // RangeOfRate data
   const [quantileStats, setQuantileStats] = useState({});
   const [selectedStat, setSelectedStat] = useState("total_investments");
-  // const [goal, setGoal] = useState(10000);
 
   useEffect(() => {
-    if (testResult?.quantileStats) {
-      setQuantileStats(testResult.quantileStats);
+    const storedData = localStorage.getItem("simResult");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        if (parsedData?.quantileStats) {
+          setQuantileStats(parsedData.quantileStats);
+        } else {
+          console.warn("No quantileStats data in simResult.");
+        }
+      } catch (error) {
+        console.error("Error parsing simResult from localStorage:", error);
+      }
+    } else {
+      console.warn("No simResult data in localStorage.");
     }
   }, []);
 
   const filteredData = Object.entries(quantileStats[selectedStat] || {}).map(
     ([year, data]) => ({
-      year: parseInt(year, 10), // 연도를 숫자로 변환
-      median: data.median || 0, // 중간값
-      p10: data.p10 || 0, // 10% 확률 값
-      p90: data.p90 || 0, // 90% 확률 값
-      p20: data.p20 || 0, // 20% 확률 값
-      p80: data.p80 || 0, // 80% 확률 값
-      p30: data.p30 || 0, // 30% 확률 값
-      p70: data.p70 || 0, // 70% 확률 값
-      p40: data.p40 || 0, // 40% 확률 값
-      p60: data.p60 || 0, // 60% 확률 값
+      year: parseInt(year, 10), // convert year to number
+      median: data.median || 0, // median
+      p10: data.p10 || 0,
+      p90: data.p90 || 0,
+      p20: data.p20 || 0,
+      p80: data.p80 || 0,
+      p30: data.p30 || 0,
+      p70: data.p70 || 0,
+      p40: data.p40 || 0,
+      p60: data.p60 || 0,
     })
   );
 
   const fanData = filteredData.map((d) => ({
     year: d.year,
-    base: d.p10, // p10을 baseline으로 설정
-    diff10_90: d.p90 - d.p10, // p10-p90 범위
-    diff20_80: d.p80 - d.p20, // p20-p80 범위
-    diff30_70: d.p70 - d.p30, // p30-p70 범위
-    diff40_60: d.p60 - d.p40, // p40-p60 범위
-    median: d.median, // 중간값
+    base: d.p10, // set the p10 to baseline
+    diff10_90: d.p90 - d.p10, // range of p10-p90
+    diff20_80: d.p80 - d.p20, // range of p20-p80
+    diff30_70: d.p70 - d.p30, // range of p30-p70
+    diff40_60: d.p60 - d.p40, // range of p40-p60
+    median: d.median, // Median
   }));
 
-  // bar chart 데이터
+  // bar chart data
   const [stackedBarData, setStackedBarData] = useState([]);
   const [barChartData, setBarChartData] = useState([]);
 
   useEffect(() => {
-    if (testResult.stackedBar) {
-      setStackedBarData(testResult.stackedBar);
+    const storedData = localStorage.getItem("simResult");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        if (parsedData?.stackedBar) {
+          setStackedBarData(parsedData.stackedBar);
+        } else {
+          console.warn("No stackedBar data in simResult.");
+        }
+      } catch (error) {
+        console.error("Error parsing simResult from localStorage:", error);
+      }
+    } else {
+      console.warn("No simResult data in localStorage.");
     }
   }, []);
 
@@ -174,18 +198,18 @@ const Overview = () => {
               }`}
               onClick={() => setActiveTab("rangeOfRate")}
             >
-              Range of Rate
+              Probability range over time
             </button>
             <button
               className={`tab-button ${activeTab === "bar" ? "active" : ""}`}
               onClick={() => setActiveTab("bar")}
             >
-              Bar Chart
+              Median or mean chart over time
             </button>
           </div>
 
           <div className="charts">
-            {/* 성공확률 차트 */}
+            {/* Chance of success Chart */}
             {activeTab === "chanceToSuccess" && (
               <div className="linear-graph">
                 <h3>Chance to Success</h3>
@@ -196,10 +220,10 @@ const Overview = () => {
                     <YAxis
                       domain={[0, 204]}
                       label={{
-                        value: "Success Rate (%)", // 라벨 텍스트
-                        angle: -90, // 라벨 각도 (세로 방향)
-                        position: "insideLeft", // 라벨 위치
-                        style: { textAnchor: "middle", fill: "#666" }, // 스타일
+                        value: "Success Rate (%)", 
+                        angle: -90,
+                        position: "insideLeft",
+                        style: { textAnchor: "middle", fill: "#666" },
                       }}
                     />
                     <Tooltip formatter={(value) => `${value.toFixed(2)}%`} />
@@ -215,7 +239,7 @@ const Overview = () => {
               </div>
             )}
 
-            {/* Range of Rate 차트 */}
+            {/* Range of Rate Chart */}
             {activeTab === "rangeOfRate" && (
               <div className="linear-graph">
                 <h3>Range of Rate</h3>
@@ -246,7 +270,7 @@ const Overview = () => {
                     </select>
                   </label>
                 </div>
-                {/* Range of Rate 차트 추가 (예시로 LineChart 사용) */}
+                {/*  Add Range of Rate */}
                 <ResponsiveContainer width="100%" height={400}>
                   <ComposedChart
                     data={fanData}
@@ -258,7 +282,7 @@ const Overview = () => {
                     <Tooltip formatter={(val) => val.toLocaleString()} />
                     <Legend />
 
-                    {/* p10을 baseline으로 설정 */}
+                    {/* set p10 to baseline */}
                     <Area
                       type="monotone"
                       dataKey="base"
@@ -269,7 +293,7 @@ const Overview = () => {
                       name="Baseline (p10)"
                     />
 
-                    {/* 바깥 10–90% */}
+                    {/* 10–90% */}
                     <Area
                       type="monotone"
                       dataKey="diff10_90"
@@ -313,7 +337,7 @@ const Overview = () => {
                       name="40%-60%"
                     />
 
-                    {/* 중간값 선 */}
+                    {/* median line */}
                     <Line
                       type="monotone"
                       dataKey="median"
@@ -362,7 +386,7 @@ const Overview = () => {
                   </label>
                 </div>
 
-                {/* 4.3 투자 항목별 누적 막대 차트 */}
+                {/* 4.3 stacked bar chart */}
                 <h3>Investment Breakdown by {metric}</h3>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart
