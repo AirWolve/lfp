@@ -235,6 +235,10 @@ const SimulationInfo = () => {
     console.log("Sending data to server:", combinedData);
     try {
       // Send scenario data to server
+      if (simulationInfo.residenceState !== "NY" || simulationInfo.residenceState !== "NJ" || simulationInfo.residenceState !== "CT") {
+        toast.error("Please upload the state tax file");
+      }
+
       const response = await fetch(
         `${process.env.REACT_APP_LFP_API_URL}/api/run-simulation`,
         {
