@@ -177,12 +177,24 @@ class Simulation:
         user_alive = True # Whether the user is alive
         spouse_alive = True # Whether the spouse is alive
         if len(self.data.birthYears) > 0 and len(self.data.lifeExpectancy) > 0:
-            user_death_year = self.data.birthYears[0] + (self.data.lifeExpectancy[0]["value"] if self.data.lifeExpectancy[0]["type"] == "fixed" else self.data.lifeExpectancy[0]["mean"])
+            user_death_year = self.data.birthYears[0] 
+            if self.data.lifeExpectancy[0]["type"] == kFixed:
+                user_death_year += self.data.lifeExpectancy[0]["value"]
+            elif self.data.lifeExpectancy[0]["type"] == kNormal:
+                user_death_year += np.random.normal(self.data.lifeExpectancy[0]["mean"], self.data.lifeExpectancy[0]["stdev"])
+            else:
+                user_death_year += np.random.uniform(self.data.lifeExpectancy[0]["lower"], self.data.lifeExpectancy[0]["upper"])
             # If the user is dead, set the user_alive to False
             if year >= user_death_year:
                 user_alive = False
         if self.data.maritalStatus == "couple" and len(self.data.birthYears) > 1 and len(self.data.lifeExpectancy) > 1:
-            spouse_death_year = self.data.birthYears[1] + (self.data.lifeExpectancy[1]["value"] if self.data.lifeExpectancy[1]["type"] == "fixed" else self.data.lifeExpectancy[1]["mean"])
+            spouse_death_year = self.data.birthYears[1] 
+            if self.data.lifeExpectancy[1]["type"] == kFixed:
+                spouse_death_year += self.data.lifeExpectancy[1]["value"]
+            elif self.data.lifeExpectancy[1]["type"] == kNormal:
+                spouse_death_year += np.random.normal(self.data.lifeExpectancy[1]["mean"], self.data.lifeExpectancy[1]["stdev"])
+            else:
+                spouse_death_year += np.random.uniform(self.data.lifeExpectancy[1]["lower"], self.data.lifeExpectancy[1]["upper"])
             # If the spouse is dead, set the spouse_alive to False
             if year >= spouse_death_year:
                 spouse_alive = False
@@ -616,11 +628,25 @@ class Simulation:
             user_alive = True
             spouse_alive = True
             if len(self.data.birthYears) > 0 and len(self.data.lifeExpectancy) > 0:
-                user_death_year = self.data.birthYears[0] + (self.data.lifeExpectancy[0]["value"] if self.data.lifeExpectancy[0]["type"] == "fixed" else self.data.lifeExpectancy[0]["mean"])
+                user_death_year = self.data.birthYears[0] 
+                if  self.data.lifeExpectancy[0]["type"] == kFixed:
+                    user_death_year += self.data.lifeExpectancy[0]["value"]
+                elif self.data.lifeExpectancy[0]["type"] == kNormal:
+                    user_death_year += np.random.normal(self.data.lifeExpectancy[0]["mean"], self.data.lifeExpectancy[0]["stdev"])
+                else:
+                    user_death_year += np.random.uniform(self.data.lifeExpectancy[0]["lower"], self.data.lifeExpectancy[0]["upper"])
+
                 if year >= user_death_year:
                     user_alive = False
             if self.data.maritalStatus == "couple" and len(self.data.birthYears) > 1 and len(self.data.lifeExpectancy) > 1:
-                spouse_death_year = self.data.birthYears[1] + (self.data.lifeExpectancy[1]["value"] if self.data.lifeExpectancy[1]["type"] == "fixed" else self.data.lifeExpectancy[1]["mean"])
+                spouse_death_year = self.data.birthYears[1] 
+                if self.data.lifeExpectancy[1]["type"] == kFixed:
+                    spouse_death_year += self.data.lifeExpectancy[1]["value"]
+                elif self.data.lifeExpectancy[1]["type"] == kNormal:
+                    spouse_death_year += np.random.normal(self.data.lifeExpectancy[1]["mean"], self.data.lifeExpectancy[1]["stdev"])
+                else:
+                    spouse_death_year += np.random.uniform(self.data.lifeExpectancy[1]["lower"], self.data.lifeExpectancy[1]["upper"])
+
                 if year >= spouse_death_year:
                     spouse_alive = False
             fraction = 1.0
