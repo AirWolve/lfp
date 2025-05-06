@@ -13,6 +13,7 @@ import EventSeries from "./pages/EventSeries.jsx";
 import Overview from "./pages/Overview.jsx";
 import LoadingPage from "./pages/LoadingPage.jsx";
 import SimulationInfo from "./pages/SimulationInfo.jsx";
+import ScenarioExplorerBox from './components/ScenarioExplorerBox';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/Overview" element={<Overview />} />
           <Route path="/LoadingPage" element={<LoadingPage />} />
           <Route path="/SimulationInfo" element={<SimulationInfo />} />
+          <Route path="/Explore" element={<ScenarioExplorerBox />} />
         </Routes>
         <ToastContainer
           position="top-right"

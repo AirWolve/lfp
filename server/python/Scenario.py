@@ -383,3 +383,12 @@ def importYAMLtext(yaml_text: str):
     """
     yaml_data = yaml.load(yaml_text, Loader=yaml.FullLoader)
     return Scenario(yaml_data)
+
+def update_scenario_parameter(scenario_dict, param_name, param_value):
+    if param_name == "retirement_age":
+        birth_year = scenario_dict['birth_year']
+        for event in scenario_dict['event_series']:
+            if event['type'] == "income" and event['name'] == "Salary":
+                event['duration'] = param_value - (birth_year + event['start_year'])
+    else:
+        raise ValueError(f"Parameter {param_name} not supported yet.")
