@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/Overview.css";
 import BasicInfoBox from "../components/BasicInfoBox.jsx";
@@ -38,23 +38,19 @@ const Overview = () => {
     navigate(`${constPath.SimulationInfo}`);
   };
 
-  // Chance of Success data
-  const [chartData, setChartData] = useState([]);
+  // State to store the entire result object
+  const [resultData, setResultData] = useState(null);
+
+  // Load the entire result object from simResult in localStorage
   useEffect(() => {
     const storedData = localStorage.getItem("simResult");
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
-        if (parsedData?.chanceOfSuccess) {
-          const formattedData = Object.entries(parsedData.chanceOfSuccess).map(
-            ([id, value]) => ({
-              id: parseInt(id, 10),
-              value,
-            })
-          );
-          setChartData(formattedData);
+        if (parsedData?.result) {
+          setResultData(parsedData.result); // Store the result object
         } else {
-          console.warn("No chanceOfSuccess data.");
+          console.warn("No result data in simResult.");
         }
       } catch (error) {
         console.error("Error parsing simResult from localStorage:", error);
@@ -64,112 +60,93 @@ const Overview = () => {
     }
   }, []);
 
-  // RangeOfRate data
-  const [quantileStats, setQuantileStats] = useState({});
+  // Extract "Chance of Success" data
+  const chartData = useMemo(() => {
+    if (resultData?.chanceOfSuccess) {
+      return Object.entries(resultData.chanceOfSuccess).map(([id, value]) => ({
+        id: parseInt(id, 10), // Convert year to number
+        value, // Success rate value
+      }));
+    }
+    return [];
+  }, [resultData]);
+
+  // Extract "Range of Rate" data
   const [selectedStat, setSelectedStat] = useState("total_investments");
-
-  useEffect(() => {
-    const storedData = localStorage.getItem("simResult");
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        if (parsedData?.quantileStats) {
-          setQuantileStats(parsedData.quantileStats);
-        } else {
-          console.warn("No quantileStats data in simResult.");
-        }
-      } catch (error) {
-        console.error("Error parsing simResult from localStorage:", error);
-      }
-    } else {
-      console.warn("No simResult data in localStorage.");
-    }
-  }, []);
-
-  const filteredData = Object.entries(quantileStats[selectedStat] || {}).map(
-    ([year, data]) => ({
-      year: parseInt(year, 10), // convert year to number
-      median: data.median || 0, // median
-      p10: data.p10 || 0,
-      p90: data.p90 || 0,
-      p20: data.p20 || 0,
-      p80: data.p80 || 0,
-      p30: data.p30 || 0,
-      p70: data.p70 || 0,
-      p40: data.p40 || 0,
-      p60: data.p60 || 0,
-    })
-  );
-
-  const fanData = filteredData.map((d) => ({
-    year: d.year,
-    base: d.p10, // set the p10 to baseline
-    diff10_90: d.p90 - d.p10, // range of p10-p90
-    diff20_80: d.p80 - d.p20, // range of p20-p80
-    diff30_70: d.p70 - d.p30, // range of p30-p70
-    diff40_60: d.p60 - d.p40, // range of p40-p60
-    median: d.median, // Median
-  }));
-
-  // bar chart data
-  const [stackedBarData, setStackedBarData] = useState([]);
-  const [barChartData, setBarChartData] = useState([]);
-
-  useEffect(() => {
-    const storedData = localStorage.getItem("simResult");
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        if (parsedData?.stackedBar) {
-          setStackedBarData(parsedData.stackedBar);
-        } else {
-          console.warn("No stackedBar data in simResult.");
-        }
-      } catch (error) {
-        console.error("Error parsing simResult from localStorage:", error);
-      }
-    } else {
-      console.warn("No simResult data in localStorage.");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (stackedBarData?.investments && stackedBarData?.expenses) {
-      const combinedData = Object.entries(stackedBarData.investments).map(
-        ([year, investmentData]) => {
-          const expenseData = stackedBarData.expenses[year] || {};
-
-          const result = {
-            year: parseInt(year, 10),
-            cash: investmentData[metric]?.cash || 0,
-            sp500: investmentData[metric]?.["S&P 500"] || 0,
-            taxExemptBonds: investmentData[metric]?.["tax-exempt bonds"] || 0,
-            food: expenseData[metric]?.food || 0,
-            vacation: expenseData[metric]?.vacation || 0,
-            streamingServices: expenseData[metric]?.["streaming services"] || 0,
-            taxFederal: expenseData[metric]?.tax_federal || 0,
-            taxState: expenseData[metric]?.tax_state || 0,
-            taxCapitalGains: expenseData[metric]?.tax_capital_gains || 0,
-            taxEarlyWithdrawal: expenseData[metric]?.tax_early_withdrawal || 0,
-          };
-
-          const other = Object.entries(result)
-            .filter(([key, value]) => key !== "year" && value < threshold)
-            .reduce((sum, [, value]) => sum + value, 0);
-
-          const filteredResult = Object.fromEntries(
-            Object.entries(result).map(([key, value]) =>
-              key !== "year" && value < threshold ? [key, 0] : [key, value]
-            )
-          );
-
-          return { ...filteredResult, other };
-        }
+  const filteredData = useMemo(() => {
+    if (resultData?.quantileStats?.[selectedStat]) {
+      return Object.entries(resultData.quantileStats[selectedStat]).map(
+        ([year, data]) => ({
+          year: parseInt(year, 10), // Convert year to number
+          median: data.median || 0, // Median
+          p10: data.p10 || 0,
+          p90: data.p90 || 0,
+          p20: data.p20 || 0,
+          p80: data.p80 || 0,
+          p30: data.p30 || 0,
+          p70: data.p70 || 0,
+          p40: data.p40 || 0,
+          p60: data.p60 || 0,
+        })
       );
+    }
+    return [];
+  }, [resultData, selectedStat]);
+
+  const fanData = useMemo(() => {
+    return filteredData.map((d) => ({
+      year: d.year,
+      base: d.p10, // Set the p10 to baseline
+      diff10_90: d.p90 - d.p10, // Range of p10-p90
+      diff20_80: d.p80 - d.p20, // Range of p20-p80
+      diff30_70: d.p70 - d.p30, // Range of p30-p70
+      diff40_60: d.p60 - d.p40, // Range of p40-p60
+      median: d.median, // Median
+    }));
+  }, [filteredData]);
+
+  // Extract "Bar Chart" data
+  const [barChartData, setBarChartData] = useState([]);
+  useEffect(() => {
+    if (
+      resultData?.stackedBar?.investments &&
+      resultData?.stackedBar?.expenses
+    ) {
+      const combinedData = Object.entries(
+        resultData.stackedBar.investments
+      ).map(([year, investmentData]) => {
+        const expenseData = resultData.stackedBar.expenses[year] || {};
+
+        const result = {
+          year: parseInt(year, 10),
+          cash: investmentData[metric]?.cash || 0,
+          sp500: investmentData[metric]?.["S&P 500"] || 0,
+          taxExemptBonds: investmentData[metric]?.["tax-exempt bonds"] || 0,
+          food: expenseData[metric]?.food || 0,
+          vacation: expenseData[metric]?.vacation || 0,
+          streamingServices: expenseData[metric]?.["streaming services"] || 0,
+          taxFederal: expenseData[metric]?.tax_federal || 0,
+          taxState: expenseData[metric]?.tax_state || 0,
+          taxCapitalGains: expenseData[metric]?.tax_capital_gains || 0,
+          taxEarlyWithdrawal: expenseData[metric]?.tax_early_withdrawal || 0,
+        };
+
+        const other = Object.entries(result)
+          .filter(([key, value]) => key !== "year" && value < threshold)
+          .reduce((sum, [, value]) => sum + value, 0);
+
+        const filteredResult = Object.fromEntries(
+          Object.entries(result).map(([key, value]) =>
+            key !== "year" && value < threshold ? [key, 0] : [key, value]
+          )
+        );
+
+        return { ...filteredResult, other };
+      });
 
       setBarChartData(combinedData);
     }
-  }, [metric, threshold, stackedBarData]);
+  }, [metric, threshold, resultData]);
 
   return (
     <MenuLayout>
@@ -220,7 +197,7 @@ const Overview = () => {
                     <YAxis
                       domain={[0, 204]}
                       label={{
-                        value: "Success Rate (%)", 
+                        value: "Success Rate (%)",
                         angle: -90,
                         position: "insideLeft",
                         style: { textAnchor: "middle", fill: "#666" },
