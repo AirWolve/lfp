@@ -1000,8 +1000,13 @@ class Simulation:
                         evt_ss, evt_income = self.incomeEventSimul(ev, ev.initialAmount, year)
                         curYearSS += evt_ss
                         curYearIncome += evt_income
-                        # --- LOG: Income event ---
-                        self.log_event(year, "income", evt_income, f"event: {getattr(ev, 'name', 'unknown')}")
+                        # --- LOG: Income event (log both regular and social security income) ---
+                        self.log_event(
+                            year,
+                            "income",
+                            evt_income + evt_ss,
+                            f"event: {getattr(ev, 'name', 'unknown')}, income: {evt_income}, social_security: {evt_ss}"
+                        )
 
             # 2. Process RMD (73 years and above, based on previous year's pre-tax account)
             current_age = year - self.data.birthYears[0]
