@@ -39,13 +39,31 @@ const Overview = () => {
     navigate(`${constPath.SimulationInfo}`);
   };
 
-  // 성공 확률 데이터 변환
-  const successRateData = Object.entries(testResult.chanceOfSuccess)
-    .map(([year, successRate]) => ({
-      year: parseInt(year, 10), // 연도를 숫자로 변환
-      successRate, // 성공 확률 값
-    }))
-    .filter((item) => item.successRate >= 0 && item.successRate <= 300);
+  // Chance of Success data
+  const [successData, setSuccessData] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  useEffect(() => {
+    const storedData = localStorage.getItem("simResult");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        if (parsedData?.chanceOfSuccess) {
+          setSuccessData(parsedData.chanceOfSuccess);
+          const formattedData = Object.entries(parsedData.chanceOfSuccess).map(([id, value]) => ({
+            id: parseInt(id, 10),
+            value,
+          }));
+          setChartData(formattedData);
+        } else {
+          console.warn("No data.");
+        }
+      } catch (error) {
+        console.error("Get error while parsing", error);
+      }
+    } else {
+      console.warn("No data in local storage");
+    }
+  }, []);
 
   // RangeOfRate 데이터
   const [quantileStats, setQuantileStats] = useState({});
@@ -55,7 +73,6 @@ const Overview = () => {
   useEffect(() => {
     if (testResult?.quantileStats) {
       setQuantileStats(testResult.quantileStats);
-      console.log("Loaded quantileStats:", testResult.quantileStats); // 디버깅용
     }
   }, []);
 
@@ -83,8 +100,6 @@ const Overview = () => {
     diff40_60: d.p60 - d.p40, // p40-p60 범위
     median: d.median, // 중간값
   }));
-
-  console.log("hello", fanData);
 
   // bar chart 데이터
   const [stackedBarData, setStackedBarData] = useState([]);
@@ -130,7 +145,6 @@ const Overview = () => {
         }
       );
 
-      console.log("Combined Data with Threshold:", combinedData);
       setBarChartData(combinedData);
     }
   }, [metric, threshold, stackedBarData]);
@@ -178,9 +192,9 @@ const Overview = () => {
               <div className="linear-graph">
                 <h3>Chance to Success</h3>
                 <ResponsiveContainer height={300}>
-                  <LineChart data={successRateData}>
+                  <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="year" />
+                    <XAxis dataKey="id" />
                     <YAxis
                       domain={[0, 204]}
                       label={{
@@ -194,7 +208,7 @@ const Overview = () => {
                     <Legend />
                     <Line
                       type="monotone"
-                      dataKey="successRate"
+                      dataKey="value"
                       stroke="#8884d8"
                       dot={false}
                     />
