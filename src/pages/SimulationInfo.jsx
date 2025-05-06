@@ -3,7 +3,7 @@ import "../css/SimulationInfo.css";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 import { toast } from "react-toastify";
-import FileImport from "../components/FileImport.jsx";
+import TaxFileImport from "../components/TaxFileImport.jsx";
 
 const SimulationInfo = () => {
   const rawData = localStorage.getItem("BasicSettings");
@@ -208,6 +208,16 @@ const SimulationInfo = () => {
 
   const handleStartSimulation = async (e) => {
     e.preventDefault();
+
+    if (rothOpt && rothStrategy.length === 0) {
+      toast.error("Please enter the Roth conversion strategy");
+      return;
+    }
+
+    if (rothOpt && (rothStart !== null || rothEnd === null)) {
+      toast.error("Please enter the Roth conversion years");
+      return;
+    }
     const simulationInfo = {
       inflationAssumption: { type: "fixed", value: inflationRate / 100 },
       afterTaxContributionLimit: contributionLimit,
@@ -639,7 +649,7 @@ const SimulationInfo = () => {
             {`{"17150": 0.04, "23600": 0.045, "27900": 0.0525, "161550":0.055, "323200":0.06, "2155350":0.0685, "5000000": 0.0965, "25000000": 0.103, "inf": 0.109}`}
           </p>
 
-          <FileImport />
+          <TaxFileImport />
         </section>
         <div className="form-buttons">
           <button className="back" onClick={handleBack}>
