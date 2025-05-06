@@ -10,9 +10,7 @@ import BasicSetting from "./pages/BasicSetting.jsx";
 import Investments from "./pages/Investments.jsx";
 import InvestmentType from "./pages/InvestmentType.jsx";
 import EventSeries from "./pages/EventSeries.jsx";
-import IncomeExpense from "./pages/IncomeExpense.jsx";
 import Overview from "./pages/Overview.jsx";
-import CashFlow from "./pages/CashFlow.jsx";
 import LoadingPage from "./pages/LoadingPage.jsx";
 import SimulationInfo from "./pages/SimulationInfo.jsx";
 
@@ -30,9 +28,7 @@ function App() {
           <Route path="/Investments" element={<Investments />} />
           <Route path="/InvestmentType" element={<InvestmentType />} />
           <Route path="/EventSeries" element={<EventSeries />} />
-          <Route path="/IncomeExpense" element={<IncomeExpense />} />
           <Route path="/Overview" element={<Overview />} />
-          <Route path="/CashFlow" element={<CashFlow />} />
           <Route path="/LoadingPage" element={<LoadingPage />} />
           <Route path="/SimulationInfo" element={<SimulationInfo />} />
         </Routes>
