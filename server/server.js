@@ -353,28 +353,6 @@ app.post("/api/run-simulation", async (req, res) => {
   }
 });
 
-// 1D expoloration
-app.post('/api/one_dimensional_explore', (req, res) => {
-  const { paramName, min, max, step } = req.body;
-
-  const python = spawn('python3', [
-      'server/python/OneDimensionalExplorer.py',
-      paramName, min, max, step
-  ]);
-
-  let data = '';
-  python.stdout.on('data', (chunk) => {
-      data += chunk.toString();
-  });
-
-  python.on('close', (code) => {
-      if (code !== 0) {
-          return res.status(500).send('Simulation failed.');
-      }
-      res.json(JSON.parse(data));
-  });
-});
-
 // History 전체 조회 API (userEmail로 필터)
 app.get("/api/history", async (req, res) => {
   const userEmail = req.query.userEmail;
@@ -399,3 +377,25 @@ initDatabase()
     console.error("Failed to initialize database: ", err);
     process.exit(1);
   });
+
+  // 1D expoloration
+app.post('/api/one_dimensional_explore', (req, res) => {
+  const { paramName, min, max, step } = req.body;
+
+  const python = spawn('python3', [
+      'server/python/OneDimensionalExplorer.py',
+      paramName, min, max, step
+  ]);
+
+  let data = '';
+  python.stdout.on('data', (chunk) => {
+      data += chunk.toString();
+  });
+
+  python.on('close', (code) => {
+      if (code !== 0) {
+          return res.status(500).send('Simulation failed.');
+      }
+      res.json(JSON.parse(data));
+  });
+});
