@@ -1,6 +1,12 @@
 import React from "react";
 import formStyles from "../css/InvestmentTypeForm.module.css";
 
+/* 
+    Investment type form
+    Use the handleConfirm to confirm the investment type
+    Use the closeModal to close the modal
+*/
+
 const InvestmentTypeForm = ({
   investmentType,
   setInvestmentType,

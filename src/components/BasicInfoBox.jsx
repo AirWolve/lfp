@@ -3,6 +3,12 @@ import { constPath } from "../config.js";
 import editIcon from "../assets/editIcon.svg";
 import { useNavigate } from "react-router-dom";
 
+/* 
+    Display basic information of the user
+    Edit button to navigate to the basic setting page
+    To show the basic information, use component to render the information
+*/
+
 const BasicInfoBox = () => {
     const basicInfo = JSON.parse(localStorage.getItem("basicInfo")) ?? null;
     const navigate = useNavigate();

@@ -14,6 +14,11 @@ export const initialRebalanceEvent = {
   },
 };
 
+/* 
+    Rebalance event form
+    Use the initialRebalanceEvent to initialize the rebalance event
+*/
+
 const RebalanceEventForm = ({
   newEvent,
   setNewEvent,
@@ -23,7 +28,7 @@ const RebalanceEventForm = ({
   allocationNum,
   setAllocationNum,
 }) => {
-  // localStorage에서 type이 'income'인 이벤트의 name(중복 없이) 추출
+  // Extract the name of the income event series from localStorage
   let incomeSeriesList = [];
   try {
     const allEvents = JSON.parse(localStorage.getItem('EventSeries')) || [];
@@ -38,7 +43,7 @@ const RebalanceEventForm = ({
     incomeSeriesList = [];
   }
 
-  // start type과 값 업데이트 함수
+  // start type and value update function
   const updateStart = (type, updates = {}) => {
     const newStart = { type };
     Object.entries(updates).forEach(([key, value]) => {
@@ -85,7 +90,7 @@ const RebalanceEventForm = ({
               <option value="startAfter">Start After</option>
             </select>
           </div>
-          {/* type별 입력 필드 */}
+          {/* type-specific input fields */}
           {newEvent.start.type === "fixed" && (
             <div className={`${formStyles.formGroup} ${formStyles.flex1}`}> 
               <label>Start Year</label>

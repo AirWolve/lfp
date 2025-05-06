@@ -1,5 +1,11 @@
 import React from "react";
 
+/* 
+    Investment form
+    Use the handleConfirm to confirm the investment
+    Use the closeModal to close the modal
+*/
+
 const InvestmentForm = ({
   newInvestment,
   setNewInvestment,

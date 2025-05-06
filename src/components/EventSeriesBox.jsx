@@ -3,6 +3,12 @@ import editIcon from "../assets/editIcon.svg";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 
+/* 
+    Display event series information
+    Edit button to navigate to the event series setting page
+    To show the event series information, use component to render the information
+*/
+
 const EventSeriesBox = () => {
   const eventSeries = JSON.parse(localStorage.getItem("EventSeries")) ?? null;
   const navigate = useNavigate();

@@ -39,15 +39,15 @@ const Overview = () => {
     navigate(`${constPath.SimulationInfo}`);
   };
 
-  // 성공 확률 데이터 변환
+  // Convert success rate data
   const successRateData = Object.entries(testResult.chanceOfSuccess)
     .map(([year, successRate]) => ({
-      year: parseInt(year, 10), // 연도를 숫자로 변환
-      successRate, // 성공 확률 값
+      year: parseInt(year, 10), // Convert year to number
+      successRate, // Success rate
     }))
     .filter((item) => item.successRate >= 0 && item.successRate <= 300);
 
-  // RangeOfRate 데이터
+  // RangeOfRate data
   const [quantileStats, setQuantileStats] = useState({});
   const [selectedStat, setSelectedStat] = useState("total_investments");
   // const [goal, setGoal] = useState(10000);
@@ -55,38 +55,36 @@ const Overview = () => {
   useEffect(() => {
     if (testResult?.quantileStats) {
       setQuantileStats(testResult.quantileStats);
-      console.log("Loaded quantileStats:", testResult.quantileStats); // 디버깅용
+      // console.log("Loaded quantileStats:", testResult.quantileStats); // Debugging
     }
   }, []);
 
   const filteredData = Object.entries(quantileStats[selectedStat] || {}).map(
     ([year, data]) => ({
-      year: parseInt(year, 10), // 연도를 숫자로 변환
-      median: data.median || 0, // 중간값
-      p10: data.p10 || 0, // 10% 확률 값
-      p90: data.p90 || 0, // 90% 확률 값
-      p20: data.p20 || 0, // 20% 확률 값
-      p80: data.p80 || 0, // 80% 확률 값
-      p30: data.p30 || 0, // 30% 확률 값
-      p70: data.p70 || 0, // 70% 확률 값
-      p40: data.p40 || 0, // 40% 확률 값
-      p60: data.p60 || 0, // 60% 확률 값
+      year: parseInt(year, 10), // Year to number
+      median: data.median || 0, // Median
+      p10: data.p10 || 0, // 10% probability
+      p90: data.p90 || 0, // 90% probability
+      p20: data.p20 || 0, // 20% probability
+      p80: data.p80 || 0, // 80% probability
+      p30: data.p30 || 0, // 30% probability
+      p70: data.p70 || 0, // 70% probability
+      p40: data.p40 || 0, // 40% probability
+      p60: data.p60 || 0, // 60% probability
     })
   );
 
   const fanData = filteredData.map((d) => ({
     year: d.year,
-    base: d.p10, // p10을 baseline으로 설정
-    diff10_90: d.p90 - d.p10, // p10-p90 범위
-    diff20_80: d.p80 - d.p20, // p20-p80 범위
-    diff30_70: d.p70 - d.p30, // p30-p70 범위
-    diff40_60: d.p60 - d.p40, // p40-p60 범위
-    median: d.median, // 중간값
+    base: d.p10, // Set p10 as baseline
+    diff10_90: d.p90 - d.p10, // p10-p90 range
+    diff20_80: d.p80 - d.p20, // p20-p80 range
+    diff30_70: d.p70 - d.p30, // p30-p70 range
+    diff40_60: d.p60 - d.p40, // p40-p60 range
+    median: d.median, // Median
   }));
 
-  console.log("hello", fanData);
-
-  // bar chart 데이터
+  // bar chart data
   const [stackedBarData, setStackedBarData] = useState([]);
   const [barChartData, setBarChartData] = useState([]);
 
@@ -173,7 +171,7 @@ const Overview = () => {
           </div>
 
           <div className="charts">
-            {/* 성공확률 차트 */}
+            {/* Chance to Success chart */}
             {activeTab === "chanceToSuccess" && (
               <div className="linear-graph">
                 <h3>Chance to Success</h3>
@@ -184,10 +182,10 @@ const Overview = () => {
                     <YAxis
                       domain={[0, 204]}
                       label={{
-                        value: "Success Rate (%)", // 라벨 텍스트
-                        angle: -90, // 라벨 각도 (세로 방향)
-                        position: "insideLeft", // 라벨 위치
-                        style: { textAnchor: "middle", fill: "#666" }, // 스타일
+                        value: "Success Rate (%)", // Label text
+                        angle: -90, // Label angle (vertical direction)
+                        position: "insideLeft", // Label position
+                        style: { textAnchor: "middle", fill: "#666" }, // Style
                       }}
                     />
                     <Tooltip formatter={(value) => `${value.toFixed(2)}%`} />
@@ -203,11 +201,11 @@ const Overview = () => {
               </div>
             )}
 
-            {/* Range of Rate 차트 */}
+            {/* Range of Rate chart */}
             {activeTab === "rangeOfRate" && (
               <div className="linear-graph">
                 <h3>Range of Rate</h3>
-                {/* 선택 가능한 항목 */}
+                {/* Selectable items */}
                 <div className="metric-selector">
                   <label>
                     Select Stat:
@@ -234,7 +232,7 @@ const Overview = () => {
                     </select>
                   </label>
                 </div>
-                {/* Range of Rate 차트 추가 (예시로 LineChart 사용) */}
+                {/* Add Range of Rate chart (using LineChart as an example) */}
                 <ResponsiveContainer width="100%" height={400}>
                   <ComposedChart
                     data={fanData}
@@ -246,7 +244,7 @@ const Overview = () => {
                     <Tooltip formatter={(val) => val.toLocaleString()} />
                     <Legend />
 
-                    {/* p10을 baseline으로 설정 */}
+                    {/* Set p10 as baseline */}
                     <Area
                       type="monotone"
                       dataKey="base"
@@ -257,7 +255,7 @@ const Overview = () => {
                       name="Baseline (p10)"
                     />
 
-                    {/* 바깥 10–90% */}
+                    {/* Outer 10–90% */}
                     <Area
                       type="monotone"
                       dataKey="diff10_90"
@@ -301,7 +299,7 @@ const Overview = () => {
                       name="40%-60%"
                     />
 
-                    {/* 중간값 선 */}
+                    {/* Median line */}
                     <Line
                       type="monotone"
                       dataKey="median"
@@ -350,7 +348,7 @@ const Overview = () => {
                   </label>
                 </div>
 
-                {/* 4.3 투자 항목별 누적 막대 차트 */}
+                {/* Investment breakdown by {metric} */}
                 <h3>Investment Breakdown by {metric}</h3>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart

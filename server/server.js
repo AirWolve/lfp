@@ -168,12 +168,12 @@ app.get("/auth/failure", (req, res) => {
 
 // Save scenario data as YAML
 app.post("/api/export-scenario", async (req, res) => {
-  // 1. historyId, userEmail 확인
+  // Check historyId and userEmail
   const historyId = req.body.historyId;
   const userEmail = req.body.userEmail;
-  console.log("[export-scenario] 요청:", { historyId, userEmail });
+  console.log("[export-scenario] Request:", { historyId, userEmail });
   if (!historyId || !userEmail) {
-    return res.status(400).json({ error: "historyId와 userEmail이 모두 필요합니다." });
+    return res.status(400).json({ error: "historyId and userEmail are both required" });
   }
 
   try {
@@ -181,22 +181,22 @@ app.post("/api/export-scenario", async (req, res) => {
     try {
       objectId = new mongoose.Types.ObjectId(historyId);
     } catch (e) {
-      console.error("[export-scenario] historyId ObjectId 변환 실패:", e);
-      return res.status(400).json({ error: "historyId 형식이 올바르지 않습니다." });
+      console.error("[export-scenario] Failed to convert historyId to ObjectId:", e);
+      return res.status(400).json({ error: "Invalid historyId format" });
     }
 
-    // 2. DB에서 scenario 데이터 조회 (userEmail도 조건에 포함)
+    // Get scenario data from DB (include userEmail in the condition)
     const scenarioDoc = await Models.Scenario.findOne({ history_id: objectId, user: userEmail });
     console.log("[export-scenario] scenarioDoc:", scenarioDoc);
     if (!scenarioDoc) {
-      return res.status(404).json({ error: "해당 historyId와 userEmail에 대한 시나리오를 찾을 수 없습니다." });
+      return res.status(404).json({ error: "No scenario found for the given historyId and userEmail" });
     }
     const scenarioData = scenarioDoc.scenarioData;
     if (!scenarioData) {
-      return res.status(500).json({ error: "Scenario data가 DB에 없습니다." });
+      return res.status(500).json({ error: "Scenario data is not in DB" });
     }
 
-    // 3. Python child process로 exportYAML 실행
+    // Run exportYAML with Python child process
     const pythonScriptPath = path.join(__dirname, 'python', 'export_yaml.py');
     const pythonProcess = spawn('python', [pythonScriptPath], {
       cwd: path.join(__dirname, 'python')
@@ -224,9 +224,11 @@ app.post("/api/export-scenario", async (req, res) => {
         if (!filePath) {
           return res.status(500).json({ error: "No filePath returned from Python" });
         }
+        // Generate a download token to prevent unauthorized access
         const downloadToken = uuidv4();
         if (!global.downloadMap) global.downloadMap = {};
         global.downloadMap[downloadToken] = filePath;
+        // Return the download URL with the token
         res.json({
           message: "Scenario exported successfully",
           downloadUrl: `/api/download-scenario/${downloadToken}`
@@ -235,7 +237,7 @@ app.post("/api/export-scenario", async (req, res) => {
         res.status(500).json({ error: pythonError || 'Python process failed' });
       }
     });
-    // stdin으로 userEmail과 시나리오 데이터 전달 (JSON)
+    // Send userEmail and scenario data to stdin (JSON)
     pythonProcess.stdin.write(JSON.stringify({ userEmail, scenarioData }));
     pythonProcess.stdin.end();
   } catch (error) {
@@ -244,22 +246,22 @@ app.post("/api/export-scenario", async (req, res) => {
   }
 });
 
-// 다운로드 엔드포인트 구현
+// Download endpoint implementation
 app.get("/api/download-scenario/:token", (req, res) => {
   const token = req.params.token;
   if (!global.downloadMap || !global.downloadMap[token]) {
     return res.status(404).json({ error: "Invalid or expired download token" });
   }
   const filePath = global.downloadMap[token];
-  // 다운로드 후 토큰 삭제(1회성)
+  // Delete token after download (one-time use)
   delete global.downloadMap[token];
   res.download(filePath, (err) => {
-    // 다운로드가 끝나면 파일 삭제
+    // Delete file after download
     const fs = require('fs');
     fs.unlink(filePath, (unlinkErr) => {
       if (unlinkErr) {
-        // 파일 삭제 실패 시 로그만 남김
-        console.error('파일 삭제 실패:', unlinkErr);
+        // Log only if file deletion fails
+        console.error('File deletion failed:', unlinkErr);
       }
     });
     if (err) {
@@ -296,13 +298,13 @@ app.post("/api/run-simulation", async (req, res) => {
       return res.status(400).json({ error: "User email is required" });
     }
 
-    // Python 스크립트 경로
+    // Python script path
     const pythonScriptPath = path.join(__dirname, 'python', 'demo_main.py');
     if (!fs.existsSync(pythonScriptPath)) {
       return res.status(500).json({ error: `Python script not found at: ${pythonScriptPath}` });
     }
 
-    // Python 프로세스 실행 (stdin으로 yamlText 전달)
+    // Run Python process (send yamlText to stdin)
     const pythonProcess = spawn('python', [pythonScriptPath], {
       cwd: path.join(__dirname, 'python')
     });
@@ -323,6 +325,7 @@ app.post("/api/run-simulation", async (req, res) => {
         const simResult = JSON.parse(pythonOutput);
         res.json({ result: simResult });
         
+        // Save the simulation result to DB
         const history = new Models.History({
           user: userEmail,
           scenarioName: scenarioName,
@@ -331,6 +334,7 @@ app.post("/api/run-simulation", async (req, res) => {
         });
         await history.save();
 
+        // Save the scenario data to DB linked to the history Id
         const scenario = new Models.Scenario({
           name: scenarioName,
           user: userEmail,
@@ -344,7 +348,7 @@ app.post("/api/run-simulation", async (req, res) => {
       }
     });
 
-    // stdin으로 email과 YAML 텍스트 전달 (예: 첫 줄에 email, 그 다음 줄부터 yaml)
+    // Send email and YAML text to stdin (example: first line is email, then yaml)
     pythonProcess.stdin.write(userEmail + "\n" + yamlText);
     pythonProcess.stdin.end();
   } catch (error) {
@@ -353,17 +357,17 @@ app.post("/api/run-simulation", async (req, res) => {
   }
 });
 
-// History 전체 조회 API (userEmail로 필터)
+// Get all history (filter by userEmail)
 app.get("/api/history", async (req, res) => {
   const userEmail = req.query.userEmail;
   if (!userEmail) {
-    return res.status(400).json({ error: "userEmail이 필요합니다." });
+    return res.status(400).json({ error: "userEmail is required" });
   }
   try {
     const historyList = await Models.History.find({ user: userEmail }).sort({ createdAt: -1 });
     res.json({ history: historyList });
   } catch (error) {
-    res.status(500).json({ error: "History 조회 실패", details: error.message });
+    res.status(500).json({ error: "Failed to get history", details: error.message });
   }
 });
 

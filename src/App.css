@@ -1,4 +1,4 @@
-/* 기본 스타일 초기화 */
+/* Initialize basic styles */
 body, html, ul, li, h1, a {
   margin: 0;
   padding: 0;
@@ -13,5 +13,5 @@ body, html {
   overflow-x: hidden;
 }
 
-/* 헤더 배경 스타일 */
+/* header background style */
 

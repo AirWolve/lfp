@@ -3,6 +3,12 @@ import editIcon from "../assets/editIcon.svg";
 import { useNavigate } from "react-router-dom";
 import { constPath } from "../config.js";
 
+/* 
+    Display investment type information
+    Edit button to navigate to the investment type setting page
+    To show the investment type information, use component to render the information
+*/
+
 const InvestmentTypeBox = () => {
   const investmentType = JSON.parse(localStorage.getItem("InvestmentTypes")) ?? null;
   const navigate = useNavigate();
