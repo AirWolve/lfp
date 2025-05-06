@@ -1,6 +1,8 @@
 import Calculator as ca
 import Scenario as sc
 import numpy as np
+import os
+from datetime import datetime
 
 kFixed = "fixed"
 kUniform = "uniform"
@@ -19,6 +21,9 @@ class Simulation:
                 self.year = ev.start["value"]
                 self.duration = self.year + ev.duration["value"]
                 break
+        # For logging: store yearly investment values and event logs (only for the first simulation)
+        self.log_events = []  # List of event log entries
+        self.log_investments = []  # List of yearly investment value snapshots
 
     # start 1
     def taxInflation(self, year:int, curInflation:float):
@@ -941,6 +946,28 @@ class Simulation:
                 
         return capital_gains
 
+    def log_investment_snapshot(self, year):
+        """
+        Save a snapshot of all investment values for the given year.
+        This is used for the CSV log file.
+        """
+        row = {'year': year}
+        for inv in self.data.investments:
+            row[inv.id] = inv.value
+        self.log_investments.append(row)
+
+    def log_event(self, year, event_type, amount, details):
+        """
+        Save a human-readable log entry for a financial event.
+        This is used for the .log file.
+        """
+        self.log_events.append({
+            'year': year,
+            'type': event_type,
+            'amount': amount,
+            'details': details
+        })
+
     def simulation(self, email, emailNeed = False):
         """
         Implement full year-by-year simulation flow according to algorithm requirements
@@ -953,7 +980,6 @@ class Simulation:
             curInflation = self.inf.runInflation()
             self.taxInflation(year, curInflation)
             curLimit = self.limitInflation(year, curInflation)
-            
             prev_year_pretax_values = [inv.value for inv in self.data.investments if inv.taxStatus == "pre-tax"]
 
             curYearIncome = 0
@@ -964,6 +990,9 @@ class Simulation:
             curYearExpense = {}  # category: amount
             curYearInvest = {}
 
+            # --- LOG: Save investment snapshot at the start of the year ---
+            self.log_investment_snapshot(year)
+
             # 1. Process income event
             for ev in self.data.eventSeries:
                 if ev.type == "income":
@@ -971,6 +1000,8 @@ class Simulation:
                         evt_ss, evt_income = self.incomeEventSimul(ev, ev.initialAmount, year)
                         curYearSS += evt_ss
                         curYearIncome += evt_income
+                        # --- LOG: Income event ---
+                        self.log_event(year, "income", evt_income, f"event: {getattr(ev, 'name', 'unknown')}")
 
             # 2. Process RMD (73 years and above, based on previous year's pre-tax account)
             current_age = year - self.data.birthYears[0]
@@ -978,11 +1009,16 @@ class Simulation:
                 rmd_amount, remaining_rmd = self.calculateRMD(year, current_age, prev_year_pretax_values)
                 processed_rmd = self.processRMD(rmd_amount, remaining_rmd)
                 curYearIncome += processed_rmd
+                # --- LOG: RMD event ---
+                self.log_event(year, "RMD", processed_rmd, f"amount: {rmd_amount}, remaining: {remaining_rmd}")
 
             # 3. Process investment income/expenses
             year_investment_results = self.investmentsSimul(year, curYearIncome)
             curYearIncome = year_investment_results["income"]
             curYearGains += year_investment_results["gains"]
+            # --- LOG: Investment income/gains ---
+            self.log_event(year, "investment_income", year_investment_results["income"], "annual investment income")
+            self.log_event(year, "capital_gains", year_investment_results["gains"], "annual capital gains")
 
             # 4. Process Roth conversion
             rc_amount = 0
@@ -990,6 +1026,8 @@ class Simulation:
                 if hasattr(self.data, 'RothConversionStart') and hasattr(self.data, 'RothConversionEnd'):
                     if self.data.RothConversionStart <= year <= self.data.RothConversionEnd:
                         rc_amount, curYearIncome = self.RCOptimizer(curYearIncome, curYearSS, year)
+                        # --- LOG: Roth conversion ---
+                        self.log_event(year, "Roth conversion", rc_amount, f"Roth conversion in year {year}")
 
             # 5. Process non-discretionary expenses and previous year's taxes
             nondis_expense_total = 0
@@ -1000,6 +1038,8 @@ class Simulation:
                         category = getattr(ev, "name", "unknown")
                         curYearExpense[category] = curYearExpense.get(category, 0) + amt
                         nondis_expense_total += amt
+                        # --- LOG: Non-discretionary expense ---
+                        self.log_event(year, "expense", amt, f"event: {category} (non-discretionary)")
             # Calculate taxes
             federalTax, stateTax, cgTax, ewTax = self.payTax(curYearIncome, curYearSS, curYearGains, curYearEarlyWithdrawals, email)
             curYearTax = {
@@ -1008,6 +1048,11 @@ class Simulation:
                 'capital_gains': cgTax,
                 'early_withdrawal': ewTax
             }
+            # --- LOG: Taxes ---
+            self.log_event(year, "tax", federalTax, "type: federal")
+            self.log_event(year, "tax", stateTax, "type: state")
+            self.log_event(year, "tax", cgTax, "type: capital_gains")
+            self.log_event(year, "tax", ewTax, "type: early_withdrawal")
             # Total non-discretionary expenses + taxes (sell investment if cash is insufficient)
             total_payment = nondis_expense_total + federalTax + stateTax + cgTax + ewTax
             cash = 0
@@ -1019,6 +1064,8 @@ class Simulation:
             if withdrawal > 0:
                 capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
                 curYearGains += capitalGain
+                # --- LOG: Withdrawal for payment ---
+                self.log_event(year, "withdrawal", withdrawal, "withdrawal to cover non-discretionary expenses and taxes")
             for inv in self.data.investments:
                 if inv.investmentType == "cash":
                     inv.value = max(0, inv.value - total_payment)
@@ -1048,11 +1095,15 @@ class Simulation:
                                 if withdrawal > 0:
                                     capitalGain, curYearIncome, curYearEarlyWithdrawals = self.expensePurchase(withdrawal, capitalGain, curYearIncome, curYearEarlyWithdrawals)
                                     curYearGains += capitalGain
+                                    # --- LOG: Withdrawal for discretionary expense ---
+                                    self.log_event(year, "withdrawal", withdrawal, f"withdrawal for discretionary expense: {cat}")
                                 for inv in self.data.investments:
                                     if inv.investmentType == "cash":
                                         inv.value = max(0, inv.value - amt)
                                         break
                             curYearExpense[cat] = curYearExpense.get(cat, 0) + amt
+                            # --- LOG: Discretionary expense ---
+                            self.log_event(year, "expense", amt, f"event: {cat} (discretionary)")
                         if not discretionary_left:
                             break
                 if not discretionary_left:
@@ -1063,6 +1114,8 @@ class Simulation:
                 if ev.type == "invest":
                     if self.checkYear(ev, year):
                         self.buyInvestment(year)
+                        # --- LOG: Invest event ---
+                        self.log_event(year, "invest", 0, f"invest event: {getattr(ev, 'name', 'unknown')}")
 
             # 8. Process rebalancing
             for ev in self.data.eventSeries:
@@ -1070,6 +1123,8 @@ class Simulation:
                     if self.checkYear(ev, year):
                         additional_gains = self.rebalanceEventSimul(ev, year)
                         curYearGains += additional_gains
+                        # --- LOG: Rebalance event ---
+                        self.log_event(year, "rebalance", additional_gains, f"rebalance event: {getattr(ev, 'name', 'unknown')}")
 
             total_assets = sum(inv.value for inv in self.data.investments)
             curYearInvest = {}
