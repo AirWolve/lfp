@@ -195,7 +195,7 @@ const Overview = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="id" />
                     <YAxis
-                      domain={[0, 204]}
+                      domain={[0, 400]}
                       label={{
                         value: "Success Rate (%)",
                         angle: -90,
