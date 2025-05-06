@@ -40,30 +40,28 @@ const Overview = () => {
   };
 
   // Chance of Success data
-  const [successData, setSuccessData] = useState([]);
   const [chartData, setChartData] = useState([]);
   useEffect(() => {
     const storedData = localStorage.getItem("simResult");
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        if (parsedData?.chanceOfSuccess) {
-          setSuccessData(parsedData.chanceOfSuccess);
-          const formattedData = Object.entries(parsedData.chanceOfSuccess).map(([id, value]) => ({
-            id: parseInt(id, 10),
-            value,
-          }));
-          setChartData(formattedData);
-        } else {
-          console.warn("No data.");
-        }
-      } catch (error) {
-        console.error("Get error while parsing", error);
+  if (storedData) {
+    try {
+      const parsedData = JSON.parse(storedData);
+      if (parsedData?.chanceOfSuccess) {
+        const formattedData = Object.entries(parsedData.chanceOfSuccess).map(([id, value]) => ({
+          id: parseInt(id, 10),
+          value,
+        }));
+        setChartData(formattedData);
+      } else {
+        console.warn("No chanceOfSuccess data.");
       }
-    } else {
-      console.warn("No data in local storage");
+    } catch (error) {
+      console.error("Error parsing simResult from localStorage:", error);
     }
-  }, []);
+  } else {
+    console.warn("No simResult data in localStorage.");
+  }
+}, []);
 
   // RangeOfRate 데이터
   const [quantileStats, setQuantileStats] = useState({});
