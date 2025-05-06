@@ -246,7 +246,7 @@ const SimulationInfo = () => {
     try {
       // Send scenario data to server
       if (simulationInfo.residenceState !== "NY" || simulationInfo.residenceState !== "NJ" || simulationInfo.residenceState !== "CT") {
-        toast.error("Please upload the state tax file");
+        toast.error("We'll run the simulation while ignoring state tax. If you want please upload the state tax file");
       }
 
       const response = await fetch(
